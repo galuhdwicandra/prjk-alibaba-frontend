@@ -20,12 +20,10 @@ export interface Outlet {
 
 export interface UserOutletAccess {
   id: number;
-  user_id: number;
   outlet_id: number;
+  outlet_name: string | null;
+  outlet_code: string | null;
   is_default: boolean;
-  created_at: string;
-  updated_at: string;
-  outlet?: Outlet;
 }
 
 export interface OutletSetting {

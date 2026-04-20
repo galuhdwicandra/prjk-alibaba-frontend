@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 12:31:40_  
+_Dihasilkan otomatis: 2026-04-20 14:50:51_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -51,6 +51,8 @@ _Dihasilkan otomatis: 2026-04-20 12:31:40_
   - [src\types\user.ts](#file-srctypesuserts)
 - [Utils (src/utils)](#utils-src-utils)
   - [src\utils\redirect-by-role.ts](#file-srcutilsredirect-by-rolets)
+- [Styles (src/styles)](#styles-src-styles)
+  - [src\styles\index.css](#file-srcstylesindexcss)
 - [Entry Files](#entry-files)
   - [src\main.tsx](#file-srcmaintsx)
   - [src\app\App.tsx](#file-srcappapptsx)
@@ -224,12 +226,12 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `502926ba8cb2`  
+- SHA: `d5626ae3e4a6`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PosLayout } from "@/layouts/PosLayout";
@@ -243,6 +245,10 @@ import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
 import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
   {
     element: <GuestGuard />,
     children: [
@@ -408,8 +414,8 @@ export function PosLayout() {
 
 <a id="file-srcmodulesauthhooksusecurrentuserts"></a>
 ### src\modules\auth\hooks\useCurrentUser.ts
-- SHA: `4510a46c8266`  
-- Ukuran: 971 B
+- SHA: `7ad9f78edee0`  
+- Ukuran: 987 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -428,6 +434,7 @@ export const useCurrentUser = () => {
       const token = authStorage.getToken();
 
       if (!token) {
+        clearAuth();
         setHydrated(true);
         return;
       }
@@ -437,7 +444,7 @@ export const useCurrentUser = () => {
 
         setAuth({
           token,
-          user: response.data.user,
+          user: response.data,
         });
       } catch {
         authStorage.clearToken();
@@ -455,15 +462,15 @@ export const useCurrentUser = () => {
 
 <a id="file-srcmodulesauthpagesloginpagetsx"></a>
 ### src\modules\auth\pages\LoginPage.tsx
-- SHA: `435d4e0732fd`  
-- Ukuran: 3 KB
+- SHA: `7f5053202098`  
+- Ukuran: 4 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { loginSchema, type LoginSchema } from "@/modules/auth/schemas/login.schema";
 import { authService } from "@/modules/auth/services/auth.service";
 import { parseApiError } from "@/services/api/error-parser";
@@ -474,9 +481,13 @@ import { redirectByRole } from "@/utils/redirect-by-role";
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const [serverError, setServerError] = useState<string>("");
+
+  const sessionExpired = searchParams.get("reason") === "session-expired";
+  const fromQuery = searchParams.get("from");
 
   const {
     register,
@@ -494,9 +505,13 @@ export default function LoginPage() {
     try {
       setServerError("");
 
-      const response = await authService.login(values);
-      const token = response.data.token ?? null;
-      const user = response.data.user;
+      const response = await authService.login({
+        ...values,
+        device_name: "web-browser",
+      });
+
+      const token = response.token ?? null;
+      const user = response.data;
 
       if (token) {
         authStorage.setToken(token);
@@ -505,9 +520,10 @@ export default function LoginPage() {
       setAuth({ token, user });
 
       const fallbackPath = redirectByRole(user.roles ?? []);
-      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+      const fromState = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+      const targetPath = fromState || fromQuery || fallbackPath;
 
-      navigate(from || fallbackPath, { replace: true });
+      navigate(targetPath, { replace: true });
     } catch (error) {
       setServerError(parseApiError(error));
     }
@@ -520,6 +536,12 @@ export default function LoginPage() {
         Masuk menggunakan email, username, atau nomor telepon.
       </p>
 
+      {sessionExpired && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          Sesi Anda telah berakhir. Silakan login kembali.
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div>
           <label className="mb-1 block text-sm font-medium text-slate-700">Login</label>
@@ -527,6 +549,7 @@ export default function LoginPage() {
             {...register("login")}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             placeholder="Email / Username / Phone"
+            autoComplete="username"
           />
           {errors.login && (
             <p className="mt-1 text-xs text-red-600">{errors.login.message}</p>
@@ -540,6 +563,7 @@ export default function LoginPage() {
             {...register("password")}
             className="w-full rounded-xl border border-slate-300 px-3 py-2 outline-none focus:border-slate-500"
             placeholder="Masukkan password"
+            autoComplete="current-password"
           />
           {errors.password && (
             <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
@@ -630,19 +654,20 @@ export type LoginSchema = z.infer<typeof loginSchema>;
 
 <a id="file-srcmodulesauthservicesauthservicets"></a>
 ### src\modules\auth\services\auth.service.ts
-- SHA: `ffcf9c925b23`  
-- Ukuran: 699 B
+- SHA: `0eca7779224d`  
+- Ukuran: 707 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
 import { apiClient } from "@/services/api/api-client";
 import { endpoints } from "@/services/api/endpoints";
 import type { ApiResponse } from "@/types/api";
-import type { LoginPayload, LoginResult, MeResult } from "@/types/auth";
+import type { LoginPayload } from "@/types/auth";
+import type { User } from "@/types/user";
 
 export const authService = {
   async login(payload: LoginPayload) {
-    const response = await apiClient.post<ApiResponse<LoginResult>>(endpoints.auth.login, payload);
+    const response = await apiClient.post<ApiResponse<User>>(endpoints.auth.login, payload);
     return response.data;
   },
 
@@ -652,7 +677,7 @@ export const authService = {
   },
 
   async me() {
-    const response = await apiClient.get<ApiResponse<MeResult>>(endpoints.auth.me);
+    const response = await apiClient.get<ApiResponse<User>>(endpoints.auth.me);
     return response.data;
   },
 };
@@ -768,14 +793,40 @@ export function RoutePlaceholder({ title }: RoutePlaceholderProps) {
 
 <a id="file-srcservicesapiapi-clientts"></a>
 ### src\services\api\api-client.ts
-- SHA: `f09fed1dca8b`  
-- Ukuran: 679 B
+- SHA: `800aeabc0e54`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
 import axios from "axios";
 import { env } from "@/app/config/env";
 import { authStorage } from "@/services/storage/auth-storage";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
+
+const isLoginPage = () => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.location.pathname === "/login";
+};
+
+const redirectToLoginBecauseSessionExpired = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const currentPath = window.location.pathname;
+  const query = new URLSearchParams({
+    reason: "session-expired",
+  });
+
+  if (currentPath && currentPath !== "/login") {
+    query.set("from", currentPath);
+  }
+
+  window.location.replace(`/login?${query.toString()}`);
+};
 
 export const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -798,8 +849,15 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401) {
+    const status = error?.response?.status;
+
+    if (status === 401) {
       authStorage.clearToken();
+      useAuthStore.getState().clearAuth();
+
+      if (!isLoginPage()) {
+        redirectToLoginBecauseSessionExpired();
+      }
     }
 
     return Promise.reject(error);
@@ -828,8 +886,8 @@ export const endpoints = {
 
 <a id="file-srcservicesapierror-parserts"></a>
 ### src\services\api\error-parser.ts
-- SHA: `5e3425bb6511`  
-- Ukuran: 397 B
+- SHA: `aa9d90801560`  
+- Ukuran: 722 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -838,7 +896,21 @@ import axios from "axios";
 
 export const parseApiError = (error: unknown): string => {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.message ?? "Terjadi kesalahan pada permintaan.";
+    const data = error.response?.data;
+
+    if (data?.errors) {
+      const firstEntry = Object.values(data.errors)[0];
+
+      if (Array.isArray(firstEntry)) {
+        return firstEntry[0] ?? data.message ?? "Terjadi kesalahan pada permintaan.";
+      }
+
+      if (typeof firstEntry === "string") {
+        return firstEntry;
+      }
+    }
+
+    return data?.message ?? "Terjadi kesalahan pada permintaan.";
   }
 
   if (error instanceof Error) {
@@ -878,8 +950,8 @@ export const authStorage = {
 
 <a id="file-srchooksusepermissionts"></a>
 ### src\hooks\usePermission.ts
-- SHA: `593a88491609`  
-- Ukuran: 323 B
+- SHA: `e4875a651724`  
+- Ukuran: 299 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -888,11 +960,11 @@ import { useAuthStore } from "@/modules/auth/store/auth.store";
 export const usePermission = (permissionName: string): boolean => {
   const user = useAuthStore((state) => state.user);
 
-  if (!user?.permissions) {
+  if (!user?.permissions?.length) {
     return false;
   }
 
-  return user.permissions.some((permission) => permission.name === permissionName);
+  return user.permissions.includes(permissionName);
 };
 ```
 </details>
@@ -902,8 +974,8 @@ export const usePermission = (permissionName: string): boolean => {
 
 <a id="file-srctypesapits"></a>
 ### src\types\api.ts
-- SHA: `41431549f7b6`  
-- Ukuran: 387 B
+- SHA: `c21e64164dde`  
+- Ukuran: 498 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -911,28 +983,36 @@ export interface ApiErrorBag {
   [key: string]: string[] | string;
 }
 
+export interface ApiMeta {
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  [key: string]: unknown;
+}
+
 export interface ApiResponse<T> {
-  success: boolean;
   message: string;
   data: T;
-  errors: ApiErrorBag | null;
-  meta: Record<string, unknown> | null;
+  token?: string;
+  errors?: ApiErrorBag | null;
+  meta?: ApiMeta | null;
 }
 
 export interface ApiErrorResponse {
-  success: boolean;
   message: string;
-  data: null;
-  errors: ApiErrorBag | null;
-  meta: Record<string, unknown> | null;
+  data?: null;
+  token?: string;
+  errors?: ApiErrorBag | null;
+  meta?: ApiMeta | null;
 }
 ```
 </details>
 
 <a id="file-srctypesauthts"></a>
 ### src\types\auth.ts
-- SHA: `30ff53738d98`  
-- Ukuran: 218 B
+- SHA: `b4f6e7a5e83c`  
+- Ukuran: 193 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -941,16 +1021,11 @@ import type { User } from "./user";
 export interface LoginPayload {
   login: string;
   password: string;
+  device_name?: string;
 }
 
-export interface LoginResult {
-  token?: string;
-  user: User;
-}
-
-export interface MeResult {
-  user: User;
-}
+export type LoginResult = User;
+export type MeResult = User;
 ```
 </details>
 
@@ -1063,13 +1138,11 @@ export interface SystemSetting {
 
 <a id="file-srctypesuserts"></a>
 ### src\types\user.ts
-- SHA: `d816c93c8e78`  
-- Ukuran: 517 B
+- SHA: `c9b08ad9bdc1`  
+- Ukuran: 431 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-import type { Role } from "./role";
-import type { Permission } from "./permission";
 import type { UserOutletAccess } from "./outlet";
 
 export interface User {
@@ -1083,8 +1156,8 @@ export interface User {
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
-  roles?: Role[];
-  permissions?: Permission[];
+  roles?: string[];
+  permissions?: string[];
   user_outlet_accesses?: UserOutletAccess[];
 }
 ```
@@ -1095,34 +1168,50 @@ export interface User {
 
 <a id="file-srcutilsredirect-by-rolets"></a>
 ### src\utils\redirect-by-role.ts
-- SHA: `28ee9d5647c0`  
-- Ukuran: 520 B
+- SHA: `632c9f062ef4`  
+- Ukuran: 418 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-import type { Role } from "@/types/role";
-
-export const redirectByRole = (roles: Role[] = []): string => {
-  const roleNames = roles.map((role) => role.name);
-
-  if (roleNames.includes("superadmin") || roleNames.includes("admin_pusat") || roleNames.includes("admin_outlet")) {
+export const redirectByRole = (roles: string[] = []): string => {
+  if (
+    roles.includes("superadmin") ||
+    roles.includes("admin_pusat") ||
+    roles.includes("admin_outlet")
+  ) {
     return "/admin";
   }
 
-  if (roleNames.includes("kasir")) {
+  if (roles.includes("kasir")) {
     return "/pos";
   }
 
-  if (roleNames.includes("dapur")) {
+  if (roles.includes("dapur")) {
     return "/kitchen";
   }
 
-  if (roleNames.includes("owner")) {
+  if (roles.includes("owner")) {
     return "/owner";
   }
 
   return "/unauthorized";
 };
+```
+</details>
+
+
+## Styles (src/styles)
+
+<a id="file-srcstylesindexcss"></a>
+### src\styles\index.css
+- SHA: `2d05991c511e`  
+- Ukuran: 58 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 ```
 </details>
 

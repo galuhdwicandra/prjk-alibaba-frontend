@@ -35,22 +35,41 @@ export const router = createBrowserRouter([
       {
         path: "/admin",
         element: <AdminLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Admin Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
+          { path: "users", element: <RoutePlaceholder title="Users" /> },
+          { path: "roles", element: <RoutePlaceholder title="Roles" /> },
+          { path: "permissions", element: <RoutePlaceholder title="Permissions" /> },
+          { path: "outlets", element: <RoutePlaceholder title="Outlets" /> },
+          { path: "system-settings", element: <RoutePlaceholder title="System Settings" /> },
+        ],
       },
       {
         path: "/pos",
         element: <PosLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="POS Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="POS Home" /> },
+          { path: "orders", element: <RoutePlaceholder title="New Order" /> },
+          { path: "shifts", element: <RoutePlaceholder title="Shift" /> },
+        ],
       },
       {
         path: "/kitchen",
         element: <KitchenLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Kitchen Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Kitchen Home" /> },
+          { path: "tickets", element: <RoutePlaceholder title="Kitchen Tickets" /> },
+          { path: "ready", element: <RoutePlaceholder title="Ready Queue" /> },
+        ],
       },
       {
         path: "/owner",
         element: <OwnerLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Owner Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Owner Home" /> },
+          { path: "overview", element: <RoutePlaceholder title="Overview" /> },
+          { path: "reports", element: <RoutePlaceholder title="Reports" /> },
+        ],
       },
     ],
   },

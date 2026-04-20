@@ -13,5 +13,5 @@ export interface User {
   updated_at: string;
   roles?: string[];
   permissions?: string[];
-  user_outlet_accesses?: UserOutletAccess[];
+  outlet_accesses?: UserOutletAccess[];
 }
