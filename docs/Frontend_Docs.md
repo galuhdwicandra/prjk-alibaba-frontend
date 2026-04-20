@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 15:37:48_  
+_Dihasilkan otomatis: 2026-04-20 16:10:53_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -30,6 +30,7 @@ _Dihasilkan otomatis: 2026-04-20 15:37:48_
   - [src\modules\auth\store\auth.store.ts](#file-srcmodulesauthstoreauthstorets)
 - [Components (src/components)](#components-src-components)
   - [src\components\feedback\AppLoader.tsx](#file-srccomponentsfeedbackapploadertsx)
+  - [src\components\feedback\AppToaster.tsx](#file-srccomponentsfeedbackapptoastertsx)
   - [src\components\feedback\PageEmptyState.tsx](#file-srccomponentsfeedbackpageemptystatetsx)
   - [src\components\feedback\PageErrorState.tsx](#file-srccomponentsfeedbackpageerrorstatetsx)
   - [src\components\feedback\PermissionDenied.tsx](#file-srccomponentsfeedbackpermissiondeniedtsx)
@@ -43,6 +44,26 @@ _Dihasilkan otomatis: 2026-04-20 15:37:48_
   - [src\components\navigation\navigation.config.ts](#file-srccomponentsnavigationnavigationconfigts)
   - [src\components\navigation\PageHeader.tsx](#file-srccomponentsnavigationpageheadertsx)
   - [src\components\navigation\PermissionWrapper.tsx](#file-srccomponentsnavigationpermissionwrappertsx)
+  - [src\components\ui\Badge.tsx](#file-srccomponentsuibadgetsx)
+  - [src\components\ui\Button.tsx](#file-srccomponentsuibuttontsx)
+  - [src\components\ui\Card.tsx](#file-srccomponentsuicardtsx)
+  - [src\components\ui\Checkbox.tsx](#file-srccomponentsuicheckboxtsx)
+  - [src\components\ui\ConfirmDialog.tsx](#file-srccomponentsuiconfirmdialogtsx)
+  - [src\components\ui\DataGrid.tsx](#file-srccomponentsuidatagridtsx)
+  - [src\components\ui\Drawer.tsx](#file-srccomponentsuidrawertsx)
+  - [src\components\ui\FileUploadField.tsx](#file-srccomponentsuifileuploadfieldtsx)
+  - [src\components\ui\index.ts](#file-srccomponentsuiindexts)
+  - [src\components\ui\Input.tsx](#file-srccomponentsuiinputtsx)
+  - [src\components\ui\Modal.tsx](#file-srccomponentsuimodaltsx)
+  - [src\components\ui\Pagination.tsx](#file-srccomponentsuipaginationtsx)
+  - [src\components\ui\Radio.tsx](#file-srccomponentsuiradiotsx)
+  - [src\components\ui\SearchField.tsx](#file-srccomponentsuisearchfieldtsx)
+  - [src\components\ui\Select.tsx](#file-srccomponentsuiselecttsx)
+  - [src\components\ui\Skeleton.tsx](#file-srccomponentsuiskeletontsx)
+  - [src\components\ui\Switch.tsx](#file-srccomponentsuiswitchtsx)
+  - [src\components\ui\Table.tsx](#file-srccomponentsuitabletsx)
+  - [src\components\ui\Tabs.tsx](#file-srccomponentsuitabstsx)
+  - [src\components\ui\utils.ts](#file-srccomponentsuiutilsts)
 - [Services (src/services)](#services-src-services)
   - [src\services\api\api-client.ts](#file-srcservicesapiapi-clientts)
   - [src\services\api\endpoints.ts](#file-srcservicesapiendpointsts)
@@ -51,6 +72,7 @@ _Dihasilkan otomatis: 2026-04-20 15:37:48_
 - [Hooks (src/hooks)](#hooks-src-hooks)
   - [src\hooks\useActiveOutlet.ts](#file-srchooksuseactiveoutletts)
   - [src\hooks\usePermission.ts](#file-srchooksusepermissionts)
+  - [src\hooks\useToast.ts](#file-srchooksusetoastts)
 - [Types (src/types)](#types-src-types)
   - [src\types\api.ts](#file-srctypesapits)
   - [src\types\auth.ts](#file-srctypesauthts)
@@ -112,16 +134,22 @@ export const env = {
 
 <a id="file-srcappprovidersappproviderstsx"></a>
 ### src\app\providers\AppProviders.tsx
-- SHA: `4dbcff4a5bda`  
-- Ukuran: 215 B
+- SHA: `d2ca483aa4bd`  
+- Ukuran: 321 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import type { PropsWithChildren } from "react";
 import { QueryProvider } from "./QueryProvider";
+import { AppToaster } from "@/components/feedback/AppToaster";
 
 export function AppProviders({ children }: PropsWithChildren) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <QueryProvider>
+      {children}
+      <AppToaster />
+    </QueryProvider>
+  );
 }
 ```
 </details>
@@ -787,6 +815,58 @@ export function AppLoader() {
 ```
 </details>
 
+<a id="file-srccomponentsfeedbackapptoastertsx"></a>
+### src\components\feedback\AppToaster.tsx
+- SHA: `f69c47fc1d35`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useToastStore } from "@/hooks/useToast";
+
+const variantClassMap = {
+  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  error: "border-red-200 bg-red-50 text-red-800",
+  info: "border-sky-200 bg-sky-50 text-sky-800",
+  warning: "border-amber-200 bg-amber-50 text-amber-800",
+};
+
+export function AppToaster() {
+  const items = useToastStore((state) => state.items);
+  const removeToast = useToastStore((state) => state.removeToast);
+
+  return (
+    <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-full max-w-sm flex-col gap-3">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className={[
+            "pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg",
+            variantClassMap[item.variant],
+          ].join(" ")}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold">{item.title}</div>
+              {item.description ? <div className="mt-1 text-xs">{item.description}</div> : null}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => removeToast(item.id)}
+              className="rounded-lg px-2 py-1 text-xs hover:bg-white/50"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+</details>
+
 <a id="file-srccomponentsfeedbackpageemptystatetsx"></a>
 ### src\components\feedback\PageEmptyState.tsx
 - SHA: `39531ec4a828`  
@@ -1398,6 +1478,989 @@ export function PermissionWrapper({
 ```
 </details>
 
+<a id="file-srccomponentsuibadgetsx"></a>
+### src\components\ui\Badge.tsx
+- SHA: `db81eea0a0d2`  
+- Ukuran: 811 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { PropsWithChildren } from "react";
+import { cn } from "./utils";
+
+type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
+
+const variantClassMap: Record<BadgeVariant, string> = {
+  default: "bg-slate-100 text-slate-700",
+  success: "bg-emerald-100 text-emerald-700",
+  warning: "bg-amber-100 text-amber-700",
+  danger: "bg-red-100 text-red-700",
+  info: "bg-sky-100 text-sky-700",
+};
+
+interface BadgeProps extends PropsWithChildren {
+  variant?: BadgeVariant;
+  className?: string;
+}
+
+export function Badge({ children, variant = "default", className }: BadgeProps) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+        variantClassMap[variant],
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuibuttontsx"></a>
+### src\components\ui\Button.tsx
+- SHA: `1fa7cf10b18b`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ButtonHTMLAttributes, PropsWithChildren } from "react";
+import { cn } from "./utils";
+
+type ButtonVariant = "primary" | "secondary" | "outline" | "danger" | "ghost";
+type ButtonSize = "sm" | "md" | "lg";
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, PropsWithChildren {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  loading?: boolean;
+  fullWidth?: boolean;
+}
+
+const variantClassMap: Record<ButtonVariant, string> = {
+  primary: "bg-slate-900 text-white hover:bg-slate-800",
+  secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
+  outline: "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50",
+  danger: "bg-red-600 text-white hover:bg-red-700",
+  ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
+};
+
+const sizeClassMap: Record<ButtonSize, string> = {
+  sm: "px-3 py-2 text-sm",
+  md: "px-4 py-2 text-sm",
+  lg: "px-5 py-3 text-base",
+};
+
+export function Button({
+  children,
+  className,
+  variant = "primary",
+  size = "md",
+  loading = false,
+  fullWidth = false,
+  disabled,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={cn(
+        "inline-flex items-center justify-center rounded-xl font-medium transition outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60",
+        variantClassMap[variant],
+        sizeClassMap[size],
+        fullWidth && "w-full",
+        className
+      )}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading ? "Memproses..." : children}
+    </button>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuicardtsx"></a>
+### src\components\ui\Card.tsx
+- SHA: `9401d0385591`  
+- Ukuran: 851 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { PropsWithChildren, ReactNode } from "react";
+import { cn } from "./utils";
+
+interface CardProps extends PropsWithChildren {
+  title?: string;
+  description?: string;
+  actions?: ReactNode;
+  className?: string;
+}
+
+export function Card({ title, description, actions, children, className }: CardProps) {
+  return (
+    <div className={cn("rounded-2xl border border-slate-200 bg-white p-5", className)}>
+      {(title || actions) && (
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            {title ? <h3 className="text-base font-semibold text-slate-900">{title}</h3> : null}
+            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+          </div>
+          {actions ? <div>{actions}</div> : null}
+        </div>
+      )}
+
+      {children}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuicheckboxtsx"></a>
+### src\components\ui\Checkbox.tsx
+- SHA: `67aaf9b98c00`  
+- Ukuran: 729 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { InputHTMLAttributes } from "react";
+
+interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label: string;
+  hint?: string;
+}
+
+export function Checkbox({ label, hint, id, ...props }: CheckboxProps) {
+  const inputId = id ?? props.name;
+
+  return (
+    <label htmlFor={inputId} className="flex cursor-pointer items-start gap-3">
+      <input
+        id={inputId}
+        type="checkbox"
+        className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-900"
+        {...props}
+      />
+      <div>
+        <div className="text-sm font-medium text-slate-800">{label}</div>
+        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
+      </div>
+    </label>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiconfirmdialogtsx"></a>
+### src\components\ui\ConfirmDialog.tsx
+- SHA: `014675527a83`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Modal } from "./Modal";
+import { Button } from "./Button";
+
+interface ConfirmDialogProps {
+  open: boolean;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  cancelText?: string;
+  confirmVariant?: "primary" | "danger";
+  loading?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+export function ConfirmDialog({
+  open,
+  title = "Konfirmasi aksi",
+  description = "Apakah Anda yakin ingin melanjutkan aksi ini?",
+  confirmText = "Ya, lanjutkan",
+  cancelText = "Batal",
+  confirmVariant = "danger",
+  loading = false,
+  onConfirm,
+  onClose,
+}: ConfirmDialogProps) {
+  return (
+    <Modal
+      open={open}
+      title={title}
+      description={description}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            {cancelText}
+          </Button>
+          <Button variant={confirmVariant} loading={loading} onClick={onConfirm}>
+            {confirmText}
+          </Button>
+        </>
+      }
+    >
+      <div className="text-sm text-slate-600">
+        Tindakan ini sebaiknya hanya dilakukan jika Anda sudah yakin terhadap data yang dipilih.
+      </div>
+    </Modal>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuidatagridtsx"></a>
+### src\components\ui\DataGrid.tsx
+- SHA: `bd6277512dd2`  
+- Ukuran: 623 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReactNode } from "react";
+import { Card } from "./Card";
+
+interface DataGridProps {
+  title?: string;
+  description?: string;
+  filters?: ReactNode;
+  table: ReactNode;
+  pagination?: ReactNode;
+  actions?: ReactNode;
+}
+
+export function DataGrid({
+  title,
+  description,
+  filters,
+  table,
+  pagination,
+  actions,
+}: DataGridProps) {
+  return (
+    <div className="space-y-4">
+      {(title || description || actions) && (
+        <Card title={title} description={description} actions={actions} />
+      )}
+
+      {filters ? <Card>{filters}</Card> : null}
+      {table}
+      {pagination}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuidrawertsx"></a>
+### src\components\ui\Drawer.tsx
+- SHA: `3e0dd2c84136`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { PropsWithChildren, ReactNode } from "react";
+import { Button } from "./Button";
+
+interface DrawerProps extends PropsWithChildren {
+  open: boolean;
+  title: string;
+  description?: string;
+  side?: "left" | "right";
+  widthClassName?: string;
+  onClose: () => void;
+  footer?: ReactNode;
+}
+
+export function Drawer({
+  open,
+  title,
+  description,
+  side = "right",
+  widthClassName = "max-w-lg",
+  onClose,
+  footer,
+  children,
+}: DrawerProps) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/50">
+      <div
+        className={[
+          "absolute top-0 h-full w-full bg-white shadow-xl sm:w-[520px]",
+          widthClassName,
+          side === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      >
+        <div className="flex h-full flex-col p-6">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+              {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+            </div>
+
+            <Button variant="ghost" onClick={onClose}>
+              Tutup
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto py-5">{children}</div>
+
+          {footer ? <div className="border-t border-slate-200 pt-4">{footer}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuifileuploadfieldtsx"></a>
+### src\components\ui\FileUploadField.tsx
+- SHA: `0f14b5817246`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useRef } from "react";
+import { Button } from "./Button";
+
+interface FileUploadFieldProps {
+  label?: string;
+  hint?: string;
+  accept?: string;
+  multiple?: boolean;
+  files?: File[] | null;
+  error?: string;
+  onChange: (files: File[]) => void;
+}
+
+export function FileUploadField({
+  label = "Upload file",
+  hint,
+  accept,
+  multiple = false,
+  files,
+  error,
+  onChange,
+}: FileUploadFieldProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div className="space-y-2">
+      <div>
+        <div className="text-sm font-medium text-slate-700">{label}</div>
+        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
+      </div>
+
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          className="hidden"
+          onChange={(event) => {
+            const selected = Array.from(event.target.files ?? []);
+            onChange(selected);
+          }}
+        />
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-slate-600">
+            {files?.length ? `${files.length} file dipilih.` : "Belum ada file dipilih."}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+          >
+            Pilih File
+          </Button>
+        </div>
+
+        {files?.length ? (
+          <ul className="mt-4 space-y-2 text-sm text-slate-700">
+            {files.map((file) => (
+              <li key={`${file.name}-${file.size}`} className="rounded-xl bg-slate-50 px-3 py-2">
+                {file.name}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiindexts"></a>
+### src\components\ui\index.ts
+- SHA: `be0edc9bff36`  
+- Ukuran: 514 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export * from "./utils";
+export * from "./Button";
+export * from "./Input";
+export * from "./Select";
+export * from "./SearchField";
+export * from "./Checkbox";
+export * from "./Radio";
+export * from "./Switch";
+export * from "./Modal";
+export * from "./Drawer";
+export * from "./Table";
+export * from "./DataGrid";
+export * from "./Pagination";
+export * from "./Tabs";
+export * from "./Card";
+export * from "./Badge";
+export * from "./ConfirmDialog";
+export * from "./Skeleton";
+export * from "./FileUploadField";
+```
+</details>
+
+<a id="file-srccomponentsuiinputtsx"></a>
+### src\components\ui\Input.tsx
+- SHA: `98c50405fb80`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { InputHTMLAttributes } from "react";
+import { cn } from "./utils";
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  hint?: string;
+  error?: string;
+}
+
+export function Input({ label, hint, error, className, id, ...props }: InputProps) {
+  const inputId = id ?? props.name;
+
+  return (
+    <div className="space-y-1.5">
+      {label ? (
+        <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+      ) : null}
+
+      <input
+        id={inputId}
+        className={cn(
+          "w-full rounded-xl border px-3 py-2 text-sm outline-none transition",
+          error
+            ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400"
+            : "border-slate-300 bg-white text-slate-900 focus:border-slate-500",
+          className
+        )}
+        {...props}
+      />
+
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {!error && hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuimodaltsx"></a>
+### src\components\ui\Modal.tsx
+- SHA: `4841b04c5467`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { PropsWithChildren, ReactNode } from "react";
+import { Button } from "./Button";
+
+interface ModalProps extends PropsWithChildren {
+  open: boolean;
+  title: string;
+  description?: string;
+  onClose: () => void;
+  footer?: ReactNode;
+}
+
+export function Modal({
+  open,
+  title,
+  description,
+  onClose,
+  footer,
+  children,
+}: ModalProps) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+      <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+          </div>
+
+          <Button variant="ghost" onClick={onClose}>
+            Tutup
+          </Button>
+        </div>
+
+        <div className="mt-5">{children}</div>
+
+        {footer ? <div className="mt-6 flex justify-end gap-3">{footer}</div> : null}
+      </div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuipaginationtsx"></a>
+### src\components\ui\Pagination.tsx
+- SHA: `73b6df0984d6`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ApiMeta } from "@/types/api";
+import { Button } from "./Button";
+
+interface PaginationProps {
+  meta?: ApiMeta | null;
+  onPageChange: (page: number) => void;
+}
+
+export function Pagination({ meta, onPageChange }: PaginationProps) {
+  const currentPage = Number(meta?.current_page ?? 1);
+  const lastPage = Number(meta?.last_page ?? 1);
+
+  if (lastPage <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-slate-500">
+        Halaman <span className="font-medium text-slate-900">{currentPage}</span> dari{" "}
+        <span className="font-medium text-slate-900">{lastPage}</span>
+      </p>
+
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          disabled={currentPage <= 1}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          Sebelumnya
+        </Button>
+
+        <Button
+          variant="outline"
+          disabled={currentPage >= lastPage}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          Berikutnya
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiradiotsx"></a>
+### src\components\ui\Radio.tsx
+- SHA: `5d879789fb35`  
+- Ukuran: 729 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { InputHTMLAttributes } from "react";
+
+interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label: string;
+  hint?: string;
+}
+
+export function Radio({ label, hint, id, ...props }: RadioProps) {
+  const inputId = id ?? `${props.name}-${props.value}`;
+
+  return (
+    <label htmlFor={inputId} className="flex cursor-pointer items-start gap-3">
+      <input
+        id={inputId}
+        type="radio"
+        className="mt-1 h-4 w-4 border-slate-300 text-slate-900"
+        {...props}
+      />
+      <div>
+        <div className="text-sm font-medium text-slate-800">{label}</div>
+        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
+      </div>
+    </label>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuisearchfieldtsx"></a>
+### src\components\ui\SearchField.tsx
+- SHA: `d2505c4d5034`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { InputHTMLAttributes } from "react";
+import { cn } from "./utils";
+
+interface SearchFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  onClear?: () => void;
+}
+
+export function SearchField({ className, value, onClear, ...props }: SearchFieldProps) {
+  const hasValue = typeof value === "string" ? value.length > 0 : Boolean(value);
+
+  return (
+    <div className="relative">
+      <input
+        type="search"
+        value={value}
+        className={cn(
+          "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-500",
+          className
+        )}
+        placeholder="Cari data..."
+        {...props}
+      />
+
+      {hasValue && onClear ? (
+        <button
+          type="button"
+          onClick={onClear}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+        >
+          Clear
+        </button>
+      ) : null}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiselecttsx"></a>
+### src\components\ui\Select.tsx
+- SHA: `9c02bc593449`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { SelectHTMLAttributes } from "react";
+import { cn } from "./utils";
+
+export interface SelectOption {
+  label: string;
+  value: string | number;
+}
+
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  hint?: string;
+  error?: string;
+  placeholder?: string;
+  options: SelectOption[];
+}
+
+export function Select({
+  label,
+  hint,
+  error,
+  id,
+  name,
+  placeholder = "Pilih data",
+  options,
+  className,
+  ...props
+}: SelectProps) {
+  const selectId = id ?? name;
+
+  return (
+    <div className="space-y-1.5">
+      {label ? (
+        <label htmlFor={selectId} className="block text-sm font-medium text-slate-700">
+          {label}
+        </label>
+      ) : null}
+
+      <select
+        id={selectId}
+        name={name}
+        className={cn(
+          "w-full rounded-xl border px-3 py-2 text-sm outline-none transition",
+          error
+            ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400"
+            : "border-slate-300 bg-white text-slate-900 focus:border-slate-500",
+          className
+        )}
+        {...props}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={`${option.value}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {!error && hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiskeletontsx"></a>
+### src\components\ui\Skeleton.tsx
+- SHA: `af989f4926c3`  
+- Ukuran: 520 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+interface SkeletonProps {
+  className?: string;
+}
+
+export function Skeleton({ className = "h-4 w-full" }: SkeletonProps) {
+  return <div className={`animate-pulse rounded-xl bg-slate-200 ${className}`} />;
+}
+
+export function SkeletonCard() {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <Skeleton className="h-6 w-40" />
+      <Skeleton className="mt-3 h-4 w-full" />
+      <Skeleton className="mt-2 h-4 w-5/6" />
+      <Skeleton className="mt-6 h-10 w-32" />
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiswitchtsx"></a>
+### src\components\ui\Switch.tsx
+- SHA: `89c40b999d7f`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+interface SwitchProps {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  label?: string;
+  description?: string;
+  disabled?: boolean;
+}
+
+export function Switch({
+  checked,
+  onChange,
+  label,
+  description,
+  disabled = false,
+}: SwitchProps) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+      <div>
+        {label ? <div className="text-sm font-medium text-slate-900">{label}</div> : null}
+        {description ? <div className="text-xs text-slate-500">{description}</div> : null}
+      </div>
+
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={[
+          "relative inline-flex h-7 w-12 items-center rounded-full transition",
+          checked ? "bg-slate-900" : "bg-slate-300",
+          disabled ? "opacity-50" : "",
+        ].join(" ")}
+      >
+        <span
+          className={[
+            "inline-block h-5 w-5 transform rounded-full bg-white transition",
+            checked ? "translate-x-6" : "translate-x-1",
+          ].join(" ")}
+        />
+      </button>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuitabletsx"></a>
+### src\components\ui\Table.tsx
+- SHA: `4db10a677b7b`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReactNode } from "react";
+
+export interface TableColumn<T> {
+  key: string;
+  title: string;
+  className?: string;
+  render: (row: T, index: number) => ReactNode;
+}
+
+interface TableProps<T> {
+  columns: TableColumn<T>[];
+  data: T[];
+  rowKey: (row: T, index: number) => string | number;
+  emptyText?: string;
+}
+
+export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." }: TableProps<T>) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  className={[
+                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
+                    column.className ?? "",
+                  ].join(" ")}
+                >
+                  {column.title}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-slate-100">
+            {data.length > 0 ? (
+              data.map((row, index) => (
+                <tr key={rowKey(row, index)} className="hover:bg-slate-50">
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-4 py-3 text-sm text-slate-700">
+                      {column.render(row, index)}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-slate-500">
+                  {emptyText}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuitabstsx"></a>
+### src\components\ui\Tabs.tsx
+- SHA: `b7bb62e3a472`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState, type ReactNode } from "react";
+import { cn } from "./utils";
+
+export interface TabItem {
+  key: string;
+  label: string;
+  content: ReactNode;
+}
+
+interface TabsProps {
+  items: TabItem[];
+  defaultTab?: string;
+}
+
+export function Tabs({ items, defaultTab }: TabsProps) {
+  const initialTab = defaultTab ?? items[0]?.key ?? "";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  const current = items.find((item) => item.key === activeTab) ?? items[0];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => {
+          const active = item.key === current?.key;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setActiveTab(item.key)}
+              className={cn(
+                "rounded-xl px-4 py-2 text-sm font-medium transition",
+                active
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              )}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div>{current?.content}</div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsuiutilsts"></a>
+### src\components\ui\utils.ts
+- SHA: `8b2a4f489c46`  
+- Ukuran: 120 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+```
+</details>
+
 
 ## Services (src/services)
 
@@ -1614,6 +2677,66 @@ export const usePermission = (permissionName: string): boolean => {
   }
 
   return user.permissions.includes(permissionName);
+};
+```
+</details>
+
+<a id="file-srchooksusetoastts"></a>
+### src\hooks\useToast.ts
+- SHA: `6c56e3919bdc`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { create } from "zustand";
+
+export type ToastVariant = "success" | "error" | "info" | "warning";
+
+export interface ToastItem {
+  id: number;
+  title: string;
+  description?: string;
+  variant: ToastVariant;
+}
+
+interface ToastState {
+  items: ToastItem[];
+  showToast: (payload: Omit<ToastItem, "id">) => void;
+  removeToast: (id: number) => void;
+}
+
+export const useToastStore = create<ToastState>((set, get) => ({
+  items: [],
+  showToast: (payload) => {
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+
+    set((state) => ({
+      items: [...state.items, { id, ...payload }],
+    }));
+
+    window.setTimeout(() => {
+      get().removeToast(id);
+    }, 3500);
+  },
+  removeToast: (id) =>
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== id),
+    })),
+}));
+
+export const useToast = () => {
+  const showToast = useToastStore((state) => state.showToast);
+
+  return {
+    success: (title: string, description?: string) =>
+      showToast({ title, description, variant: "success" }),
+    error: (title: string, description?: string) =>
+      showToast({ title, description, variant: "error" }),
+    info: (title: string, description?: string) =>
+      showToast({ title, description, variant: "info" }),
+    warning: (title: string, description?: string) =>
+      showToast({ title, description, variant: "warning" }),
+  };
 };
 ```
 </details>

@@ -10,6 +10,11 @@ import LoginPage from "@/modules/auth/pages/LoginPage";
 import UnauthorizedPage from "@/modules/auth/pages/UnauthorizedPage";
 import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
 import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
+import UsersPage from "@/modules/admin/pages/UsersPage";
+import RolesPage from "@/modules/admin/pages/RolesPage";
+import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
+import OutletsPage from "@/modules/admin/pages/OutletsPage";
+import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -37,11 +42,11 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
-          { path: "users", element: <RoutePlaceholder title="Users" /> },
-          { path: "roles", element: <RoutePlaceholder title="Roles" /> },
-          { path: "permissions", element: <RoutePlaceholder title="Permissions" /> },
-          { path: "outlets", element: <RoutePlaceholder title="Outlets" /> },
-          { path: "system-settings", element: <RoutePlaceholder title="System Settings" /> },
+          { path: "users", element: <UsersPage /> },
+          { path: "roles", element: <RolesPage /> },
+          { path: "permissions", element: <PermissionsPage /> },
+          { path: "outlets", element: <OutletsPage /> },
+          { path: "system-settings", element: <SystemSettingsPage /> },
         ],
       },
       {
