@@ -15,6 +15,8 @@ import RolesPage from "@/modules/admin/pages/RolesPage";
 import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
 import OutletsPage from "@/modules/admin/pages/OutletsPage";
 import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
+import ProductCategoriesPage from "@/modules/admin/pages/ProductCategoriesPage";
+import ProductsPage from "@/modules/admin/pages/ProductsPage";
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +49,8 @@ export const router = createBrowserRouter([
           { path: "permissions", element: <PermissionsPage /> },
           { path: "outlets", element: <OutletsPage /> },
           { path: "system-settings", element: <SystemSettingsPage /> },
+          { path: "product-categories", element: <ProductCategoriesPage /> },
+          { path: "products", element: <ProductsPage /> },
         ],
       },
       {

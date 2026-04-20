@@ -43,4 +43,20 @@ export const endpoints = {
     index: "/system-settings",
     upsert: "/system-settings",
   },
+
+  productCategories: {
+    index: "/product-categories",
+    store: "/product-categories",
+    show: (id: number | string) => `/product-categories/${id}`,
+    update: (id: number | string) => `/product-categories/${id}`,
+    destroy: (id: number | string) => `/product-categories/${id}`,
+  },
+
+  products: {
+    index: "/products",
+    store: "/products",
+    show: (id: number | string) => `/products/${id}`,
+    update: (id: number | string) => `/products/${id}`,
+    destroy: (id: number | string) => `/products/${id}`,
+  },
 } as const;

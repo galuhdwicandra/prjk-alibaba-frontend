@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 16:10:53_  
+_Dihasilkan otomatis: 2026-04-20 18:01:34_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -21,6 +21,12 @@ _Dihasilkan otomatis: 2026-04-20 16:10:53_
   - [src\layouts\OwnerLayout.tsx](#file-srclayoutsownerlayouttsx)
   - [src\layouts\PosLayout.tsx](#file-srclayoutsposlayouttsx)
 - [Modules (src/modules)](#modules-src-modules)
+  - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
+  - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
+  - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
+  - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
+  - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
+  - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
   - [src\modules\auth\pages\LoginPage.tsx](#file-srcmodulesauthpagesloginpagetsx)
   - [src\modules\auth\pages\NotFoundPage.tsx](#file-srcmodulesauthpagesnotfoundpagetsx)
@@ -264,7 +270,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `2e825be240fa`  
+- SHA: `f478452188e3`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -281,6 +287,11 @@ import LoginPage from "@/modules/auth/pages/LoginPage";
 import UnauthorizedPage from "@/modules/auth/pages/UnauthorizedPage";
 import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
 import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
+import UsersPage from "@/modules/admin/pages/UsersPage";
+import RolesPage from "@/modules/admin/pages/RolesPage";
+import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
+import OutletsPage from "@/modules/admin/pages/OutletsPage";
+import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -308,11 +319,11 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
-          { path: "users", element: <RoutePlaceholder title="Users" /> },
-          { path: "roles", element: <RoutePlaceholder title="Roles" /> },
-          { path: "permissions", element: <RoutePlaceholder title="Permissions" /> },
-          { path: "outlets", element: <RoutePlaceholder title="Outlets" /> },
-          { path: "system-settings", element: <RoutePlaceholder title="System Settings" /> },
+          { path: "users", element: <UsersPage /> },
+          { path: "roles", element: <RolesPage /> },
+          { path: "permissions", element: <PermissionsPage /> },
+          { path: "outlets", element: <OutletsPage /> },
+          { path: "system-settings", element: <SystemSettingsPage /> },
         ],
       },
       {
@@ -444,6 +455,1504 @@ export function PosLayout() {
 
 
 ## Modules (src/modules)
+
+<a id="file-srcmodulesadminpagesoutletspagetsx"></a>
+### src\modules\admin\pages\OutletsPage.tsx
+- SHA: `253f15245bde`  
+- Ukuran: 14 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  masterDataService,
+  type OutletPayload,
+  type OutletSettingPayload,
+} from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Outlet } from "@/types/outlet";
+
+const initialOutletForm: OutletPayload = {
+  code: "",
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+  city: "",
+  province: "",
+  postal_code: "",
+  latitude: "",
+  longitude: "",
+  opening_time: "",
+  closing_time: "",
+  is_active: true,
+};
+
+const initialSettingForm: OutletSettingPayload = {
+  tax_percent: 0,
+  service_charge_percent: 0,
+  currency_code: "IDR",
+  receipt_footer: "",
+  invoice_prefix: "",
+  order_prefix: "",
+  timezone: "Asia/Jakarta",
+  allow_negative_stock: false,
+  low_stock_notification_enabled: true,
+};
+
+export default function OutletsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [openOutletModal, setOpenOutletModal] = useState(false);
+  const [openSettingModal, setOpenSettingModal] = useState(false);
+  const [editingOutlet, setEditingOutlet] = useState<Outlet | null>(null);
+  const [outletForm, setOutletForm] = useState<OutletPayload>(initialOutletForm);
+  const [settingOutlet, setSettingOutlet] = useState<Outlet | null>(null);
+  const [settingForm, setSettingForm] = useState<OutletSettingPayload>(initialSettingForm);
+
+  const outletsQuery = useQuery({
+    queryKey: ["admin-outlets", search],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, search }),
+  });
+
+  const saveOutletMutation = useMutation({
+    mutationFn: (payload: OutletPayload) =>
+      editingOutlet
+        ? masterDataService.updateOutlet(editingOutlet.id, payload)
+        : masterDataService.createOutlet(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenOutletModal(false);
+      setEditingOutlet(null);
+      setOutletForm(initialOutletForm);
+      void queryClient.invalidateQueries({ queryKey: ["admin-outlets"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan outlet", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => masterDataService.deleteOutlet(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-outlets"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus outlet", parseApiError(error)),
+  });
+
+  const saveSettingMutation = useMutation({
+    mutationFn: () =>
+      settingOutlet
+        ? masterDataService.updateOutletSetting(settingOutlet.id, settingForm)
+        : Promise.reject(new Error("Outlet tidak dipilih")),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenSettingModal(false);
+      setSettingOutlet(null);
+      void queryClient.invalidateQueries({ queryKey: ["admin-outlets"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan setting outlet", parseApiError(error)),
+  });
+
+  const outlets = outletsQuery.data?.items ?? [];
+
+  const openCreate = () => {
+    setEditingOutlet(null);
+    setOutletForm(initialOutletForm);
+    setOpenOutletModal(true);
+  };
+
+  const openEdit = (outlet: Outlet) => {
+    setEditingOutlet(outlet);
+    setOutletForm({
+      code: outlet.code,
+      name: outlet.name,
+      phone: outlet.phone ?? "",
+      email: outlet.email ?? "",
+      address: outlet.address ?? "",
+      city: outlet.city ?? "",
+      province: outlet.province ?? "",
+      postal_code: outlet.postal_code ?? "",
+      latitude: outlet.latitude ?? "",
+      longitude: outlet.longitude ?? "",
+      opening_time: outlet.opening_time ?? "",
+      closing_time: outlet.closing_time ?? "",
+      is_active: outlet.is_active,
+    });
+    setOpenOutletModal(true);
+  };
+
+  const openSetting = async (outlet: Outlet) => {
+    try {
+      const response = await masterDataService.getOutletSetting(outlet.id);
+
+      setSettingOutlet(outlet);
+      setSettingForm({
+        tax_percent: Number(response.data.tax_percent),
+        service_charge_percent: Number(response.data.service_charge_percent),
+        currency_code: response.data.currency_code,
+        receipt_footer: response.data.receipt_footer ?? "",
+        invoice_prefix: response.data.invoice_prefix ?? "",
+        order_prefix: response.data.order_prefix ?? "",
+        timezone: response.data.timezone,
+        allow_negative_stock: response.data.allow_negative_stock,
+        low_stock_notification_enabled: response.data.low_stock_notification_enabled,
+      });
+      setOpenSettingModal(true);
+    } catch (error) {
+      toast.error("Gagal mengambil setting outlet", parseApiError(error));
+    }
+  };
+
+  return (
+    <PermissionWrapper permission="outlets.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Outlets"
+          description="Kelola cabang dan setting per outlet."
+          actions={<Button onClick={openCreate}>Tambah Outlet</Button>}
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari code, nama, kota, atau provinsi..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </Card>
+
+        {outletsQuery.isLoading ? (
+          <Card>Memuat data outlet...</Card>
+        ) : outletsQuery.isError ? (
+          <PageErrorState onRetry={() => void outletsQuery.refetch()} />
+        ) : !outlets.length ? (
+          <PageEmptyState title="Belum ada outlet" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {outlets.map((outlet) => (
+              <Card
+                key={outlet.id}
+                title={`${outlet.name} (${outlet.code})`}
+                description={outlet.address ?? "-"}
+                actions={
+                  <Badge variant={outlet.is_active ? "success" : "danger"}>
+                    {outlet.is_active ? "Aktif" : "Nonaktif"}
+                  </Badge>
+                }
+              >
+                <div className="space-y-2 text-sm text-slate-600">
+                  <div>Kota: {outlet.city ?? "-"}</div>
+                  <div>Provinsi: {outlet.province ?? "-"}</div>
+                  <div>Jam Operasional: {outlet.opening_time ?? "-"} - {outlet.closing_time ?? "-"}</div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => openEdit(outlet)}>
+                    Edit Outlet
+                  </Button>
+                  <Button variant="secondary" onClick={() => void openSetting(outlet)}>
+                    Setting Outlet
+                  </Button>
+                  <Button
+                    variant="danger"
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(outlet.id)}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Modal
+          open={openOutletModal}
+          title={editingOutlet ? "Edit Outlet" : "Tambah Outlet"}
+          onClose={() => setOpenOutletModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenOutletModal(false)}>
+                Batal
+              </Button>
+              <Button
+                loading={saveOutletMutation.isPending}
+                onClick={() => saveOutletMutation.mutate(outletForm)}
+              >
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Kode Outlet"
+              value={outletForm.code}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, code: e.target.value }))}
+            />
+            <Input
+              label="Nama Outlet"
+              value={outletForm.name}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, name: e.target.value }))}
+            />
+            <Input
+              label="Phone"
+              value={outletForm.phone ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, phone: e.target.value }))}
+            />
+            <Input
+              label="Email"
+              value={outletForm.email ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, email: e.target.value }))}
+            />
+            <Input
+              label="City"
+              value={outletForm.city ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, city: e.target.value }))}
+            />
+            <Input
+              label="Province"
+              value={outletForm.province ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, province: e.target.value }))}
+            />
+            <Input
+              label="Postal Code"
+              value={outletForm.postal_code ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, postal_code: e.target.value }))}
+            />
+            <Input
+              label="Address"
+              value={outletForm.address ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, address: e.target.value }))}
+            />
+            <Input
+              label="Latitude"
+              value={outletForm.latitude ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, latitude: e.target.value }))}
+            />
+            <Input
+              label="Longitude"
+              value={outletForm.longitude ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, longitude: e.target.value }))}
+            />
+            <Input
+              label="Opening Time"
+              type="time"
+              value={outletForm.opening_time ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, opening_time: e.target.value }))}
+            />
+            <Input
+              label="Closing Time"
+              type="time"
+              value={outletForm.closing_time ?? ""}
+              onChange={(e) => setOutletForm((prev) => ({ ...prev, closing_time: e.target.value }))}
+            />
+            <div className="md:col-span-2">
+              <Checkbox
+                label="Outlet aktif"
+                checked={Boolean(outletForm.is_active)}
+                onChange={(e) => setOutletForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+              />
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          open={openSettingModal}
+          title={`Setting Outlet${settingOutlet ? ` — ${settingOutlet.name}` : ""}`}
+          onClose={() => setOpenSettingModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenSettingModal(false)}>
+                Batal
+              </Button>
+              <Button loading={saveSettingMutation.isPending} onClick={() => saveSettingMutation.mutate()}>
+                Simpan Setting
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Tax Percent"
+              type="number"
+              value={String(settingForm.tax_percent ?? 0)}
+              onChange={(e) =>
+                setSettingForm((prev) => ({ ...prev, tax_percent: Number(e.target.value) }))
+              }
+            />
+            <Input
+              label="Service Charge Percent"
+              type="number"
+              value={String(settingForm.service_charge_percent ?? 0)}
+              onChange={(e) =>
+                setSettingForm((prev) => ({
+                  ...prev,
+                  service_charge_percent: Number(e.target.value),
+                }))
+              }
+            />
+            <Input
+              label="Currency Code"
+              value={settingForm.currency_code ?? "IDR"}
+              onChange={(e) =>
+                setSettingForm((prev) => ({ ...prev, currency_code: e.target.value }))
+              }
+            />
+            <Input
+              label="Timezone"
+              value={settingForm.timezone ?? "Asia/Jakarta"}
+              onChange={(e) =>
+                setSettingForm((prev) => ({ ...prev, timezone: e.target.value }))
+              }
+            />
+            <Input
+              label="Invoice Prefix"
+              value={settingForm.invoice_prefix ?? ""}
+              onChange={(e) =>
+                setSettingForm((prev) => ({ ...prev, invoice_prefix: e.target.value }))
+              }
+            />
+            <Input
+              label="Order Prefix"
+              value={settingForm.order_prefix ?? ""}
+              onChange={(e) =>
+                setSettingForm((prev) => ({ ...prev, order_prefix: e.target.value }))
+              }
+            />
+            <div className="md:col-span-2">
+              <Input
+                label="Receipt Footer"
+                value={settingForm.receipt_footer ?? ""}
+                onChange={(e) =>
+                  setSettingForm((prev) => ({ ...prev, receipt_footer: e.target.value }))
+                }
+              />
+            </div>
+            <div className="md:col-span-2 grid gap-2">
+              <Checkbox
+                label="Allow negative stock"
+                checked={Boolean(settingForm.allow_negative_stock)}
+                onChange={(e) =>
+                  setSettingForm((prev) => ({
+                    ...prev,
+                    allow_negative_stock: e.target.checked,
+                  }))
+                }
+              />
+              <Checkbox
+                label="Low stock notification enabled"
+                checked={Boolean(settingForm.low_stock_notification_enabled)}
+                onChange={(e) =>
+                  setSettingForm((prev) => ({
+                    ...prev,
+                    low_stock_notification_enabled: e.target.checked,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagespermissionspagetsx"></a>
+### src\modules\admin\pages\PermissionsPage.tsx
+- SHA: `de0fa91fa966`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Button, Card, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Permission } from "@/types/permission";
+
+export default function PermissionsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Permission | null>(null);
+  const [name, setName] = useState("");
+
+  const permissionsQuery = useQuery({
+    queryKey: ["admin-permissions"],
+    queryFn: () => masterDataService.getPermissions({ per_page: 200 }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      editing
+        ? masterDataService.updatePermission(editing.id, { name })
+        : masterDataService.createPermission({ name }),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditing(null);
+      setName("");
+      void queryClient.invalidateQueries({ queryKey: ["admin-permissions"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan permission", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => masterDataService.deletePermission(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-permissions"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus permission", parseApiError(error)),
+  });
+
+  const permissions = permissionsQuery.data?.items ?? [];
+
+  return (
+    <PermissionWrapper permission="permissions.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Permissions"
+          description="Kelola permission sistem."
+          actions={
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setName("");
+                setOpen(true);
+              }}
+            >
+              Tambah Permission
+            </Button>
+          }
+        />
+
+        {permissionsQuery.isLoading ? (
+          <Card>Memuat data permission...</Card>
+        ) : permissionsQuery.isError ? (
+          <PageErrorState onRetry={() => void permissionsQuery.refetch()} />
+        ) : !permissions.length ? (
+          <PageEmptyState title="Belum ada permission" />
+        ) : (
+          <Card>
+            <div className="space-y-3">
+              {permissions.map((permission) => (
+                <div
+                  key={permission.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between"
+                >
+                  <div>
+                    <div className="font-medium text-slate-900">{permission.name}</div>
+                    <div className="text-xs text-slate-500">{permission.guard_name}</div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditing(permission);
+                        setName(permission.name);
+                        setOpen(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      loading={deleteMutation.isPending}
+                      onClick={() => deleteMutation.mutate(permission.id)}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <Modal
+          open={open}
+          title={editing ? "Edit Permission" : "Tambah Permission"}
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <Input
+            label="Nama Permission"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="contoh: users.view"
+          />
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesrolespagetsx"></a>
+### src\modules\admin\pages\RolesPage.tsx
+- SHA: `d371390e27ee`  
+- Ukuran: 7 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService, type RolePayload } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Role } from "@/types/role";
+
+export default function RolesPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Role | null>(null);
+  const [name, setName] = useState("");
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+
+  const rolesQuery = useQuery({
+    queryKey: ["admin-roles"],
+    queryFn: () => masterDataService.getRoles({ per_page: 100 }),
+  });
+
+  const permissionsQuery = useQuery({
+    queryKey: ["admin-permissions-for-role-page"],
+    queryFn: () => masterDataService.getPermissions({ per_page: 200 }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: RolePayload) =>
+      editing
+        ? masterDataService.updateRole(editing.id, payload)
+        : masterDataService.createRole(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditing(null);
+      setName("");
+      setSelectedPermissions([]);
+      void queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan role", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => masterDataService.deleteRole(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus role", parseApiError(error)),
+  });
+
+  useEffect(() => {
+    if (!open) {
+      setEditing(null);
+      setName("");
+      setSelectedPermissions([]);
+    }
+  }, [open]);
+
+  const openCreate = () => setOpen(true);
+
+  const openEdit = (role: Role) => {
+    setEditing(role);
+    setName(role.name);
+    setSelectedPermissions(role.permissions ?? []);
+    setOpen(true);
+  };
+
+  const roles = rolesQuery.data?.items ?? [];
+  const permissions = permissionsQuery.data?.items ?? [];
+
+  return (
+    <PermissionWrapper permission="roles.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Roles"
+          description="Kelola role dan permission matrix sederhana."
+          actions={<Button onClick={openCreate}>Tambah Role</Button>}
+        />
+
+        {rolesQuery.isLoading ? (
+          <Card>Memuat data role...</Card>
+        ) : rolesQuery.isError ? (
+          <PageErrorState onRetry={() => void rolesQuery.refetch()} />
+        ) : !roles.length ? (
+          <PageEmptyState title="Belum ada role" />
+        ) : (
+          <Card>
+            <div className="space-y-4">
+              {roles.map((role) => (
+                <div
+                  key={role.id}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="text-base font-semibold text-slate-900">{role.name}</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(role.permissions ?? []).map((permission) => (
+                          <Badge key={permission} variant="info">
+                            {permission}
+                          </Badge>
+                        ))}
+                        {!role.permissions?.length ? (
+                          <span className="text-sm text-slate-500">Belum ada permission.</span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => openEdit(role)}>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        loading={deleteMutation.isPending}
+                        onClick={() => deleteMutation.mutate(role.id)}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <Modal
+          open={open}
+          title={editing ? "Edit Role" : "Tambah Role"}
+          description="Atur nama role dan checklist permission."
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                loading={saveMutation.isPending}
+                onClick={() =>
+                  saveMutation.mutate({
+                    name,
+                    permissions: selectedPermissions,
+                  })
+                }
+              >
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <Input label="Nama Role" value={name} onChange={(e) => setName(e.target.value)} />
+
+            <div>
+              <div className="mb-2 text-sm font-medium text-slate-700">Permissions</div>
+              <div className="grid gap-2 md:grid-cols-2">
+                {permissions.map((permission) => {
+                  const checked = selectedPermissions.includes(permission.name);
+
+                  return (
+                    <Checkbox
+                      key={permission.id}
+                      label={permission.name}
+                      checked={checked}
+                      onChange={(e) => {
+                        setSelectedPermissions((prev) =>
+                          e.target.checked
+                            ? [...prev, permission.name]
+                            : prev.filter((item) => item !== permission.name)
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagessystemsettingspagetsx"></a>
+### src\modules\admin\pages\SystemSettingsPage.tsx
+- SHA: `cfb601943205`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  masterDataService,
+  type SystemSettingPayloadItem,
+} from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { SystemSetting } from "@/types/settings";
+
+export default function SystemSettingsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [drafts, setDrafts] = useState<Record<number, string>>({});
+
+  const settingsQuery = useQuery({
+    queryKey: ["admin-system-settings", search],
+    queryFn: () => masterDataService.getSystemSettings({ per_page: 100, search }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: SystemSettingPayloadItem[]) => masterDataService.upsertSystemSettings(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-system-settings"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan system settings", parseApiError(error)),
+  });
+
+  const settings = settingsQuery.data?.items ?? [];
+
+  const changedItems = useMemo(() => {
+    return settings
+      .filter((item) => Object.prototype.hasOwnProperty.call(drafts, item.id))
+      .map((item): SystemSettingPayloadItem => ({
+        key: item.key,
+        value: drafts[item.id] ?? "",
+        type: item.type,
+      }));
+  }, [drafts, settings]);
+
+  const updateDraft = (item: SystemSetting, value: string) => {
+    setDrafts((prev) => ({ ...prev, [item.id]: value }));
+  };
+
+  return (
+    <PermissionWrapper permission="system_settings.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="System Settings"
+          description="Kelola pengaturan sistem berbasis key-value."
+          actions={
+            <Button
+              loading={saveMutation.isPending}
+              disabled={!changedItems.length}
+              onClick={() => saveMutation.mutate(changedItems)}
+            >
+              Simpan Perubahan
+            </Button>
+          }
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari key setting..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </Card>
+
+        {settingsQuery.isLoading ? (
+          <Card>Memuat system settings...</Card>
+        ) : settingsQuery.isError ? (
+          <PageErrorState onRetry={() => void settingsQuery.refetch()} />
+        ) : !settings.length ? (
+          <PageEmptyState title="Belum ada system settings" />
+        ) : (
+          <div className="space-y-3">
+            {settings.map((item) => (
+              <Card key={item.id}>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="font-medium text-slate-900">{item.key}</div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge variant="info">{item.type}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="w-full max-w-xl">
+                    <Input
+                      value={drafts[item.id] ?? item.value ?? ""}
+                      onChange={(e) => updateDraft(item, e.target.value)}
+                    />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesuserspagetsx"></a>
+### src\modules\admin\pages\UsersPage.tsx
+- SHA: `bab9dc4d7dc9`  
+- Ukuran: 15 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService, type UserPayload } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { User } from "@/types/user";
+
+const initialForm: UserPayload = {
+  name: "",
+  email: "",
+  phone: "",
+  username: "",
+  password: "",
+  password_confirmation: "",
+  is_active: true,
+  user_type: "staff",
+  roles: [],
+  outlet_ids: [],
+  default_outlet_id: null,
+};
+
+export default function UsersPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<User | null>(null);
+  const [form, setForm] = useState<UserPayload>(initialForm);
+
+  const usersQuery = useQuery({
+    queryKey: ["admin-users", page, search],
+    queryFn: () => masterDataService.getUsers({ page, per_page: 10, search }),
+  });
+
+  const rolesQuery = useQuery({
+    queryKey: ["admin-role-options"],
+    queryFn: () => masterDataService.getRoles({ per_page: 100 }),
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["admin-outlet-options"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: UserPayload) =>
+      editing
+        ? masterDataService.updateUser(editing.id, payload)
+        : masterDataService.createUser(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditing(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan user", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => masterDataService.deactivateUser(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (error) => toast.error("Gagal menonaktifkan user", parseApiError(error)),
+  });
+
+  const roleOptions = rolesQuery.data?.items ?? [];
+  const outletOptions = outletsQuery.data?.items ?? [];
+  const users = usersQuery.data?.items ?? [];
+  const meta = usersQuery.data?.meta;
+
+  const totalPages = Number(meta?.last_page ?? 1);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setOpen(true);
+  };
+
+  const openEdit = (user: User) => {
+    setEditing(user);
+    setForm({
+      name: user.name,
+      email: user.email ?? "",
+      phone: user.phone ?? "",
+      username: user.username ?? "",
+      password: "",
+      password_confirmation: "",
+      is_active: user.is_active,
+      user_type: user.user_type ?? "staff",
+      roles: user.roles ?? [],
+      outlet_ids: user.outlet_accesses?.map((item) => item.outlet_id) ?? [],
+      default_outlet_id:
+        user.outlet_accesses?.find((item) => item.is_default)?.outlet_id ?? null,
+    });
+    setOpen(true);
+  };
+
+  const selectedDefaultOutletName = useMemo(() => {
+    return outletOptions.find((item) => item.id === form.default_outlet_id)?.name ?? "-";
+  }, [form.default_outlet_id, outletOptions]);
+
+  return (
+    <PermissionWrapper permission="users.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Users"
+          description="Kelola akun user, role, dan akses outlet."
+          actions={
+            <Button onClick={openCreate} disabled={!roleOptions.length}>
+              Tambah User
+            </Button>
+          }
+        />
+
+        <Card>
+          <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+            <Input
+              placeholder="Cari nama, email, phone, atau username..."
+              value={search}
+              onChange={(e) => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
+            />
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              Total: {meta?.total ?? 0}
+            </div>
+          </div>
+        </Card>
+
+        {usersQuery.isLoading ? (
+          <Card>Memuat data user...</Card>
+        ) : usersQuery.isError ? (
+          <PageErrorState onRetry={() => void usersQuery.refetch()} />
+        ) : !users.length ? (
+          <PageEmptyState
+            title="Belum ada user"
+            description="Data user belum tersedia atau tidak cocok dengan filter."
+          />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-slate-500">
+                    <th className="px-3 py-3">Nama</th>
+                    <th className="px-3 py-3">Login</th>
+                    <th className="px-3 py-3">Role</th>
+                    <th className="px-3 py-3">Outlet</th>
+                    <th className="px-3 py-3">Status</th>
+                    <th className="px-3 py-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-b border-slate-100">
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-slate-900">{user.name}</div>
+                        <div className="text-xs text-slate-500">{user.user_type ?? "-"}</div>
+                      </td>
+                      <td className="px-3 py-3 text-slate-600">
+                        {user.email ?? user.username ?? user.phone ?? "-"}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {(user.roles ?? []).map((role) => (
+                            <Badge key={role} variant="info">
+                              {role}
+                            </Badge>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-slate-600">
+                        {(user.outlet_accesses ?? []).length
+                          ? user.outlet_accesses
+                              ?.map((item) =>
+                                item.is_default
+                                  ? `${item.outlet_name ?? item.outlet_code} (default)`
+                                  : item.outlet_name ?? item.outlet_code
+                              )
+                              .join(", ")
+                          : "-"}
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge variant={user.is_active ? "success" : "danger"}>
+                          {user.is_active ? "Aktif" : "Nonaktif"}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => openEdit(user)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="danger"
+                            loading={deleteMutation.isPending}
+                            onClick={() => deleteMutation.mutate(user.id)}
+                          >
+                            Nonaktifkan
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-slate-500">
+                Halaman {meta?.current_page ?? 1} dari {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={(meta?.current_page ?? 1) <= 1}
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  Sebelumnya
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={(meta?.current_page ?? 1) >= totalPages}
+                  onClick={() => setPage((prev) => prev + 1)}
+                >
+                  Berikutnya
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <Modal
+          open={open}
+          title={editing ? "Edit User" : "Tambah User"}
+          description="Isi data user, role, dan outlet access."
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Nama"
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            />
+            <Input
+              label="Email"
+              value={form.email ?? ""}
+              onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            />
+            <Input
+              label="Phone"
+              value={form.phone ?? ""}
+              onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+            />
+            <Input
+              label="Username"
+              value={form.username ?? ""}
+              onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))}
+            />
+
+            <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
+              <Input
+                label={editing ? "Password baru (opsional)" : "Password"}
+                type="password"
+                value={form.password ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+              />
+              <Input
+                label={editing ? "Konfirmasi password baru" : "Konfirmasi password"}
+                type="password"
+                value={form.password_confirmation ?? ""}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, password_confirmation: e.target.value }))
+                }
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">Roles</label>
+              <div className="grid gap-2 md:grid-cols-3">
+                {roleOptions.map((role) => {
+                  const checked = form.roles.includes(role.name);
+
+                  return (
+                    <Checkbox
+                      key={role.id}
+                      label={role.name}
+                      checked={checked}
+                      onChange={(e) => {
+                        const nextRoles = e.target.checked
+                          ? [...form.roles, role.name]
+                          : form.roles.filter((item) => item !== role.name);
+
+                        setForm((prev) => ({ ...prev, roles: nextRoles }));
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet Access</label>
+              <div className="grid gap-2 md:grid-cols-2">
+                {outletOptions.map((outlet) => {
+                  const checked = form.outlet_ids?.includes(outlet.id) ?? false;
+
+                  return (
+                    <Checkbox
+                      key={outlet.id}
+                      label={`${outlet.name} (${outlet.code})`}
+                      checked={checked}
+                      onChange={(e) => {
+                        const current = form.outlet_ids ?? [];
+                        const next = e.target.checked
+                          ? [...current, outlet.id]
+                          : current.filter((item) => item !== outlet.id);
+
+                        setForm((prev) => ({
+                          ...prev,
+                          outlet_ids: next,
+                          default_outlet_id:
+                            prev.default_outlet_id && !next.includes(prev.default_outlet_id)
+                              ? null
+                              : prev.default_outlet_id,
+                        }));
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Default Outlet
+              </label>
+              <select
+                value={form.default_outlet_id ?? ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    default_outlet_id: e.target.value ? Number(e.target.value) : null,
+                  }))
+                }
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="">Pilih default outlet</option>
+                {(form.outlet_ids ?? []).map((outletId) => {
+                  const outlet = outletOptions.find((item) => item.id === outletId);
+                  if (!outlet) return null;
+
+                  return (
+                    <option key={outlet.id} value={outlet.id}>
+                      {outlet.name} ({outlet.code})
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="mt-1 text-xs text-slate-500">
+                Terpilih: {selectedDefaultOutletName}
+              </p>
+            </div>
+
+            <div className="md:col-span-2">
+              <Checkbox
+                label="User aktif"
+                checked={Boolean(form.is_active)}
+                onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+              />
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminservicesmaster-dataservicets"></a>
+### src\modules\admin\services\master-data.service.ts
+- SHA: `710c66c0e62c`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type { User } from "@/types/user";
+import type { Role } from "@/types/role";
+import type { Permission } from "@/types/permission";
+import type { Outlet, OutletSetting } from "@/types/outlet";
+import type { SystemSetting } from "@/types/settings";
+
+export interface PaginationQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_active?: boolean | "";
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+export interface UserPayload {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  username?: string | null;
+  password?: string;
+  password_confirmation?: string;
+  is_active?: boolean;
+  user_type?: "superadmin" | "staff" | "owner_viewer" | null;
+  roles: string[];
+  outlet_ids?: number[];
+  default_outlet_id?: number | null;
+}
+
+export interface RolePayload {
+  name: string;
+  permissions?: string[];
+}
+
+export interface PermissionPayload {
+  name: string;
+}
+
+export interface OutletPayload {
+  code: string;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postal_code?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+  opening_time?: string | null;
+  closing_time?: string | null;
+  is_active?: boolean;
+}
+
+export interface OutletSettingPayload {
+  tax_percent?: number;
+  service_charge_percent?: number;
+  currency_code?: string;
+  receipt_footer?: string | null;
+  invoice_prefix?: string | null;
+  order_prefix?: string | null;
+  timezone?: string;
+  allow_negative_stock?: boolean;
+  low_stock_notification_enabled?: boolean;
+}
+
+export interface SystemSettingPayloadItem {
+  key: string;
+  value: string | number | boolean | Record<string, unknown> | null;
+  type: "string" | "number" | "boolean" | "json";
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const masterDataService = {
+  async getUsers(params: PaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<User[]>>(endpoints.users.index, { params });
+    return unwrapPaginated(response.data);
+  },
+
+  async createUser(payload: UserPayload) {
+    const response = await apiClient.post<ApiResponse<User>>(endpoints.users.store, payload);
+    return response.data;
+  },
+
+  async updateUser(id: number, payload: UserPayload) {
+    const response = await apiClient.put<ApiResponse<User>>(endpoints.users.update(id), payload);
+    return response.data;
+  },
+
+  async deactivateUser(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.users.destroy(id));
+    return response.data;
+  },
+
+  async getRoles(params: Pick<PaginationQuery, "page" | "per_page"> = {}) {
+    const response = await apiClient.get<ApiResponse<Role[]>>(endpoints.roles.index, { params });
+    return unwrapPaginated(response.data);
+  },
+
+  async createRole(payload: RolePayload) {
+    const response = await apiClient.post<ApiResponse<Role>>(endpoints.roles.store, payload);
+    return response.data;
+  },
+
+  async updateRole(id: number, payload: RolePayload) {
+    const response = await apiClient.put<ApiResponse<Role>>(endpoints.roles.update(id), payload);
+    return response.data;
+  },
+
+  async deleteRole(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.roles.destroy(id));
+    return response.data;
+  },
+
+  async getPermissions(params: Pick<PaginationQuery, "page" | "per_page"> = {}) {
+    const response = await apiClient.get<ApiResponse<Permission[]>>(endpoints.permissions.index, {
+      params,
+    });
+    return unwrapPaginated(response.data);
+  },
+
+  async createPermission(payload: PermissionPayload) {
+    const response = await apiClient.post<ApiResponse<Permission>>(
+      endpoints.permissions.store,
+      payload
+    );
+    return response.data;
+  },
+
+  async updatePermission(id: number, payload: PermissionPayload) {
+    const response = await apiClient.put<ApiResponse<Permission>>(
+      endpoints.permissions.update(id),
+      payload
+    );
+    return response.data;
+  },
+
+  async deletePermission(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.permissions.destroy(id));
+    return response.data;
+  },
+
+  async getOutlets(params: PaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Outlet[]>>(endpoints.outlets.index, { params });
+    return unwrapPaginated(response.data);
+  },
+
+  async createOutlet(payload: OutletPayload) {
+    const response = await apiClient.post<ApiResponse<Outlet>>(endpoints.outlets.store, payload);
+    return response.data;
+  },
+
+  async updateOutlet(id: number, payload: OutletPayload) {
+    const response = await apiClient.put<ApiResponse<Outlet>>(endpoints.outlets.update(id), payload);
+    return response.data;
+  },
+
+  async deleteOutlet(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.outlets.destroy(id));
+    return response.data;
+  },
+
+  async getOutletSetting(outletId: number) {
+    const response = await apiClient.get<ApiResponse<OutletSetting>>(endpoints.outlets.settings(outletId));
+    return response.data;
+  },
+
+  async updateOutletSetting(outletId: number, payload: OutletSettingPayload) {
+    const response = await apiClient.patch<ApiResponse<OutletSetting>>(
+      endpoints.outlets.settings(outletId),
+      payload
+    );
+    return response.data;
+  },
+
+  async getSystemSettings(params: Pick<PaginationQuery, "page" | "per_page" | "search"> = {}) {
+    const response = await apiClient.get<ApiResponse<SystemSetting[]>>(endpoints.systemSettings.index, {
+      params,
+    });
+    return unwrapPaginated(response.data);
+  },
+
+  async upsertSystemSettings(settings: SystemSettingPayloadItem[]) {
+    const response = await apiClient.put<ApiResponse<SystemSetting[]>>(endpoints.systemSettings.upsert, {
+      settings,
+    });
+    return response.data;
+  },
+};
+```
+</details>
 
 <a id="file-srcmodulesauthhooksusecurrentuserts"></a>
 ### src\modules\auth\hooks\useCurrentUser.ts
@@ -2541,8 +4050,8 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `1cd53adc5155`  
-- Ukuran: 172 B
+- SHA: `f661c6e1b460`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -2552,6 +4061,44 @@ export const endpoints = {
     logout: "/auth/logout",
     me: "/auth/me",
     changePassword: "/auth/change-password",
+  },
+
+  users: {
+    index: "/users",
+    store: "/users",
+    show: (id: number | string) => `/users/${id}`,
+    update: (id: number | string) => `/users/${id}`,
+    destroy: (id: number | string) => `/users/${id}`,
+  },
+
+  roles: {
+    index: "/roles",
+    store: "/roles",
+    show: (id: number | string) => `/roles/${id}`,
+    update: (id: number | string) => `/roles/${id}`,
+    destroy: (id: number | string) => `/roles/${id}`,
+  },
+
+  permissions: {
+    index: "/permissions",
+    store: "/permissions",
+    show: (id: number | string) => `/permissions/${id}`,
+    update: (id: number | string) => `/permissions/${id}`,
+    destroy: (id: number | string) => `/permissions/${id}`,
+  },
+
+  outlets: {
+    index: "/outlets",
+    store: "/outlets",
+    show: (id: number | string) => `/outlets/${id}`,
+    update: (id: number | string) => `/outlets/${id}`,
+    destroy: (id: number | string) => `/outlets/${id}`,
+    settings: (id: number | string) => `/outlets/${id}/settings`,
+  },
+
+  systemSettings: {
+    index: "/system-settings",
+    upsert: "/system-settings",
   },
 } as const;
 ```
@@ -2873,8 +4420,8 @@ export interface Permission {
 
 <a id="file-srctypesrolets"></a>
 ### src\types\role.ts
-- SHA: `653740de7a0b`  
-- Ukuran: 121 B
+- SHA: `0fba3ace02e4`  
+- Ukuran: 147 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -2882,6 +4429,7 @@ export interface Role {
   id: number;
   name: string;
   guard_name: string;
+  permissions?: string[];
   created_at: string;
   updated_at: string;
 }

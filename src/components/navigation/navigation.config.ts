@@ -11,6 +11,16 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
   { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
   { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
+  {
+    label: "Product Categories",
+    to: "/admin/product-categories",
+    permission: "product_categories.view",
+  },
+  {
+    label: "Products",
+    to: "/admin/products",
+    permission: "products.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
