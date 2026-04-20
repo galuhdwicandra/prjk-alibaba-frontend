@@ -1,6 +1,12 @@
 import type { PropsWithChildren } from "react";
 import { QueryProvider } from "./QueryProvider";
+import { AppToaster } from "@/components/feedback/AppToaster";
 
 export function AppProviders({ children }: PropsWithChildren) {
-  return <QueryProvider>{children}</QueryProvider>;
+  return (
+    <QueryProvider>
+      {children}
+      <AppToaster />
+    </QueryProvider>
+  );
 }

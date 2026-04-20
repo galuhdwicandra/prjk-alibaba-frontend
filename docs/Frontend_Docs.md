@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 14:50:51_  
+_Dihasilkan otomatis: 2026-04-20 15:37:48_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -34,12 +34,22 @@ _Dihasilkan otomatis: 2026-04-20 14:50:51_
   - [src\components\feedback\PageErrorState.tsx](#file-srccomponentsfeedbackpageerrorstatetsx)
   - [src\components\feedback\PermissionDenied.tsx](#file-srccomponentsfeedbackpermissiondeniedtsx)
   - [src\components\feedback\RoutePlaceholder.tsx](#file-srccomponentsfeedbackrouteplaceholdertsx)
+  - [src\components\navigation\AppBreadcrumbs.tsx](#file-srccomponentsnavigationappbreadcrumbstsx)
+  - [src\components\navigation\AppOutletSwitcher.tsx](#file-srccomponentsnavigationappoutletswitchertsx)
+  - [src\components\navigation\AppProfileMenu.tsx](#file-srccomponentsnavigationappprofilemenutsx)
+  - [src\components\navigation\AppShell.tsx](#file-srccomponentsnavigationappshelltsx)
+  - [src\components\navigation\AppSidebar.tsx](#file-srccomponentsnavigationappsidebartsx)
+  - [src\components\navigation\AppTopbar.tsx](#file-srccomponentsnavigationapptopbartsx)
+  - [src\components\navigation\navigation.config.ts](#file-srccomponentsnavigationnavigationconfigts)
+  - [src\components\navigation\PageHeader.tsx](#file-srccomponentsnavigationpageheadertsx)
+  - [src\components\navigation\PermissionWrapper.tsx](#file-srccomponentsnavigationpermissionwrappertsx)
 - [Services (src/services)](#services-src-services)
   - [src\services\api\api-client.ts](#file-srcservicesapiapi-clientts)
   - [src\services\api\endpoints.ts](#file-srcservicesapiendpointsts)
   - [src\services\api\error-parser.ts](#file-srcservicesapierror-parserts)
   - [src\services\storage\auth-storage.ts](#file-srcservicesstorageauth-storagets)
 - [Hooks (src/hooks)](#hooks-src-hooks)
+  - [src\hooks\useActiveOutlet.ts](#file-srchooksuseactiveoutletts)
   - [src\hooks\usePermission.ts](#file-srchooksusepermissionts)
 - [Types (src/types)](#types-src-types)
   - [src\types\api.ts](#file-srctypesapits)
@@ -226,8 +236,8 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `d5626ae3e4a6`  
-- Ukuran: 2 KB
+- SHA: `2e825be240fa`  
+- Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -268,22 +278,41 @@ export const router = createBrowserRouter([
       {
         path: "/admin",
         element: <AdminLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Admin Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
+          { path: "users", element: <RoutePlaceholder title="Users" /> },
+          { path: "roles", element: <RoutePlaceholder title="Roles" /> },
+          { path: "permissions", element: <RoutePlaceholder title="Permissions" /> },
+          { path: "outlets", element: <RoutePlaceholder title="Outlets" /> },
+          { path: "system-settings", element: <RoutePlaceholder title="System Settings" /> },
+        ],
       },
       {
         path: "/pos",
         element: <PosLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="POS Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="POS Home" /> },
+          { path: "orders", element: <RoutePlaceholder title="New Order" /> },
+          { path: "shifts", element: <RoutePlaceholder title="Shift" /> },
+        ],
       },
       {
         path: "/kitchen",
         element: <KitchenLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Kitchen Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Kitchen Home" /> },
+          { path: "tickets", element: <RoutePlaceholder title="Kitchen Tickets" /> },
+          { path: "ready", element: <RoutePlaceholder title="Ready Queue" /> },
+        ],
       },
       {
         path: "/owner",
         element: <OwnerLayout />,
-        children: [{ index: true, element: <RoutePlaceholder title="Owner Home" /> }],
+        children: [
+          { index: true, element: <RoutePlaceholder title="Owner Home" /> },
+          { path: "overview", element: <RoutePlaceholder title="Overview" /> },
+          { path: "reports", element: <RoutePlaceholder title="Reports" /> },
+        ],
       },
     ],
   },
@@ -300,22 +329,16 @@ export const router = createBrowserRouter([
 
 <a id="file-srclayoutsadminlayouttsx"></a>
 ### src\layouts\AdminLayout.tsx
-- SHA: `08d137a3d291`  
-- Ukuran: 305 B
+- SHA: `b283e67b5614`  
+- Ukuran: 245 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { Outlet } from "react-router-dom";
+import { AppShell } from "@/components/navigation/AppShell";
+import { adminNavigation } from "@/components/navigation/navigation.config";
 
 export function AdminLayout() {
-  return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="border-b bg-white px-6 py-4 text-lg font-semibold">Admin Panel</div>
-      <main className="p-6">
-        <Outlet />
-      </main>
-    </div>
-  );
+  return <AppShell appTitle="Admin Panel" navItems={adminNavigation} />;
 }
 ```
 </details>
@@ -345,66 +368,48 @@ export function AuthLayout() {
 
 <a id="file-srclayoutskitchenlayouttsx"></a>
 ### src\layouts\KitchenLayout.tsx
-- SHA: `0ce0c15a8d79`  
-- Ukuran: 329 B
+- SHA: `625e8c06a9e6`  
+- Ukuran: 259 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { Outlet } from "react-router-dom";
+import { AppShell } from "@/components/navigation/AppShell";
+import { kitchenNavigation } from "@/components/navigation/navigation.config";
 
 export function KitchenLayout() {
-  return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="border-b border-slate-800 px-6 py-4 text-lg font-semibold">Kitchen Screen</div>
-      <main className="p-6">
-        <Outlet />
-      </main>
-    </div>
-  );
+  return <AppShell appTitle="Kitchen Screen" navItems={kitchenNavigation} dark />;
 }
 ```
 </details>
 
 <a id="file-srclayoutsownerlayouttsx"></a>
 ### src\layouts\OwnerLayout.tsx
-- SHA: `f414bc8cd406`  
-- Ukuran: 308 B
+- SHA: `43924c2080ec`  
+- Ukuran: 249 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { Outlet } from "react-router-dom";
+import { AppShell } from "@/components/navigation/AppShell";
+import { ownerNavigation } from "@/components/navigation/navigation.config";
 
 export function OwnerLayout() {
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="border-b bg-white px-6 py-4 text-lg font-semibold">Owner Dashboard</div>
-      <main className="p-6">
-        <Outlet />
-      </main>
-    </div>
-  );
+  return <AppShell appTitle="Owner Dashboard" navItems={ownerNavigation} />;
 }
 ```
 </details>
 
 <a id="file-srclayoutsposlayouttsx"></a>
 ### src\layouts\PosLayout.tsx
-- SHA: `9ca8b3651c03`  
-- Ukuran: 310 B
+- SHA: `688094f7dc88`  
+- Ukuran: 235 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { Outlet } from "react-router-dom";
+import { AppShell } from "@/components/navigation/AppShell";
+import { posNavigation } from "@/components/navigation/navigation.config";
 
 export function PosLayout() {
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="border-b bg-slate-900 px-6 py-4 text-lg font-semibold text-white">POS App</div>
-      <main className="p-4">
-        <Outlet />
-      </main>
-    </div>
-  );
+  return <AppShell appTitle="POS App" navItems={posNavigation} />;
 }
 ```
 </details>
@@ -686,20 +691,41 @@ export const authService = {
 
 <a id="file-srcmodulesauthstoreauthstorets"></a>
 ### src\modules\auth\store\auth.store.ts
-- SHA: `4c2560d20e35`  
-- Ukuran: 574 B
+- SHA: `7890b43ece36`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
 import { create } from "zustand";
 import type { User } from "@/types/user";
 
+const ACTIVE_OUTLET_STORAGE_KEY = "chicken_alibaba_active_outlet_id";
+
+const getInitialActiveOutletId = (user: User | null): number | null => {
+  if (!user?.outlet_accesses?.length) {
+    return null;
+  }
+
+  const stored = localStorage.getItem(ACTIVE_OUTLET_STORAGE_KEY);
+  const storedId = stored ? Number(stored) : null;
+
+  if (storedId && user.outlet_accesses.some((item) => item.outlet_id === storedId)) {
+    return storedId;
+  }
+
+  const defaultAccess = user.outlet_accesses.find((item) => item.is_default);
+
+  return defaultAccess?.outlet_id ?? user.outlet_accesses[0]?.outlet_id ?? null;
+};
+
 interface AuthState {
   token: string | null;
   user: User | null;
   hydrated: boolean;
+  activeOutletId: number | null;
   setAuth: (payload: { token: string | null; user: User | null }) => void;
   setHydrated: (value: boolean) => void;
+  setActiveOutletId: (outletId: number | null) => void;
   clearAuth: () => void;
 }
 
@@ -707,9 +733,36 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
   hydrated: false,
-  setAuth: ({ token, user }) => set({ token, user }),
+  activeOutletId: null,
+
+  setAuth: ({ token, user }) =>
+    set({
+      token,
+      user,
+      activeOutletId: getInitialActiveOutletId(user),
+    }),
+
   setHydrated: (hydrated) => set({ hydrated }),
-  clearAuth: () => set({ token: null, user: null }),
+
+  setActiveOutletId: (activeOutletId) => {
+    if (activeOutletId) {
+      localStorage.setItem(ACTIVE_OUTLET_STORAGE_KEY, String(activeOutletId));
+    } else {
+      localStorage.removeItem(ACTIVE_OUTLET_STORAGE_KEY);
+    }
+
+    set({ activeOutletId });
+  },
+
+  clearAuth: () => {
+    localStorage.removeItem(ACTIVE_OUTLET_STORAGE_KEY);
+
+    set({
+      token: null,
+      user: null,
+      activeOutletId: null,
+    });
+  },
 }));
 ```
 </details>
@@ -736,54 +789,611 @@ export function AppLoader() {
 
 <a id="file-srccomponentsfeedbackpageemptystatetsx"></a>
 ### src\components\feedback\PageEmptyState.tsx
-- SHA: `da39a3ee5e6b`  
-- Ukuran: 0 B
+- SHA: `39531ec4a828`  
+- Ukuran: 510 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+interface PageEmptyStateProps {
+  title?: string;
+  description?: string;
+}
 
+export function PageEmptyState({
+  title = "Data belum tersedia",
+  description = "Belum ada data yang dapat ditampilkan pada halaman ini.",
+}: PageEmptyStateProps) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    </div>
+  );
+}
 ```
 </details>
 
 <a id="file-srccomponentsfeedbackpageerrorstatetsx"></a>
 ### src\components\feedback\PageErrorState.tsx
-- SHA: `da39a3ee5e6b`  
-- Ukuran: 0 B
+- SHA: `748f33e75ec8`  
+- Ukuran: 763 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+interface PageErrorStateProps {
+  title?: string;
+  description?: string;
+  onRetry?: () => void;
+}
 
+export function PageErrorState({
+  title = "Terjadi kesalahan",
+  description = "Halaman tidak dapat dimuat saat ini. Silakan coba lagi.",
+  onRetry,
+}: PageErrorStateProps) {
+  return (
+    <div className="rounded-2xl border border-red-200 bg-white p-8 text-center">
+      <h3 className="text-base font-semibold text-red-700">{title}</h3>
+      <p className="mt-2 text-sm text-slate-600">{description}</p>
+
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+        >
+          Coba lagi
+        </button>
+      )}
+    </div>
+  );
+}
 ```
 </details>
 
 <a id="file-srccomponentsfeedbackpermissiondeniedtsx"></a>
 ### src\components\feedback\PermissionDenied.tsx
-- SHA: `da39a3ee5e6b`  
-- Ukuran: 0 B
+- SHA: `61a7d70223df`  
+- Ukuran: 488 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+interface PermissionDeniedProps {
+  title?: string;
+  description?: string;
+}
 
+export function PermissionDenied({
+  title = "Akses ditolak",
+  description = "Anda tidak memiliki permission untuk melihat konten ini.",
+}: PermissionDeniedProps) {
+  return (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+      <h3 className="text-base font-semibold text-amber-800">{title}</h3>
+      <p className="mt-2 text-sm text-amber-700">{description}</p>
+    </div>
+  );
+}
 ```
 </details>
 
 <a id="file-srccomponentsfeedbackrouteplaceholdertsx"></a>
 ### src\components\feedback\RoutePlaceholder.tsx
-- SHA: `59b2446a10c4`  
-- Ukuran: 235 B
+- SHA: `13435879a95d`  
+- Ukuran: 603 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+import { PageHeader } from "@/components/navigation/PageHeader";
+
 interface RoutePlaceholderProps {
   title: string;
+  description?: string;
 }
 
-export function RoutePlaceholder({ title }: RoutePlaceholderProps) {
+export function RoutePlaceholder({
+  title,
+  description = "Halaman ini sudah disiapkan pada fase layout & navigation. Konten modul akan diisi pada fase berikutnya.",
+}: RoutePlaceholderProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6">
-      {title}
+    <div className="space-y-4">
+      <PageHeader title={title} description={description} />
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+        Placeholder route aktif.
+      </div>
     </div>
   );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationappbreadcrumbstsx"></a>
+### src\components\navigation\AppBreadcrumbs.tsx
+- SHA: `035cdb7a2229`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Link, useLocation } from "react-router-dom";
+
+const LABEL_MAP: Record<string, string> = {
+  admin: "Admin",
+  users: "Users",
+  roles: "Roles",
+  permissions: "Permissions",
+  outlets: "Outlets",
+  "system-settings": "System Settings",
+  pos: "POS",
+  orders: "Orders",
+  shifts: "Shifts",
+  kitchen: "Kitchen",
+  tickets: "Tickets",
+  ready: "Ready Queue",
+  owner: "Owner",
+  overview: "Overview",
+  reports: "Reports",
+};
+
+export function AppBreadcrumbs({ dark = false }: { dark?: boolean }) {
+  const location = useLocation();
+
+  const segments = location.pathname.split("/").filter(Boolean);
+  const crumbs = segments.map((segment, index) => {
+    const href = `/${segments.slice(0, index + 1).join("/")}`;
+
+    return {
+      href,
+      label: LABEL_MAP[segment] ?? segment,
+      isLast: index === segments.length - 1,
+    };
+  });
+
+  return (
+    <div
+      className={[
+        "flex flex-wrap items-center gap-2 text-sm",
+        dark ? "text-slate-400" : "text-slate-500",
+      ].join(" ")}
+    >
+      <Link to="/" className="hover:underline">
+        Home
+      </Link>
+
+      {crumbs.map((item) => (
+        <span key={item.href} className="flex items-center gap-2">
+          <span>/</span>
+          {item.isLast ? (
+            <span className={dark ? "text-white" : "text-slate-900"}>{item.label}</span>
+          ) : (
+            <Link to={item.href} className="hover:underline">
+              {item.label}
+            </Link>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationappoutletswitchertsx"></a>
+### src\components\navigation\AppOutletSwitcher.tsx
+- SHA: `62a55a4f9590`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+
+interface AppOutletSwitcherProps {
+  dark?: boolean;
+}
+
+export function AppOutletSwitcher({ dark = false }: AppOutletSwitcherProps) {
+  const { outlets, activeOutletId, setActiveOutletId } = useActiveOutlet();
+
+  if (!outlets.length) {
+    return null;
+  }
+
+  return (
+    <div className="min-w-[220px]">
+      <label
+        className={[
+          "mb-1 block text-xs font-medium",
+          dark ? "text-slate-400" : "text-slate-500",
+        ].join(" ")}
+      >
+        Outlet Aktif
+      </label>
+
+      <select
+        value={activeOutletId ?? ""}
+        onChange={(event) => {
+          const value = event.target.value ? Number(event.target.value) : null;
+          setActiveOutletId(value);
+        }}
+        className={[
+          "w-full rounded-xl border px-3 py-2 text-sm outline-none",
+          dark
+            ? "border-slate-700 bg-slate-900 text-white"
+            : "border-slate-300 bg-white text-slate-900",
+        ].join(" ")}
+      >
+        {outlets.map((item) => (
+          <option key={item.outlet_id} value={item.outlet_id}>
+            {item.outlet_name ?? `Outlet #${item.outlet_id}`}{" "}
+            {item.outlet_code ? `(${item.outlet_code})` : ""}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationappprofilemenutsx"></a>
+### src\components\navigation\AppProfileMenu.tsx
+- SHA: `9e8be6917282`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { authService } from "@/modules/auth/services/auth.service";
+import { authStorage } from "@/services/storage/auth-storage";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
+import { parseApiError } from "@/services/api/error-parser";
+
+interface AppProfileMenuProps {
+  dark?: boolean;
+}
+
+export function AppProfileMenu({ dark = false }: AppProfileMenuProps) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const user = useAuthStore((state) => state.user);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  const userRoleLabel = useMemo(() => {
+    return user?.roles?.join(", ") || "No role";
+  }, [user?.roles]);
+
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await authService.logout();
+    } catch (error) {
+      console.error(parseApiError(error));
+    } finally {
+      authStorage.clearToken();
+      clearAuth();
+      navigate("/login", { replace: true });
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={[
+          "rounded-xl border px-3 py-2 text-left",
+          dark
+            ? "border-slate-700 bg-slate-900 text-white"
+            : "border-slate-300 bg-white text-slate-900",
+        ].join(" ")}
+      >
+        <div className="text-sm font-semibold">{user?.name ?? "Unknown User"}</div>
+        <div className={["text-xs", dark ? "text-slate-400" : "text-slate-500"].join(" ")}>
+          {userRoleLabel}
+        </div>
+      </button>
+
+      {open && (
+        <div
+          className={[
+            "absolute right-0 z-20 mt-2 w-64 rounded-2xl border p-3 shadow-lg",
+            dark
+              ? "border-slate-800 bg-slate-950 text-white"
+              : "border-slate-200 bg-white text-slate-900",
+          ].join(" ")}
+        >
+          <div className="border-b border-slate-200 pb-3 dark:border-slate-800">
+            <div className="text-sm font-semibold">{user?.name}</div>
+            <div className={["mt-1 text-xs", dark ? "text-slate-400" : "text-slate-500"].join(" ")}>
+              {user?.email || user?.username || user?.phone || "-"}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loading}
+            className="mt-3 w-full rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {loading ? "Memproses..." : "Logout"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationappshelltsx"></a>
+### src\components\navigation\AppShell.tsx
+- SHA: `871a8a002d63`  
+- Ukuran: 853 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Outlet } from "react-router-dom";
+import { AppSidebar } from "./AppSidebar";
+import { AppTopbar } from "./AppTopbar";
+import type { NavigationItem } from "./navigation.config";
+
+interface AppShellProps {
+  appTitle: string;
+  navItems: NavigationItem[];
+  dark?: boolean;
+  showOutletSwitcher?: boolean;
+}
+
+export function AppShell({
+  appTitle,
+  navItems,
+  dark = false,
+  showOutletSwitcher = true,
+}: AppShellProps) {
+  return (
+    <div className={["min-h-screen lg:flex", dark ? "bg-slate-950" : "bg-slate-100"].join(" ")}>
+      <AppSidebar title={appTitle} items={navItems} dark={dark} />
+
+      <div className="flex min-h-screen flex-1 flex-col">
+        <AppTopbar dark={dark} showOutletSwitcher={showOutletSwitcher} />
+
+        <main className="flex-1 p-4 lg:p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationappsidebartsx"></a>
+### src\components\navigation\AppSidebar.tsx
+- SHA: `509afce80f98`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { NavLink } from "react-router-dom";
+import type { NavigationItem } from "./navigation.config";
+import { usePermission } from "@/hooks/usePermission";
+
+interface AppSidebarProps {
+  title: string;
+  items: NavigationItem[];
+  dark?: boolean;
+}
+
+function SidebarLink({ item, dark = false }: { item: NavigationItem; dark?: boolean }) {
+  const allowed = item.permission ? usePermission(item.permission) : true;
+
+  if (!allowed) {
+    return null;
+  }
+
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to.split("/").length <= 3}
+      className={({ isActive }) =>
+        [
+          "block rounded-xl px-3 py-2 text-sm font-medium transition",
+          dark
+            ? isActive
+              ? "bg-slate-800 text-white"
+              : "text-slate-300 hover:bg-slate-900 hover:text-white"
+            : isActive
+              ? "bg-slate-900 text-white"
+              : "text-slate-700 hover:bg-slate-100",
+        ].join(" ")
+      }
+    >
+      {item.label}
+    </NavLink>
+  );
+}
+
+export function AppSidebar({ title, items, dark = false }: AppSidebarProps) {
+  return (
+    <aside
+      className={[
+        "w-full shrink-0 border-r lg:w-64",
+        dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "border-b px-5 py-4 text-lg font-semibold",
+          dark ? "border-slate-800 text-white" : "border-slate-200 text-slate-900",
+        ].join(" ")}
+      >
+        {title}
+      </div>
+
+      <nav className="space-y-1 p-3">
+        {items.map((item) => (
+          <SidebarLink key={item.to} item={item} dark={dark} />
+        ))}
+      </nav>
+    </aside>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationapptopbartsx"></a>
+### src\components\navigation\AppTopbar.tsx
+- SHA: `cedeb8180028`  
+- Ukuran: 885 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { AppBreadcrumbs } from "./AppBreadcrumbs";
+import { AppOutletSwitcher } from "./AppOutletSwitcher";
+import { AppProfileMenu } from "./AppProfileMenu";
+
+interface AppTopbarProps {
+  dark?: boolean;
+  showOutletSwitcher?: boolean;
+}
+
+export function AppTopbar({
+  dark = false,
+  showOutletSwitcher = true,
+}: AppTopbarProps) {
+  return (
+    <header
+      className={[
+        "border-b px-4 py-4 lg:px-6",
+        dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
+      ].join(" ")}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <AppBreadcrumbs dark={dark} />
+
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          {showOutletSwitcher ? <AppOutletSwitcher dark={dark} /> : null}
+          <AppProfileMenu dark={dark} />
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationnavigationconfigts"></a>
+### src\components\navigation\navigation.config.ts
+- SHA: `d2b8d0204b2b`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export interface NavigationItem {
+  label: string;
+  to: string;
+  permission?: string;
+}
+
+export const adminNavigation: NavigationItem[] = [
+  { label: "Dashboard", to: "/admin" },
+  { label: "Users", to: "/admin/users", permission: "users.view" },
+  { label: "Roles", to: "/admin/roles", permission: "roles.view" },
+  { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
+  { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
+  { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
+];
+
+export const posNavigation: NavigationItem[] = [
+  { label: "POS Home", to: "/pos" },
+  { label: "New Order", to: "/pos/orders" },
+  { label: "Shift", to: "/pos/shifts" },
+];
+
+export const kitchenNavigation: NavigationItem[] = [
+  { label: "Kitchen Home", to: "/kitchen" },
+  { label: "Tickets", to: "/kitchen/tickets" },
+  { label: "Ready Queue", to: "/kitchen/ready" },
+];
+
+export const ownerNavigation: NavigationItem[] = [
+  { label: "Owner Home", to: "/owner" },
+  { label: "Overview", to: "/owner/overview" },
+  { label: "Reports", to: "/owner/reports" },
+];
+```
+</details>
+
+<a id="file-srccomponentsnavigationpageheadertsx"></a>
+### src\components\navigation\PageHeader.tsx
+- SHA: `4786b35663b5`  
+- Ukuran: 739 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReactNode } from "react";
+
+interface PageHeaderProps {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  dark?: boolean;
+}
+
+export function PageHeader({
+  title,
+  description,
+  actions,
+  dark = false,
+}: PageHeaderProps) {
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h1 className={["text-2xl font-semibold", dark ? "text-slate-900" : "text-slate-900"].join(" ")}>
+          {title}
+        </h1>
+        {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+      </div>
+
+      {actions ? <div className="shrink-0">{actions}</div> : null}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsnavigationpermissionwrappertsx"></a>
+### src\components\navigation\PermissionWrapper.tsx
+- SHA: `60ccfe452222`  
+- Ukuran: 550 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReactNode } from "react";
+import { usePermission } from "@/hooks/usePermission";
+import { PermissionDenied } from "@/components/feedback/PermissionDenied";
+
+interface PermissionWrapperProps {
+  permission?: string;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export function PermissionWrapper({
+  permission,
+  children,
+  fallback,
+}: PermissionWrapperProps) {
+  const allowed = permission ? usePermission(permission) : true;
+
+  if (!allowed) {
+    return <>{fallback ?? <PermissionDenied />}</>;
+  }
+
+  return <>{children}</>;
 }
 ```
 </details>
@@ -948,6 +1558,45 @@ export const authStorage = {
 
 ## Hooks (src/hooks)
 
+<a id="file-srchooksuseactiveoutletts"></a>
+### src\hooks\useActiveOutlet.ts
+- SHA: `23665d1c6709`  
+- Ukuran: 759 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { useMemo } from "react";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
+
+export const useActiveOutlet = () => {
+  const user = useAuthStore((state) => state.user);
+  const activeOutletId = useAuthStore((state) => state.activeOutletId);
+  const setActiveOutletId = useAuthStore((state) => state.setActiveOutletId);
+
+  const outlets = user?.outlet_accesses ?? [];
+
+  const activeOutlet = useMemo(() => {
+    if (!outlets.length) {
+      return null;
+    }
+
+    return (
+      outlets.find((item) => item.outlet_id === activeOutletId) ??
+      outlets.find((item) => item.is_default) ??
+      outlets[0]
+    );
+  }, [activeOutletId, outlets]);
+
+  return {
+    outlets,
+    activeOutlet,
+    activeOutletId,
+    setActiveOutletId,
+  };
+};
+```
+</details>
+
 <a id="file-srchooksusepermissionts"></a>
 ### src\hooks\usePermission.ts
 - SHA: `e4875a651724`  
@@ -1031,8 +1680,8 @@ export type MeResult = User;
 
 <a id="file-srctypesoutletts"></a>
 ### src\types\outlet.ts
-- SHA: `e99cf78e5006`  
-- Ukuran: 1008 B
+- SHA: `99d9dd100bd7`  
+- Ukuran: 986 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -1058,12 +1707,10 @@ export interface Outlet {
 
 export interface UserOutletAccess {
   id: number;
-  user_id: number;
   outlet_id: number;
+  outlet_name: string | null;
+  outlet_code: string | null;
   is_default: boolean;
-  created_at: string;
-  updated_at: string;
-  outlet?: Outlet;
 }
 
 export interface OutletSetting {
@@ -1138,8 +1785,8 @@ export interface SystemSetting {
 
 <a id="file-srctypesuserts"></a>
 ### src\types\user.ts
-- SHA: `c9b08ad9bdc1`  
-- Ukuran: 431 B
+- SHA: `595575bc4572`  
+- Ukuran: 426 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -1158,7 +1805,7 @@ export interface User {
   updated_at: string;
   roles?: string[];
   permissions?: string[];
-  user_outlet_accesses?: UserOutletAccess[];
+  outlet_accesses?: UserOutletAccess[];
 }
 ```
 </details>
