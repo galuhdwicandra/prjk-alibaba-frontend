@@ -2,18 +2,26 @@ export interface ApiErrorBag {
   [key: string]: string[] | string;
 }
 
+export interface ApiMeta {
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  [key: string]: unknown;
+}
+
 export interface ApiResponse<T> {
-  success: boolean;
   message: string;
   data: T;
-  errors: ApiErrorBag | null;
-  meta: Record<string, unknown> | null;
+  token?: string;
+  errors?: ApiErrorBag | null;
+  meta?: ApiMeta | null;
 }
 
 export interface ApiErrorResponse {
-  success: boolean;
   message: string;
-  data: null;
-  errors: ApiErrorBag | null;
-  meta: Record<string, unknown> | null;
+  data?: null;
+  token?: string;
+  errors?: ApiErrorBag | null;
+  meta?: ApiMeta | null;
 }

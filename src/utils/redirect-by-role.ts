@@ -1,21 +1,21 @@
-import type { Role } from "@/types/role";
-
-export const redirectByRole = (roles: Role[] = []): string => {
-  const roleNames = roles.map((role) => role.name);
-
-  if (roleNames.includes("superadmin") || roleNames.includes("admin_pusat") || roleNames.includes("admin_outlet")) {
+export const redirectByRole = (roles: string[] = []): string => {
+  if (
+    roles.includes("superadmin") ||
+    roles.includes("admin_pusat") ||
+    roles.includes("admin_outlet")
+  ) {
     return "/admin";
   }
 
-  if (roleNames.includes("kasir")) {
+  if (roles.includes("kasir")) {
     return "/pos";
   }
 
-  if (roleNames.includes("dapur")) {
+  if (roles.includes("dapur")) {
     return "/kitchen";
   }
 
-  if (roleNames.includes("owner")) {
+  if (roles.includes("owner")) {
     return "/owner";
   }
 

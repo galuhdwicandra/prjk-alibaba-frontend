@@ -13,6 +13,7 @@ export const useCurrentUser = () => {
       const token = authStorage.getToken();
 
       if (!token) {
+        clearAuth();
         setHydrated(true);
         return;
       }
@@ -22,7 +23,7 @@ export const useCurrentUser = () => {
 
         setAuth({
           token,
-          user: response.data.user,
+          user: response.data,
         });
       } catch {
         authStorage.clearToken();

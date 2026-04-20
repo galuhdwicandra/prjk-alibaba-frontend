@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { PosLayout } from "@/layouts/PosLayout";
@@ -12,6 +12,10 @@ import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
 import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
   {
     element: <GuestGuard />,
     children: [

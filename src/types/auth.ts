@@ -3,13 +3,8 @@ import type { User } from "./user";
 export interface LoginPayload {
   login: string;
   password: string;
+  device_name?: string;
 }
 
-export interface LoginResult {
-  token?: string;
-  user: User;
-}
-
-export interface MeResult {
-  user: User;
-}
+export type LoginResult = User;
+export type MeResult = User;

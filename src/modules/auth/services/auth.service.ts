@@ -1,11 +1,12 @@
 import { apiClient } from "@/services/api/api-client";
 import { endpoints } from "@/services/api/endpoints";
 import type { ApiResponse } from "@/types/api";
-import type { LoginPayload, LoginResult, MeResult } from "@/types/auth";
+import type { LoginPayload } from "@/types/auth";
+import type { User } from "@/types/user";
 
 export const authService = {
   async login(payload: LoginPayload) {
-    const response = await apiClient.post<ApiResponse<LoginResult>>(endpoints.auth.login, payload);
+    const response = await apiClient.post<ApiResponse<User>>(endpoints.auth.login, payload);
     return response.data;
   },
 
@@ -15,7 +16,7 @@ export const authService = {
   },
 
   async me() {
-    const response = await apiClient.get<ApiResponse<MeResult>>(endpoints.auth.me);
+    const response = await apiClient.get<ApiResponse<User>>(endpoints.auth.me);
     return response.data;
   },
 };

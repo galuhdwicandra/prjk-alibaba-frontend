@@ -1,5 +1,3 @@
-import type { Role } from "./role";
-import type { Permission } from "./permission";
 import type { UserOutletAccess } from "./outlet";
 
 export interface User {
@@ -13,7 +11,7 @@ export interface User {
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
-  roles?: Role[];
-  permissions?: Permission[];
+  roles?: string[];
+  permissions?: string[];
   user_outlet_accesses?: UserOutletAccess[];
 }
