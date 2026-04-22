@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 20:24:53_  
+_Dihasilkan otomatis: 2026-04-22 19:03:19_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -21,10 +21,17 @@ _Dihasilkan otomatis: 2026-04-20 20:24:53_
   - [src\layouts\OwnerLayout.tsx](#file-srclayoutsownerlayouttsx)
   - [src\layouts\PosLayout.tsx](#file-srclayoutsposlayouttsx)
 - [Modules (src/modules)](#modules-src-modules)
+  - [src\modules\admin\components\product-config\ProductBundleItemsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductbundleitemseditortsx)
+  - [src\modules\admin\components\product-config\ProductConfigPage.tsx](#file-srcmodulesadmincomponentsproduct-configproductconfigpagetsx)
+  - [src\modules\admin\components\product-config\ProductModifierGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductmodifiergroupseditortsx)
+  - [src\modules\admin\components\product-config\ProductVariantGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductvariantgroupseditortsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
   - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
+  - [src\modules\admin\pages\ProductBundlesPage.tsx](#file-srcmodulesadminpagesproductbundlespagetsx)
   - [src\modules\admin\pages\ProductCategoriesPage.tsx](#file-srcmodulesadminpagesproductcategoriespagetsx)
+  - [src\modules\admin\pages\ProductModifiersPage.tsx](#file-srcmodulesadminpagesproductmodifierspagetsx)
   - [src\modules\admin\pages\ProductsPage.tsx](#file-srcmodulesadminpagesproductspagetsx)
+  - [src\modules\admin\pages\ProductVariantsPage.tsx](#file-srcmodulesadminpagesproductvariantspagetsx)
   - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
   - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
@@ -37,6 +44,12 @@ _Dihasilkan otomatis: 2026-04-20 20:24:53_
   - [src\modules\auth\schemas\login.schema.ts](#file-srcmodulesauthschemasloginschemats)
   - [src\modules\auth\services\auth.service.ts](#file-srcmodulesauthservicesauthservicets)
   - [src\modules\auth\store\auth.store.ts](#file-srcmodulesauthstoreauthstorets)
+  - [src\modules\pos\components\PosCartPanel.tsx](#file-srcmodulesposcomponentsposcartpaneltsx)
+  - [src\modules\pos\components\PosProductConfiguratorModal.tsx](#file-srcmodulesposcomponentsposproductconfiguratormodaltsx)
+  - [src\modules\pos\hooks\usePosCartStore.ts](#file-srcmodulesposhooksuseposcartstorets)
+  - [src\modules\pos\pages\PosOrdersPage.tsx](#file-srcmodulespospagesposorderspagetsx)
+  - [src\modules\pos\services\pos.service.ts](#file-srcmodulesposservicesposservicets)
+  - [src\modules\pos\types\pos.ts](#file-srcmodulespostypesposts)
 - [Components (src/components)](#components-src-components)
   - [src\components\feedback\AppLoader.tsx](#file-srccomponentsfeedbackapploadertsx)
   - [src\components\feedback\AppToaster.tsx](#file-srccomponentsfeedbackapptoastertsx)
@@ -85,6 +98,7 @@ _Dihasilkan otomatis: 2026-04-20 20:24:53_
 - [Types (src/types)](#types-src-types)
   - [src\types\api.ts](#file-srctypesapits)
   - [src\types\auth.ts](#file-srctypesauthts)
+  - [src\types\customer.ts](#file-srctypescustomerts)
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
   - [src\types\product.ts](#file-srctypesproductts)
@@ -274,8 +288,8 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `a669d2286061`  
-- Ukuran: 3 KB
+- SHA: `cda79cd35981`  
+- Ukuran: 4 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -298,6 +312,10 @@ import OutletsPage from "@/modules/admin/pages/OutletsPage";
 import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
 import ProductCategoriesPage from "@/modules/admin/pages/ProductCategoriesPage";
 import ProductsPage from "@/modules/admin/pages/ProductsPage";
+import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
+import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
+import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
+import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 
 export const router = createBrowserRouter([
   {
@@ -332,6 +350,9 @@ export const router = createBrowserRouter([
           { path: "system-settings", element: <SystemSettingsPage /> },
           { path: "product-categories", element: <ProductCategoriesPage /> },
           { path: "products", element: <ProductsPage /> },
+          { path: "product-variants", element: <ProductVariantsPage /> },
+          { path: "product-modifiers", element: <ProductModifiersPage /> },
+          { path: "product-bundles", element: <ProductBundlesPage /> },
         ],
       },
       {
@@ -339,7 +360,7 @@ export const router = createBrowserRouter([
         element: <PosLayout />,
         children: [
           { index: true, element: <RoutePlaceholder title="POS Home" /> },
-          { path: "orders", element: <RoutePlaceholder title="New Order" /> },
+          { path: "orders", element: <PosOrdersPage /> },
           { path: "shifts", element: <RoutePlaceholder title="Shift" /> },
         ],
       },
@@ -463,6 +484,951 @@ export function PosLayout() {
 
 
 ## Modules (src/modules)
+
+<a id="file-srcmodulesadmincomponentsproduct-configproductbundleitemseditortsx"></a>
+### src\modules\admin\components\product-config\ProductBundleItemsEditor.tsx
+- SHA: `446cd1d9c02a`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Input } from "@/components/ui";
+import type { ProductBundleItemPayload } from "@/modules/admin/services/catalog.service";
+import type { Product } from "@/types/product";
+
+interface ProductBundleItemsEditorProps {
+  value: ProductBundleItemPayload[];
+  onChange: (next: ProductBundleItemPayload[]) => void;
+  productOptions: Product[];
+}
+
+const createEmptyBundleItem = (): ProductBundleItemPayload => ({
+  bundled_product_id: 0,
+  qty: 1,
+});
+
+export function ProductBundleItemsEditor({
+  value,
+  onChange,
+  productOptions,
+}: ProductBundleItemsEditorProps) {
+  const updateItems = (
+    updater: (prev: ProductBundleItemPayload[]) => ProductBundleItemPayload[]
+  ) => {
+    onChange(updater(value));
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((item, index) => (
+        <Card key={index} title={`Bundle Item #${index + 1}`}>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Bundled Product
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.bundled_product_id || ""}
+                onChange={(e) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      bundled_product_id: Number(e.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih produk</option>
+                {productOptions.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Qty"
+              type="number"
+              value={String(item.qty ?? 1)}
+              onChange={(e) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    qty: Number(e.target.value || 1),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-3">
+              <Button
+                variant="danger"
+                onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
+              >
+                Hapus Item
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ))}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyBundleItem()])}>
+        Tambah Bundle Item
+      </Button>
+    </div>
+  );
+}
+
+export function mapBundleItemsFromProduct(product: {
+  bundle_items?: Array<{
+    bundled_product_id: number;
+    qty?: number | string;
+  }>;
+}): ProductBundleItemPayload[] {
+  if (!product.bundle_items?.length) {
+    return [createEmptyBundleItem()];
+  }
+
+  return product.bundle_items.map((item) => ({
+    bundled_product_id: item.bundled_product_id,
+    qty: Number(item.qty ?? 1),
+  }));
+}
+
+export function sanitizeBundleItems(value: ProductBundleItemPayload[]): ProductBundleItemPayload[] {
+  return (value ?? []).filter((item) => item.bundled_product_id > 0);
+}
+
+export function validateBundleItems(
+  value: ProductBundleItemPayload[],
+  currentProductId: number
+) {
+  const sanitized = sanitizeBundleItems(value);
+
+  if (!sanitized.length) {
+    throw new Error("Produk bundle wajib memiliki minimal satu bundle item.");
+  }
+
+  const selfIncluded = sanitized.some(
+    (item) => Number(item.bundled_product_id) === Number(currentProductId)
+  );
+
+  if (selfIncluded) {
+    throw new Error("Produk bundle tidak boleh membundle dirinya sendiri.");
+  }
+}
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentsproduct-configproductconfigpagetsx"></a>
+### src\modules\admin\components\product-config\ProductConfigPage.tsx
+- SHA: `f9b6f538551c`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState, type ReactNode } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  catalogService,
+  type ProductPayload,
+} from "@/modules/admin/services/catalog.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Product } from "@/types/product";
+
+interface ProductConfigPageProps<TState> {
+  title: string;
+  description: string;
+  queryKey: string;
+  emptyTitle: string;
+  searchPlaceholder: string;
+  saveButtonLabel: string;
+  getBadge: (product: Product) => { label: string; variant: "success" | "warning" | "info" | "danger" };
+  renderSummary: (product: Product) => ReactNode;
+  mapFromProduct: (product: Product) => TState;
+  renderEditor: (args: {
+    value: TState;
+    onChange: (next: TState) => void;
+    product: Product | null;
+    products: Product[];
+  }) => ReactNode;
+  buildPayload: (args: { value: TState; product: Product }) => Partial<ProductPayload>;
+  filterProducts?: (products: Product[]) => Product[];
+}
+
+export function ProductConfigPage<TState>({
+  title,
+  description,
+  queryKey,
+  emptyTitle,
+  searchPlaceholder,
+  saveButtonLabel,
+  getBadge,
+  renderSummary,
+  mapFromProduct,
+  renderEditor,
+  buildPayload,
+  filterProducts,
+}: ProductConfigPageProps<TState>) {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editorState, setEditorState] = useState<TState | null>(null);
+
+  const productsQuery = useQuery({
+    queryKey: [queryKey, search],
+    queryFn: () => catalogService.getProducts({ per_page: 100, search }),
+  });
+
+  const allProducts = useMemo(() => productsQuery.data?.items ?? [], [productsQuery.data?.items]);
+  const products = useMemo(
+    () => (filterProducts ? filterProducts(allProducts) : allProducts),
+    [allProducts, filterProducts]
+  );
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingProduct || editorState === null) {
+        throw new Error("Produk tidak dipilih");
+      }
+
+      const payload = buildPayload({
+        value: editorState,
+        product: editingProduct,
+      });
+
+      return catalogService.updateProduct(editingProduct.id, payload as ProductPayload);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditingProduct(null);
+      setEditorState(null);
+      void queryClient.invalidateQueries({ queryKey: [queryKey] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (error) => {
+      toast.error(`Gagal menyimpan ${title.toLowerCase()}`, parseApiError(error));
+    },
+  });
+
+  const openEditor = (product: Product) => {
+    setEditingProduct(product);
+    setEditorState(mapFromProduct(product));
+    setOpen(true);
+  };
+
+  return (
+    <PermissionWrapper permission="products.view">
+      <div className="space-y-4">
+        <PageHeader title={title} description={description} />
+
+        <Card>
+          <Input
+            placeholder={searchPlaceholder}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </Card>
+
+        {productsQuery.isLoading ? (
+          <Card>Memuat data produk...</Card>
+        ) : productsQuery.isError ? (
+          <PageErrorState onRetry={() => void productsQuery.refetch()} />
+        ) : !products.length ? (
+          <PageEmptyState title={emptyTitle} />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {products.map((product) => {
+              const badge = getBadge(product);
+
+              return (
+                <Card
+                  key={product.id}
+                  title={product.name}
+                  description={product.category?.name ?? "-"}
+                  actions={<Badge variant={badge.variant}>{badge.label}</Badge>}
+                >
+                  <div className="space-y-2 text-sm text-slate-600">{renderSummary(product)}</div>
+
+                  <div className="mt-4">
+                    <Button onClick={() => openEditor(product)}>Kelola</Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        <Modal
+          open={open}
+          title={`${title}${editingProduct ? ` — ${editingProduct.name}` : ""}`}
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                {saveButtonLabel}
+              </Button>
+            </>
+          }
+        >
+          <div className="max-h-[70vh] overflow-y-auto pr-1">
+            {editorState !== null
+              ? renderEditor({
+                  value: editorState,
+                  onChange: setEditorState,
+                  product: editingProduct,
+                  products: allProducts,
+                })
+              : null}
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentsproduct-configproductmodifiergroupseditortsx"></a>
+### src\modules\admin\components\product-config\ProductModifierGroupsEditor.tsx
+- SHA: `b4403cb84072`  
+- Ukuran: 10 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Checkbox, Input } from "@/components/ui";
+import type { ProductModifierGroupPayload } from "@/modules/admin/services/catalog.service";
+
+interface ProductModifierGroupsEditorProps {
+  value: ProductModifierGroupPayload[];
+  onChange: (next: ProductModifierGroupPayload[]) => void;
+}
+
+const createEmptyModifierGroup = (): ProductModifierGroupPayload => ({
+  name: "",
+  min_select: 0,
+  max_select: 1,
+  is_required: false,
+  sort_order: 0,
+  options: [
+    {
+      name: "",
+      price: 0,
+      sort_order: 0,
+      is_active: true,
+    },
+  ],
+});
+
+export function ProductModifierGroupsEditor({
+  value,
+  onChange,
+}: ProductModifierGroupsEditorProps) {
+  const updateGroups = (
+    updater: (prev: ProductModifierGroupPayload[]) => ProductModifierGroupPayload[]
+  ) => {
+    onChange(updater(value));
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((group, groupIndex) => (
+        <Card key={groupIndex} title={`Modifier Group #${groupIndex + 1}`}>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Input
+              label="Nama Group"
+              value={group.name}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = { ...next[groupIndex], name: e.target.value };
+                  return next;
+                })
+              }
+            />
+
+            <Input
+              label="Min Select"
+              type="number"
+              value={String(group.min_select ?? 0)}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    min_select: Number(e.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <Input
+              label="Max Select"
+              type="number"
+              value={String(group.max_select ?? 1)}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    max_select: Number(e.target.value || 1),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="flex items-end">
+              <Button
+                variant="danger"
+                onClick={() => updateGroups((prev) => prev.filter((_, idx) => idx !== groupIndex))}
+              >
+                Hapus Group
+              </Button>
+            </div>
+
+            <Input
+              label="Sort Order"
+              type="number"
+              value={String(group.sort_order ?? 0)}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    sort_order: Number(e.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-3 flex items-end">
+              <Checkbox
+                label="Required"
+                checked={Boolean(group.is_required)}
+                onChange={(e) =>
+                  updateGroups((prev) => {
+                    const next = [...prev];
+                    next[groupIndex] = {
+                      ...next[groupIndex],
+                      is_required: e.target.checked,
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {group.options.map((option, optionIndex) => (
+              <div
+                key={optionIndex}
+                className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-4"
+              >
+                <Input
+                  label="Option Name"
+                  value={option.name}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        name: e.target.value,
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <Input
+                  label="Price"
+                  type="number"
+                  value={String(option.price ?? 0)}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        price: Number(e.target.value || 0),
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <Input
+                  label="Sort Order"
+                  type="number"
+                  value={String(option.sort_order ?? 0)}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        sort_order: Number(e.target.value || 0),
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <div className="flex items-end">
+                  <Button
+                    variant="danger"
+                    onClick={() =>
+                      updateGroups((prev) => {
+                        const next = [...prev];
+                        next[groupIndex] = {
+                          ...next[groupIndex],
+                          options: next[groupIndex].options.filter((_, idx) => idx !== optionIndex),
+                        };
+                        return next;
+                      })
+                    }
+                  >
+                    Hapus Option
+                  </Button>
+                </div>
+
+                <div className="md:col-span-4">
+                  <Checkbox
+                    label="Option aktif"
+                    checked={Boolean(option.is_active)}
+                    onChange={(e) =>
+                      updateGroups((prev) => {
+                        const next = [...prev];
+                        const options = [...next[groupIndex].options];
+                        options[optionIndex] = {
+                          ...options[optionIndex],
+                          is_active: e.target.checked,
+                        };
+                        next[groupIndex] = { ...next[groupIndex], options };
+                        return next;
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              onClick={() =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    options: [
+                      ...next[groupIndex].options,
+                      {
+                        name: "",
+                        price: 0,
+                        sort_order: 0,
+                        is_active: true,
+                      },
+                    ],
+                  };
+                  return next;
+                })
+              }
+            >
+              Tambah Option Modifier
+            </Button>
+          </div>
+        </Card>
+      ))}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyModifierGroup()])}>
+        Tambah Modifier Group
+      </Button>
+    </div>
+  );
+}
+
+export function mapModifierGroupsFromProduct(product: {
+  modifier_groups?: Array<{
+    name: string;
+    min_select?: number;
+    max_select?: number;
+    is_required?: boolean;
+    sort_order?: number;
+    options?: Array<{
+      name: string;
+      price?: number | string;
+      sort_order?: number;
+      is_active?: boolean;
+    }>;
+  }>;
+}): ProductModifierGroupPayload[] {
+  if (!product.modifier_groups?.length) {
+    return [createEmptyModifierGroup()];
+  }
+
+  return product.modifier_groups.map((group) => ({
+    name: group.name,
+    min_select: group.min_select ?? 0,
+    max_select: group.max_select ?? 1,
+    is_required: group.is_required ?? false,
+    sort_order: group.sort_order ?? 0,
+    options:
+      group.options?.map((option) => ({
+        name: option.name,
+        price: Number(option.price ?? 0),
+        sort_order: option.sort_order ?? 0,
+        is_active: option.is_active ?? true,
+      })) ?? [],
+  }));
+}
+
+export function sanitizeModifierGroups(
+  value: ProductModifierGroupPayload[]
+): ProductModifierGroupPayload[] {
+  return (value ?? [])
+    .filter((group) => group.name.trim() !== "")
+    .map((group) => ({
+      ...group,
+      options: (group.options ?? []).filter((option) => option.name.trim() !== ""),
+    }))
+    .filter((group) => group.options.length > 0);
+}
+
+export function validateModifierGroups(value: ProductModifierGroupPayload[]) {
+  const invalidGroup = (value ?? []).find(
+    (group) => Number(group.max_select ?? 0) < Number(group.min_select ?? 0)
+  );
+
+  if (invalidGroup) {
+    throw new Error("max_select tidak boleh lebih kecil dari min_select.");
+  }
+}
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentsproduct-configproductvariantgroupseditortsx"></a>
+### src\modules\admin\components\product-config\ProductVariantGroupsEditor.tsx
+- SHA: `56838f2ba75f`  
+- Ukuran: 9 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Checkbox, Input } from "@/components/ui";
+import type { ProductVariantGroupPayload } from "@/modules/admin/services/catalog.service";
+
+interface ProductVariantGroupsEditorProps {
+  value: ProductVariantGroupPayload[];
+  onChange: (next: ProductVariantGroupPayload[]) => void;
+}
+
+const createEmptyVariantGroup = (): ProductVariantGroupPayload => ({
+  name: "",
+  selection_type: "single",
+  is_required: true,
+  sort_order: 0,
+  options: [
+    {
+      name: "",
+      price_adjustment: 0,
+      sort_order: 0,
+      is_active: true,
+    },
+  ],
+});
+
+export function ProductVariantGroupsEditor({
+  value,
+  onChange,
+}: ProductVariantGroupsEditorProps) {
+  const updateGroups = (updater: (prev: ProductVariantGroupPayload[]) => ProductVariantGroupPayload[]) => {
+    onChange(updater(value));
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((group, groupIndex) => (
+        <Card key={groupIndex} title={`Variant Group #${groupIndex + 1}`}>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              label="Nama Group"
+              value={group.name}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = { ...next[groupIndex], name: e.target.value };
+                  return next;
+                })
+              }
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Selection Type
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={group.selection_type}
+                onChange={(e) =>
+                  updateGroups((prev) => {
+                    const next = [...prev];
+                    next[groupIndex] = {
+                      ...next[groupIndex],
+                      selection_type: e.target.value as "single" | "multiple",
+                    };
+                    return next;
+                  })
+                }
+              >
+                <option value="single">single</option>
+                <option value="multiple">multiple</option>
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="danger"
+                onClick={() => updateGroups((prev) => prev.filter((_, idx) => idx !== groupIndex))}
+              >
+                Hapus Group
+              </Button>
+            </div>
+
+            <Input
+              label="Sort Order"
+              type="number"
+              value={String(group.sort_order ?? 0)}
+              onChange={(e) =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    sort_order: Number(e.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-2 flex items-end">
+              <Checkbox
+                label="Required"
+                checked={Boolean(group.is_required)}
+                onChange={(e) =>
+                  updateGroups((prev) => {
+                    const next = [...prev];
+                    next[groupIndex] = {
+                      ...next[groupIndex],
+                      is_required: e.target.checked,
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {group.options.map((option, optionIndex) => (
+              <div
+                key={optionIndex}
+                className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-4"
+              >
+                <Input
+                  label="Option Name"
+                  value={option.name}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        name: e.target.value,
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <Input
+                  label="Price Adjustment"
+                  type="number"
+                  value={String(option.price_adjustment ?? 0)}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        price_adjustment: Number(e.target.value || 0),
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <Input
+                  label="Sort Order"
+                  type="number"
+                  value={String(option.sort_order ?? 0)}
+                  onChange={(e) =>
+                    updateGroups((prev) => {
+                      const next = [...prev];
+                      const options = [...next[groupIndex].options];
+                      options[optionIndex] = {
+                        ...options[optionIndex],
+                        sort_order: Number(e.target.value || 0),
+                      };
+                      next[groupIndex] = { ...next[groupIndex], options };
+                      return next;
+                    })
+                  }
+                />
+
+                <div className="flex items-end">
+                  <Button
+                    variant="danger"
+                    onClick={() =>
+                      updateGroups((prev) => {
+                        const next = [...prev];
+                        next[groupIndex] = {
+                          ...next[groupIndex],
+                          options: next[groupIndex].options.filter((_, idx) => idx !== optionIndex),
+                        };
+                        return next;
+                      })
+                    }
+                  >
+                    Hapus Option
+                  </Button>
+                </div>
+
+                <div className="md:col-span-4">
+                  <Checkbox
+                    label="Option aktif"
+                    checked={Boolean(option.is_active)}
+                    onChange={(e) =>
+                      updateGroups((prev) => {
+                        const next = [...prev];
+                        const options = [...next[groupIndex].options];
+                        options[optionIndex] = {
+                          ...options[optionIndex],
+                          is_active: e.target.checked,
+                        };
+                        next[groupIndex] = { ...next[groupIndex], options };
+                        return next;
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              onClick={() =>
+                updateGroups((prev) => {
+                  const next = [...prev];
+                  next[groupIndex] = {
+                    ...next[groupIndex],
+                    options: [
+                      ...next[groupIndex].options,
+                      {
+                        name: "",
+                        price_adjustment: 0,
+                        sort_order: 0,
+                        is_active: true,
+                      },
+                    ],
+                  };
+                  return next;
+                })
+              }
+            >
+              Tambah Option Variant
+            </Button>
+          </div>
+        </Card>
+      ))}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyVariantGroup()])}>
+        Tambah Variant Group
+      </Button>
+    </div>
+  );
+}
+
+export function mapVariantGroupsFromProduct(product: {
+  variant_groups?: Array<{
+    name: string;
+    selection_type: "single" | "multiple";
+    is_required?: boolean;
+    sort_order?: number;
+    options?: Array<{
+      name: string;
+      price_adjustment?: number | string;
+      sort_order?: number;
+      is_active?: boolean;
+    }>;
+  }>;
+}): ProductVariantGroupPayload[] {
+  if (!product.variant_groups?.length) {
+    return [createEmptyVariantGroup()];
+  }
+
+  return product.variant_groups.map((group) => ({
+    name: group.name,
+    selection_type: group.selection_type,
+    is_required: group.is_required ?? true,
+    sort_order: group.sort_order ?? 0,
+    options:
+      group.options?.map((option) => ({
+        name: option.name,
+        price_adjustment: Number(option.price_adjustment ?? 0),
+        sort_order: option.sort_order ?? 0,
+        is_active: option.is_active ?? true,
+      })) ?? [],
+  }));
+}
+
+export function sanitizeVariantGroups(value: ProductVariantGroupPayload[]): ProductVariantGroupPayload[] {
+  return (value ?? [])
+    .filter((group) => group.name.trim() !== "")
+    .map((group) => ({
+      ...group,
+      options: (group.options ?? []).filter((option) => option.name.trim() !== ""),
+    }))
+    .filter((group) => group.options.length > 0);
+}
+```
+</details>
 
 <a id="file-srcmodulesadminpagesoutletspagetsx"></a>
 ### src\modules\admin\pages\OutletsPage.tsx
@@ -1026,6 +1992,75 @@ export default function PermissionsPage() {
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesproductbundlespagetsx"></a>
+### src\modules\admin\pages\ProductBundlesPage.tsx
+- SHA: `227f55bfa56a`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { ProductConfigPage } from "@/modules/admin/components/product-config/ProductConfigPage";
+import {
+  ProductBundleItemsEditor,
+  mapBundleItemsFromProduct,
+  sanitizeBundleItems,
+  validateBundleItems,
+} from "@/modules/admin/components/product-config/ProductBundleItemsEditor";
+import type { ProductBundleItemPayload } from "@/modules/admin/services/catalog.service";
+import type { Product } from "@/types/product";
+
+export default function ProductBundlesPage() {
+  return (
+    <ProductConfigPage<ProductBundleItemPayload[]>
+      title="Product Bundles"
+      description="Kelola paket atau combo product."
+      queryKey="admin-product-bundles"
+      emptyTitle="Belum ada produk bundle"
+      searchPlaceholder="Cari produk bundle..."
+      saveButtonLabel="Simpan Bundle"
+      filterProducts={(products) => products.filter((product) => product.product_type === "bundle")}
+      getBadge={() => ({
+        label: "bundle",
+        variant: "warning",
+      })}
+      renderSummary={(product: Product) =>
+        (product.bundle_items ?? []).length ? (
+          <>
+            {product.bundle_items?.map((item) => (
+              <div key={item.id} className="rounded-xl border border-slate-200 p-3">
+                <div className="font-medium text-slate-800">
+                  {item.bundled_product?.name ?? `Produk #${item.bundled_product_id}`}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">Qty: {item.qty}</div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div>Produk bundle ini belum punya item.</div>
+        )
+      }
+      mapFromProduct={mapBundleItemsFromProduct}
+      renderEditor={({ value, onChange, product, products }) => (
+        <ProductBundleItemsEditor
+          value={value}
+          onChange={onChange}
+          productOptions={products.filter((item) => item.id !== product?.id)}
+        />
+      )}
+      buildPayload={({ value, product }) => {
+        validateBundleItems(value, product.id);
+
+        return {
+          product_type: "bundle",
+          bundle_items: sanitizeBundleItems(value),
+        };
+      }}
+    />
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagesproductcategoriespagetsx"></a>
 ### src\modules\admin\pages\ProductCategoriesPage.tsx
 - SHA: `5bed9c304e5a`  
@@ -1225,6 +2260,72 @@ export default function ProductCategoriesPage() {
         </Modal>
       </div>
     </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesproductmodifierspagetsx"></a>
+### src\modules\admin\pages\ProductModifiersPage.tsx
+- SHA: `cb169112697c`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { ProductConfigPage } from "@/modules/admin/components/product-config/ProductConfigPage";
+import {
+  ProductModifierGroupsEditor,
+  mapModifierGroupsFromProduct,
+  sanitizeModifierGroups,
+  validateModifierGroups,
+} from "@/modules/admin/components/product-config/ProductModifierGroupsEditor";
+import type { ProductModifierGroupPayload } from "@/modules/admin/services/catalog.service";
+import type { Product } from "@/types/product";
+
+export default function ProductModifiersPage() {
+  return (
+    <ProductConfigPage<ProductModifierGroupPayload[]>
+      title="Product Modifiers"
+      description="Kelola modifier group dan option per produk."
+      queryKey="admin-product-modifiers"
+      emptyTitle="Belum ada produk"
+      searchPlaceholder="Cari produk untuk mengatur modifier..."
+      saveButtonLabel="Simpan Modifier"
+      getBadge={(product: Product) => ({
+        label: product.modifier_groups?.length
+          ? `${product.modifier_groups.length} group`
+          : "Belum ada modifier",
+        variant: product.modifier_groups?.length ? "success" : "warning",
+      })}
+      renderSummary={(product: Product) =>
+        (product.modifier_groups ?? []).length ? (
+          <>
+            {product.modifier_groups?.map((group) => (
+              <div key={group.id} className="rounded-xl border border-slate-200 p-3">
+                <div className="font-medium text-slate-800">{group.name}</div>
+                <div className="mt-1 text-xs text-slate-500">
+                  min: {group.min_select ?? 0} • max: {group.max_select ?? 1} • option:{" "}
+                  {group.options?.length ?? 0}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div>Produk ini belum memiliki modifier group.</div>
+        )
+      }
+      mapFromProduct={mapModifierGroupsFromProduct}
+      renderEditor={({ value, onChange }) => (
+        <ProductModifierGroupsEditor value={value} onChange={onChange} />
+      )}
+      buildPayload={({ value }) => {
+        validateModifierGroups(value);
+
+        return {
+          modifier_groups: sanitizeModifierGroups(value),
+        };
+      }}
+    />
   );
 }
 ```
@@ -2569,6 +3670,68 @@ export default function ProductsPage() {
         </Modal>
       </div>
     </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesproductvariantspagetsx"></a>
+### src\modules\admin\pages\ProductVariantsPage.tsx
+- SHA: `b2a66a29d76f`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { ProductConfigPage } from "@/modules/admin/components/product-config/ProductConfigPage";
+import {
+  ProductVariantGroupsEditor,
+  mapVariantGroupsFromProduct,
+  sanitizeVariantGroups,
+} from "@/modules/admin/components/product-config/ProductVariantGroupsEditor";
+import type { ProductVariantGroupPayload } from "@/modules/admin/services/catalog.service";
+import type { Product } from "@/types/product";
+
+export default function ProductVariantsPage() {
+  return (
+    <ProductConfigPage<ProductVariantGroupPayload[]>
+      title="Product Variants"
+      description="Kelola variant group dan option per produk."
+      queryKey="admin-product-variants"
+      emptyTitle="Belum ada produk"
+      searchPlaceholder="Cari produk untuk mengatur varian..."
+      saveButtonLabel="Simpan Varian"
+      getBadge={(product: Product) => ({
+        label: product.variant_groups?.length
+          ? `${product.variant_groups.length} group`
+          : "Belum ada varian",
+        variant: product.variant_groups?.length ? "success" : "warning",
+      })}
+      renderSummary={(product: Product) =>
+        (product.variant_groups ?? []).length ? (
+          <>
+            {product.variant_groups?.map((group) => (
+              <div key={group.id} className="rounded-xl border border-slate-200 p-3">
+                <div className="font-medium text-slate-800">
+                  {group.name} ({group.selection_type})
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  option: {group.options?.length ?? 0}
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div>Produk ini belum memiliki variant group.</div>
+        )
+      }
+      mapFromProduct={mapVariantGroupsFromProduct}
+      renderEditor={({ value, onChange }) => (
+        <ProductVariantGroupsEditor value={value} onChange={onChange} />
+      )}
+      buildPayload={({ value }) => ({
+        variant_groups: sanitizeVariantGroups(value),
+      })}
+    />
   );
 }
 ```
@@ -4061,6 +5224,1458 @@ export const useAuthStore = create<AuthState>((set) => ({
 ```
 </details>
 
+<a id="file-srcmodulesposcomponentsposcartpaneltsx"></a>
+### src\modules\pos\components\PosCartPanel.tsx
+- SHA: `b32ed01fe399`  
+- Ukuran: 11 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Badge, Button, Card, Input } from "@/components/ui";
+import type { Customer } from "@/types/customer";
+import type { PosCartItem, PosOrderChannel } from "@/modules/pos/types/pos";
+
+interface PosCartPanelProps {
+  items: PosCartItem[];
+  customer: Customer | null;
+  customerSearch: string;
+  onCustomerSearchChange: (value: string) => void;
+  customerResults: Customer[];
+  canSearchCustomer: boolean;
+  loadingCustomers: boolean;
+  orderChannel: PosOrderChannel;
+  onOrderChannelChange: (value: PosOrderChannel) => void;
+  onPickCustomer: (customer: Customer) => void;
+  onClearCustomer: () => void;
+  onUpdateQty: (itemId: string, qty: number) => void;
+  onUpdateNotes: (itemId: string, notes: string) => void;
+  onRemoveItem: (itemId: string) => void;
+  onClearCart: () => void;
+  onHoldOrder: () => void;
+  onRestoreHeldOrder: () => void;
+  onDiscardHeldOrder: () => void;
+  hasHeldOrder: boolean;
+  onSubmitOrder: () => void;
+}
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+const channelOptions: Array<{ value: PosOrderChannel; label: string }> = [
+  { value: "pos", label: "POS" },
+  { value: "takeaway", label: "Takeaway" },
+  { value: "dine_in", label: "Dine In" },
+  { value: "pickup", label: "Pickup" },
+  { value: "delivery", label: "Delivery" },
+];
+
+export function PosCartPanel({
+  items,
+  customer,
+  customerSearch,
+  onCustomerSearchChange,
+  customerResults,
+  canSearchCustomer,
+  loadingCustomers,
+  orderChannel,
+  onOrderChannelChange,
+  onPickCustomer,
+  onClearCustomer,
+  onUpdateQty,
+  onUpdateNotes,
+  onRemoveItem,
+  onClearCart,
+  onHoldOrder,
+  onRestoreHeldOrder,
+  onDiscardHeldOrder,
+  hasHeldOrder,
+  onSubmitOrder,
+}: PosCartPanelProps) {
+  const itemCount = items.reduce((sum, item) => sum + Number(item.qty ?? 0), 0);
+  const subtotal = items.reduce((sum, item) => sum + Number(item.line_total ?? 0), 0);
+
+  return (
+    <div className="space-y-4">
+      <Card title="Order Context">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Order Channel
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {channelOptions.map((option) => {
+                const active = option.value === orderChannel;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => onOrderChannelChange(option.value)}
+                    className={[
+                      "rounded-xl border px-3 py-2 text-sm font-medium transition",
+                      active
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+                    ].join(" ")}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Customer Quick Assign
+            </label>
+
+            {!canSearchCustomer ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                Permission `customers.view` belum tersedia untuk user ini.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Input
+                  placeholder="Cari nama, phone, atau email customer..."
+                  value={customerSearch}
+                  onChange={(event) => onCustomerSearchChange(event.target.value)}
+                />
+
+                {customer ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-medium text-emerald-900">{customer.name}</div>
+                        <div className="mt-1 text-xs text-emerald-700">
+                          {customer.phone ?? customer.email ?? "Tanpa kontak"}
+                        </div>
+                      </div>
+                      <Button variant="outline" onClick={onClearCustomer}>
+                        Lepas
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {loadingCustomers ? (
+                  <div className="text-sm text-slate-500">Mencari customer...</div>
+                ) : customerSearch.trim().length >= 2 && !customerResults.length ? (
+                  <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
+                ) : customerResults.length ? (
+                  <div className="max-h-56 space-y-2 overflow-y-auto">
+                    {customerResults.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onPickCustomer(item)}
+                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50"
+                      >
+                        <div className="font-medium text-slate-900">{item.name}</div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {item.phone ?? item.email ?? "Tanpa kontak"}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
+      <Card
+        title="Cart"
+        description={`${itemCount} item`}
+        actions={
+          items.length ? (
+            <Badge variant="info">{formatCurrency(subtotal)}</Badge>
+          ) : (
+            <Badge variant="warning">Kosong</Badge>
+          )
+        }
+      >
+        {!items.length ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
+            Belum ada item di cart.
+          </div>
+        ) : (
+          <div className="max-h-[48vh] space-y-3 overflow-y-auto pr-1">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-2xl border border-slate-200 bg-white p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-slate-900">{item.product_name}</div>
+                    <div className="mt-1 text-xs text-slate-500">
+                      Harga dasar {formatCurrency(item.base_unit_price)}
+                    </div>
+                  </div>
+                  <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
+                    Hapus
+                  </Button>
+                </div>
+
+                {item.selected_variants.length ? (
+                  <div className="mt-3 space-y-1">
+                    {item.selected_variants.map((variant, index) => (
+                      <div key={`${item.id}-variant-${index}`} className="text-xs text-slate-600">
+                        Variant: {variant.group_name} — {variant.option_name}
+                        {Number(variant.price_adjustment ?? 0) > 0
+                          ? ` (+${formatCurrency(Number(variant.price_adjustment ?? 0))})`
+                          : ""}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {item.selected_modifiers.length ? (
+                  <div className="mt-3 space-y-1">
+                    {item.selected_modifiers.map((modifier, index) => (
+                      <div key={`${item.id}-modifier-${index}`} className="text-xs text-slate-600">
+                        Modifier: {modifier.group_name} — {modifier.option_name}
+                        {Number(modifier.price ?? 0) > 0
+                          ? ` (+${formatCurrency(Number(modifier.price ?? 0))})`
+                          : ""}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <Input
+                    label="Qty"
+                    type="number"
+                    value={String(item.qty)}
+                    onChange={(event) => onUpdateQty(item.id, Number(event.target.value || 1))}
+                  />
+                  <Input
+                    label="Catatan"
+                    value={item.notes}
+                    onChange={(event) => onUpdateNotes(item.id, event.target.value)}
+                    placeholder="Opsional"
+                  />
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+                  <span className="text-sm text-slate-500">Total line</span>
+                  <span className="font-semibold text-slate-900">
+                    {formatCurrency(item.line_total)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card title="Order Summary">
+        <div className="space-y-3 text-sm text-slate-700">
+          <div className="flex items-center justify-between">
+            <span>Total qty</span>
+            <span>{itemCount}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span>Subtotal</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
+            <span>Total sementara</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-2">
+          <Button variant="secondary" onClick={onHoldOrder} disabled={!items.length}>
+            Hold Order
+          </Button>
+          <Button variant="outline" onClick={onRestoreHeldOrder} disabled={!hasHeldOrder}>
+            Muat Held Order
+          </Button>
+          <Button variant="outline" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
+            Hapus Held Order
+          </Button>
+          <Button variant="outline" onClick={onClearCart} disabled={!items.length}>
+            Clear Cart
+          </Button>
+          <Button onClick={onSubmitOrder} disabled={!items.length}>
+            Simpan Order
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesposcomponentsposproductconfiguratormodaltsx"></a>
+### src\modules\pos\components\PosProductConfiguratorModal.tsx
+- SHA: `b99235061543`  
+- Ukuran: 13 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import type { Product } from "@/types/product";
+import type {
+  PosModifierSelection,
+  PosProductConfiguratorSubmit,
+  PosVariantSelection,
+} from "@/modules/pos/types/pos";
+
+interface PosProductConfiguratorModalProps {
+  open: boolean;
+  product: Product | null;
+  outletPrice: number;
+  onClose: () => void;
+  onSubmit: (payload: PosProductConfiguratorSubmit) => void;
+}
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+const groupSelectionsById = (ids: number[]) => Array.from(new Set(ids));
+
+const getSafeId = (value?: number | null) => (typeof value === "number" ? value : null);
+
+export function PosProductConfiguratorModal({
+  open,
+  product,
+  outletPrice,
+  onClose,
+  onSubmit,
+}: PosProductConfiguratorModalProps) {
+  const [qty, setQty] = useState(1);
+  const [note, setNote] = useState("");
+  const [selectedVariantIds, setSelectedVariantIds] = useState<Record<number, number[]>>({});
+  const [selectedModifierIds, setSelectedModifierIds] = useState<Record<number, number[]>>({});
+
+  const resetState = () => {
+    setQty(1);
+    setNote("");
+    setSelectedVariantIds({});
+    setSelectedModifierIds({});
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  const selectedVariants = useMemo<PosVariantSelection[]>(() => {
+    if (!product?.variant_groups?.length) return [];
+
+    const results: PosVariantSelection[] = [];
+
+    product.variant_groups.forEach((group) => {
+      const groupId = getSafeId(group.id);
+      if (groupId === null) return;
+
+      const pickedIds = selectedVariantIds[groupId] ?? [];
+
+      group.options?.forEach((option) => {
+        const optionId = getSafeId(option.id);
+        if (optionId === null) return;
+        if (!pickedIds.includes(optionId)) return;
+
+        results.push({
+          group_name: group.name,
+          option_name: option.name,
+          price_adjustment: Number(option.price_adjustment ?? 0),
+        });
+      });
+    });
+
+    return results;
+  }, [product, selectedVariantIds]);
+
+  const selectedModifiers = useMemo<PosModifierSelection[]>(() => {
+    if (!product?.modifier_groups?.length) return [];
+
+    const results: PosModifierSelection[] = [];
+
+    product.modifier_groups.forEach((group) => {
+      const groupId = getSafeId(group.id);
+      if (groupId === null) return;
+
+      const pickedIds = selectedModifierIds[groupId] ?? [];
+
+      group.options?.forEach((option) => {
+        const optionId = getSafeId(option.id);
+        if (optionId === null) return;
+        if (!pickedIds.includes(optionId)) return;
+
+        results.push({
+          group_name: group.name,
+          option_name: option.name,
+          qty: 1,
+          price: Number(option.price ?? 0),
+        });
+      });
+    });
+
+    return results;
+  }, [product, selectedModifierIds]);
+
+  const variantTotal = selectedVariants.reduce(
+    (sum, item) => sum + Number(item.price_adjustment ?? 0),
+    0
+  );
+
+  const modifierTotal = selectedModifiers.reduce(
+    (sum, item) => sum + Number(item.price ?? 0) * Number(item.qty ?? 1),
+    0
+  );
+
+  const previewLineTotal =
+    (Number(outletPrice ?? 0) + variantTotal + modifierTotal) * Number(qty || 1);
+
+  const validateSelections = () => {
+    if (!product) {
+      throw new Error("Produk belum dipilih.");
+    }
+
+    for (const group of product.variant_groups ?? []) {
+      const groupId = getSafeId(group.id);
+      if (groupId === null) continue;
+
+      const pickedIds = selectedVariantIds[groupId] ?? [];
+
+      if (group.is_required && pickedIds.length === 0) {
+        throw new Error(`Variant "${group.name}" wajib dipilih.`);
+      }
+
+      if (group.selection_type === "single" && pickedIds.length > 1) {
+        throw new Error(`Variant "${group.name}" hanya boleh memilih satu opsi.`);
+      }
+    }
+
+    for (const group of product.modifier_groups ?? []) {
+      const groupId = getSafeId(group.id);
+      if (groupId === null) continue;
+
+      const pickedIds = selectedModifierIds[groupId] ?? [];
+      const minSelect = Number(group.min_select ?? 0);
+      const maxSelect = Number(group.max_select ?? 0);
+
+      if (group.is_required && pickedIds.length === 0) {
+        throw new Error(`Modifier "${group.name}" wajib dipilih.`);
+      }
+
+      if (pickedIds.length < minSelect) {
+        throw new Error(`Modifier "${group.name}" minimal harus memilih ${minSelect} opsi.`);
+      }
+
+      if (maxSelect > 0 && pickedIds.length > maxSelect) {
+        throw new Error(`Modifier "${group.name}" maksimal hanya ${maxSelect} opsi.`);
+      }
+    }
+  };
+
+  const toggleVariant = (
+    groupId: number,
+    optionId: number,
+    selectionType: "single" | "multiple"
+  ) => {
+    setSelectedVariantIds((prev) => {
+      const current = prev[groupId] ?? [];
+
+      if (selectionType === "single") {
+        return {
+          ...prev,
+          [groupId]: current.includes(optionId) ? [] : [optionId],
+        };
+      }
+
+      return {
+        ...prev,
+        [groupId]: current.includes(optionId)
+          ? current.filter((id) => id !== optionId)
+          : groupSelectionsById([...current, optionId]),
+      };
+    });
+  };
+
+  const toggleModifier = (
+    groupId: number,
+    optionId: number,
+    maxSelect?: number | null
+  ) => {
+    setSelectedModifierIds((prev) => {
+      const current = prev[groupId] ?? [];
+
+      if (current.includes(optionId)) {
+        return {
+          ...prev,
+          [groupId]: current.filter((id) => id !== optionId),
+        };
+      }
+
+      if (maxSelect && maxSelect > 0 && current.length >= maxSelect) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [groupId]: groupSelectionsById([...current, optionId]),
+      };
+    });
+  };
+
+  const handleSubmit = () => {
+    if (!product) return;
+
+    validateSelections();
+
+    onSubmit({
+      product,
+      qty: Math.max(1, Number(qty || 1)),
+      base_unit_price: Number(outletPrice ?? 0),
+      notes: note,
+      selected_variants: selectedVariants,
+      selected_modifiers: selectedModifiers,
+    });
+
+    resetState();
+  };
+
+  return (
+    <Modal
+      open={open}
+      title={product ? `Konfigurasi Produk — ${product.name}` : "Konfigurasi Produk"}
+      onClose={handleClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={handleClose}>
+            Batal
+          </Button>
+          <Button onClick={handleSubmit}>Tambahkan ke Cart</Button>
+        </>
+      }
+    >
+      {!product ? null : (
+        <div className="space-y-4">
+          <Card
+            title={product.name}
+            description={product.category?.name ?? "-"}
+            actions={<Badge variant="info">{formatCurrency(outletPrice)}</Badge>}
+          >
+            <div className="text-sm text-slate-600">
+              {product.description?.trim() || "Tidak ada deskripsi produk."}
+            </div>
+          </Card>
+
+          {(product.variant_groups ?? []).map((group, groupIndex) => {
+            const groupId = getSafeId(group.id);
+            const pickedIds = groupId !== null ? selectedVariantIds[groupId] ?? [] : [];
+
+            return (
+              <Card
+                key={groupId ?? `variant-group-${groupIndex}`}
+                title={group.name}
+                description={`Tipe: ${group.selection_type} • ${
+                  group.is_required ? "Wajib" : "Opsional"
+                }`}
+              >
+                <div className="grid gap-2 md:grid-cols-2">
+                  {group.options?.map((option, optionIndex) => {
+                    const optionId = getSafeId(option.id);
+                    const selected = optionId !== null ? pickedIds.includes(optionId) : false;
+
+                    return (
+                      <button
+                        key={optionId ?? `variant-option-${groupIndex}-${optionIndex}`}
+                        type="button"
+                        disabled={groupId === null || optionId === null}
+                        onClick={() => {
+                          if (groupId === null || optionId === null) return;
+                          toggleVariant(groupId, optionId, group.selection_type);
+                        }}
+                        className={[
+                          "rounded-2xl border p-3 text-left transition",
+                          selected
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50",
+                          groupId === null || optionId === null
+                            ? "cursor-not-allowed opacity-60"
+                            : "",
+                        ].join(" ")}
+                      >
+                        <div className="font-medium">{option.name}</div>
+                        <div
+                          className={[
+                            "mt-1 text-xs",
+                            selected ? "text-slate-200" : "text-slate-500",
+                          ].join(" ")}
+                        >
+                          {Number(option.price_adjustment ?? 0) > 0
+                            ? `+ ${formatCurrency(Number(option.price_adjustment ?? 0))}`
+                            : "Tanpa tambahan harga"}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })}
+
+          {(product.modifier_groups ?? []).map((group, groupIndex) => {
+            const groupId = getSafeId(group.id);
+            const pickedIds = groupId !== null ? selectedModifierIds[groupId] ?? [] : [];
+
+            return (
+              <Card
+                key={groupId ?? `modifier-group-${groupIndex}`}
+                title={group.name}
+                description={`Min ${Number(group.min_select ?? 0)} • Max ${Number(
+                  group.max_select ?? 0
+                )} • ${group.is_required ? "Wajib" : "Opsional"}`}
+              >
+                <div className="grid gap-3 md:grid-cols-2">
+                  {group.options?.map((option, optionIndex) => {
+                    const optionId = getSafeId(option.id);
+                    const checked = optionId !== null ? pickedIds.includes(optionId) : false;
+
+                    return (
+                      <div
+                        key={optionId ?? `modifier-option-${groupIndex}-${optionIndex}`}
+                        className="rounded-2xl border border-slate-200 p-3"
+                      >
+                        <Checkbox
+                          label={`${option.name} ${
+                            Number(option.price ?? 0) > 0
+                              ? `(+${formatCurrency(Number(option.price ?? 0))})`
+                              : ""
+                          }`}
+                          checked={checked}
+                          onChange={() => {
+                            if (groupId === null || optionId === null) return;
+                            toggleModifier(groupId, optionId, group.max_select);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Qty"
+              type="number"
+              value={String(qty)}
+              onChange={(event) => setQty(Math.max(1, Number(event.target.value || 1)))}
+            />
+            <Input
+              label="Catatan Item"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="Contoh: sambal dipisah"
+            />
+          </div>
+
+          <Card title="Ringkasan Harga">
+            <div className="space-y-2 text-sm text-slate-700">
+              <div className="flex items-center justify-between">
+                <span>Harga dasar</span>
+                <span>{formatCurrency(outletPrice)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Tambahan variant</span>
+                <span>{formatCurrency(variantTotal)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Tambahan modifier</span>
+                <span>{formatCurrency(modifierTotal)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Qty</span>
+                <span>{qty}</span>
+              </div>
+              <div className="border-t border-slate-200 pt-2 text-base font-semibold text-slate-900">
+                <div className="flex items-center justify-between">
+                  <span>Total sementara</span>
+                  <span>{formatCurrency(previewLineTotal)}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </Modal>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesposhooksuseposcartstorets"></a>
+### src\modules\pos\hooks\usePosCartStore.ts
+- SHA: `b790597f82dc`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { create } from "zustand";
+import type { Customer } from "@/types/customer";
+import type {
+  PosCartItem,
+  PosHeldCart,
+  PosModifierSelection,
+  PosOrderChannel,
+  PosVariantSelection,
+} from "@/modules/pos/types/pos";
+
+const HELD_CART_STORAGE_KEY = "chicken_alibaba_pos_held_cart";
+
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+const computeLineTotal = (
+  qty: number,
+  baseUnitPrice: number,
+  selectedVariants: PosVariantSelection[],
+  selectedModifiers: PosModifierSelection[]
+) => {
+  const variantDelta = selectedVariants.reduce(
+    (sum, item) => sum + Number(item.price_adjustment ?? 0),
+    0
+  );
+
+  const modifierDelta = selectedModifiers.reduce(
+    (sum, item) => sum + Number(item.price ?? 0) * Number(item.qty ?? 1),
+    0
+  );
+
+  return roundMoney((Number(baseUnitPrice) + variantDelta + modifierDelta) * Number(qty));
+};
+
+const createCartItemId = () => `pos-item-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+
+interface PosCartState {
+  orderChannel: PosOrderChannel;
+  customer: Customer | null;
+  items: PosCartItem[];
+  heldCartMeta: PosHeldCart | null;
+  setOrderChannel: (channel: PosOrderChannel) => void;
+  setCustomer: (customer: Customer | null) => void;
+  addItem: (payload: {
+    product_id: number;
+    product_name: string;
+    product_type: "single" | "bundle";
+    image_url?: string | null;
+    qty?: number;
+    base_unit_price: number;
+    notes?: string;
+    selected_variants?: PosVariantSelection[];
+    selected_modifiers?: PosModifierSelection[];
+  }) => void;
+  updateQty: (itemId: string, qty: number) => void;
+  updateNotes: (itemId: string, notes: string) => void;
+  removeItem: (itemId: string) => void;
+  clearCart: () => void;
+  holdCart: () => void;
+  restoreHeldCart: () => boolean;
+  discardHeldCart: () => void;
+}
+
+export const usePosCartStore = create<PosCartState>((set, get) => ({
+  orderChannel: "takeaway",
+  customer: null,
+  items: [],
+  heldCartMeta: null,
+
+  setOrderChannel: (orderChannel) => set({ orderChannel }),
+
+  setCustomer: (customer) => set({ customer }),
+
+  addItem: (payload) =>
+    set((state) => {
+      const qty = Number(payload.qty ?? 1);
+      const selectedVariants = payload.selected_variants ?? [];
+      const selectedModifiers = payload.selected_modifiers ?? [];
+      const lineTotal = computeLineTotal(
+        qty,
+        payload.base_unit_price,
+        selectedVariants,
+        selectedModifiers
+      );
+
+      const newItem: PosCartItem = {
+        id: createCartItemId(),
+        product_id: payload.product_id,
+        product_name: payload.product_name,
+        product_type: payload.product_type,
+        image_url: payload.image_url ?? null,
+        qty,
+        base_unit_price: Number(payload.base_unit_price ?? 0),
+        notes: payload.notes ?? "",
+        selected_variants: selectedVariants,
+        selected_modifiers: selectedModifiers,
+        line_total: lineTotal,
+      };
+
+      return {
+        items: [...state.items, newItem],
+      };
+    }),
+
+  updateQty: (itemId, qty) =>
+    set((state) => ({
+      items: state.items.map((item) => {
+        if (item.id !== itemId) return item;
+
+        const normalizedQty = Math.max(1, Number(qty || 1));
+
+        return {
+          ...item,
+          qty: normalizedQty,
+          line_total: computeLineTotal(
+            normalizedQty,
+            item.base_unit_price,
+            item.selected_variants,
+            item.selected_modifiers
+          ),
+        };
+      }),
+    })),
+
+  updateNotes: (itemId, notes) =>
+    set((state) => ({
+      items: state.items.map((item) => (item.id === itemId ? { ...item, notes } : item)),
+    })),
+
+  removeItem: (itemId) =>
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== itemId),
+    })),
+
+  clearCart: () =>
+    set({
+      customer: null,
+      items: [],
+      orderChannel: "takeaway",
+    }),
+
+  holdCart: () => {
+    const snapshot: PosHeldCart = {
+      held_at: new Date().toISOString(),
+      customer: get().customer,
+      order_channel: get().orderChannel,
+      items: get().items,
+    };
+
+    localStorage.setItem(HELD_CART_STORAGE_KEY, JSON.stringify(snapshot));
+    set({ heldCartMeta: snapshot });
+  },
+
+  restoreHeldCart: () => {
+    const raw = localStorage.getItem(HELD_CART_STORAGE_KEY);
+    if (!raw) {
+      return false;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as PosHeldCart;
+
+      set({
+        customer: parsed.customer ?? null,
+        orderChannel: parsed.order_channel ?? "takeaway",
+        items: parsed.items ?? [],
+        heldCartMeta: parsed,
+      });
+
+      return true;
+    } catch {
+      localStorage.removeItem(HELD_CART_STORAGE_KEY);
+      set({ heldCartMeta: null });
+      return false;
+    }
+  },
+
+  discardHeldCart: () => {
+    localStorage.removeItem(HELD_CART_STORAGE_KEY);
+    set({ heldCartMeta: null });
+  },
+}));
+```
+</details>
+
+<a id="file-srcmodulespospagesposorderspagetsx"></a>
+### src\modules\pos\pages\PosOrdersPage.tsx
+- SHA: `dacb146f5eb8`  
+- Ukuran: 13 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Badge, Button, Card, Input } from "@/components/ui";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { useToast } from "@/hooks/useToast";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import { usePermission } from "@/hooks/usePermission";
+import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
+import { posService } from "@/modules/pos/services/pos.service";
+import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
+import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
+import type { Customer } from "@/types/customer";
+import type { Product } from "@/types/product";
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+const getOutletPrice = (product: Product, outletId: number | null) => {
+  if (!outletId) {
+    return Number(product.base_price ?? 0);
+  }
+
+  const activePriceRow = product.prices?.find(
+    (item) => Number(item.outlet_id) === Number(outletId) && Boolean(item.is_active ?? true)
+  );
+
+  return Number(activePriceRow?.price ?? product.base_price ?? 0);
+};
+
+const isProductAvailableForOutlet = (product: Product, outletId: number | null) => {
+  if (!product.is_active) {
+    return false;
+  }
+
+  if (!outletId) {
+    return true;
+  }
+
+  const status = product.outlet_statuses?.find(
+    (item) => Number(item.outlet_id) === Number(outletId)
+  );
+
+  if (!status) {
+    return true;
+  }
+
+  if (status.is_hidden) {
+    return false;
+  }
+
+  if (status.is_available === false) {
+    return false;
+  }
+
+  return true;
+};
+
+export default function PosOrdersPage() {
+  const toast = useToast();
+  const { activeOutlet, activeOutletId } = useActiveOutlet();
+  const canViewCustomers = usePermission("customers.view");
+
+  const {
+    items,
+    customer,
+    orderChannel,
+    setOrderChannel,
+    setCustomer,
+    addItem,
+    updateQty,
+    updateNotes,
+    removeItem,
+    clearCart,
+    holdCart,
+    restoreHeldCart,
+    discardHeldCart,
+  } = usePosCartStore();
+
+  const [search, setSearch] = useState("");
+  const [activeCategoryId, setActiveCategoryId] = useState<number | "all">("all");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [configProduct, setConfigProduct] = useState<Product | null>(null);
+
+  const categoriesQuery = useQuery({
+    queryKey: ["pos-product-categories"],
+    queryFn: () => posService.getProductCategories({ per_page: 100, is_active: true }),
+  });
+
+  const productsQuery = useQuery({
+    queryKey: ["pos-products", search],
+    queryFn: () =>
+      posService.getProducts({
+        per_page: 200,
+        search,
+        is_active: true,
+      }),
+  });
+
+  const customersQuery = useQuery({
+    queryKey: ["pos-customers", customerSearch],
+    queryFn: () =>
+      posService.getCustomers({
+        per_page: 10,
+        search: customerSearch,
+      }),
+    enabled: canViewCustomers && customerSearch.trim().length >= 2,
+  });
+
+  const categoryOptions = categoriesQuery.data?.items ?? [];
+  const rawProducts = productsQuery.data?.items ?? [];
+  const customerOptions = customersQuery.data?.items ?? [];
+
+  const visibleProducts = useMemo(() => {
+    return rawProducts
+      .filter((product) => isProductAvailableForOutlet(product, activeOutletId))
+      .map((product) => ({
+        ...product,
+        effective_price: getOutletPrice(product, activeOutletId),
+      }))
+      .filter((product) =>
+        activeCategoryId === "all"
+          ? true
+          : Number(product.product_category_id) === Number(activeCategoryId)
+      );
+  }, [activeCategoryId, activeOutletId, rawProducts]);
+
+  const categoryTabs = useMemo(() => {
+    const counts = new Map<number, number>();
+
+    rawProducts.forEach((product) => {
+      if (!isProductAvailableForOutlet(product, activeOutletId)) return;
+
+      const current = counts.get(product.product_category_id) ?? 0;
+      counts.set(product.product_category_id, current + 1);
+    });
+
+    return categoryOptions
+      .filter((category) => (counts.get(category.id) ?? 0) > 0)
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        count: counts.get(category.id) ?? 0,
+      }));
+  }, [activeOutletId, categoryOptions, rawProducts]);
+
+  const handleOpenConfigurator = (product: Product) => {
+    setConfigProduct(product);
+  };
+
+  const handleAddToCart = (payload: {
+    product: Product;
+    qty: number;
+    base_unit_price: number;
+    notes: string;
+    selected_variants: Array<{
+      group_name: string;
+      option_name: string;
+      price_adjustment: number;
+    }>;
+    selected_modifiers: Array<{
+      group_name: string;
+      option_name: string;
+      qty: number;
+      price: number;
+    }>;
+  }) => {
+    addItem({
+      product_id: payload.product.id,
+      product_name: payload.product.name,
+      product_type: payload.product.product_type,
+      image_url: payload.product.image_url ?? null,
+      qty: payload.qty,
+      base_unit_price: payload.base_unit_price,
+      notes: payload.notes,
+      selected_variants: payload.selected_variants,
+      selected_modifiers: payload.selected_modifiers,
+    });
+
+    setConfigProduct(null);
+    toast.success("Produk ditambahkan", `${payload.product.name} masuk ke cart.`);
+  };
+
+  const handlePickCustomer = (pickedCustomer: Customer) => {
+    setCustomer(pickedCustomer);
+    setCustomerSearch("");
+    toast.success("Customer dipilih", pickedCustomer.name);
+  };
+
+  const handleHoldOrder = () => {
+    if (!items.length) {
+      toast.warning("Cart kosong", "Tidak ada item yang bisa di-hold.");
+      return;
+    }
+
+    holdCart();
+    toast.success("Order di-hold", "Cart sementara berhasil disimpan.");
+  };
+
+  const handleRestoreHeld = () => {
+    const restored = restoreHeldCart();
+
+    if (!restored) {
+      toast.warning("Held order tidak ada", "Belum ada held order yang tersimpan.");
+      return;
+    }
+
+    toast.success("Held order dimuat", "Cart sementara berhasil dipulihkan.");
+  };
+
+  const handleDiscardHeld = () => {
+    discardHeldCart();
+    toast.success("Held order dihapus");
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    toast.success("Cart dibersihkan");
+  };
+
+  const handleSubmitOrder = () => {
+    toast.warning(
+      "Backend order belum tersedia",
+      "UI POS dasar sudah siap. Integrasi submit order akan dilanjutkan saat endpoint orders tersedia."
+    );
+  };
+
+  return (
+    <PermissionWrapper permission="products.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="POS Kasir Dasar"
+          description="Katalog cepat, cart interaktif, customer quick assign, dan konfigurasi variant/modifier."
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="info">
+                Outlet: {activeOutlet?.outlet_name ?? "Belum dipilih"}
+              </Badge>
+              <Badge variant="warning">Mode: SCAFFOLD Submit Order</Badge>
+            </div>
+          }
+        />
+
+        {!activeOutletId ? (
+          <Card>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+              User ini belum memiliki active outlet. Pilih default outlet dulu dari data user.
+            </div>
+          </Card>
+        ) : null}
+
+        <div className="grid gap-4 xl:grid-cols-[1.6fr_0.9fr]">
+          <div className="space-y-4">
+            <Card>
+              <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                <Input
+                  placeholder="Cari nama, sku, code, atau slug produk..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+
+                <Button variant="outline" onClick={() => setSearch("")}>
+                  Reset Search
+                </Button>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategoryId("all")}
+                  className={[
+                    "rounded-xl px-4 py-2 text-sm font-medium transition",
+                    activeCategoryId === "all"
+                      ? "bg-slate-900 text-white"
+                      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+                  ].join(" ")}
+                >
+                  Semua
+                </button>
+
+                {categoryTabs.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setActiveCategoryId(category.id)}
+                    className={[
+                      "rounded-xl px-4 py-2 text-sm font-medium transition",
+                      activeCategoryId === category.id
+                        ? "bg-slate-900 text-white"
+                        : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+                    ].join(" ")}
+                  >
+                    {category.name} ({category.count})
+                  </button>
+                ))}
+              </div>
+            </Card>
+
+            {productsQuery.isLoading ? (
+              <Card>Memuat katalog produk...</Card>
+            ) : productsQuery.isError ? (
+              <PageErrorState onRetry={() => void productsQuery.refetch()} />
+            ) : !visibleProducts.length ? (
+              <PageEmptyState title="Produk POS tidak ditemukan" />
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleProducts.map((product) => (
+                  <Card
+                    key={product.id}
+                    title={product.name}
+                    description={product.category?.name ?? "-"}
+                    actions={
+                      <Badge variant={product.product_type === "bundle" ? "warning" : "info"}>
+                        {product.product_type}
+                      </Badge>
+                    }
+                  >
+                    <div className="space-y-2 text-sm text-slate-600">
+                      <div className="font-semibold text-slate-900">
+                        {formatCurrency(product.effective_price)}
+                      </div>
+                      <div>{product.description?.trim() || "Tanpa deskripsi produk."}</div>
+
+                      {(product.variant_groups?.length ?? 0) > 0 ? (
+                        <div>
+                          Variant: {product.variant_groups?.length} group
+                        </div>
+                      ) : null}
+
+                      {(product.modifier_groups?.length ?? 0) > 0 ? (
+                        <div>
+                          Modifier: {product.modifier_groups?.length} group
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-4">
+                      <Button onClick={() => handleOpenConfigurator(product)}>
+                        Tambah ke Cart
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <PosCartPanel
+            items={items}
+            customer={customer}
+            customerSearch={customerSearch}
+            onCustomerSearchChange={setCustomerSearch}
+            customerResults={customerOptions}
+            canSearchCustomer={canViewCustomers}
+            loadingCustomers={customersQuery.isFetching}
+            orderChannel={orderChannel}
+            onOrderChannelChange={setOrderChannel}
+            onPickCustomer={handlePickCustomer}
+            onClearCustomer={() => setCustomer(null)}
+            onUpdateQty={updateQty}
+            onUpdateNotes={updateNotes}
+            onRemoveItem={removeItem}
+            onClearCart={handleClearCart}
+            onHoldOrder={handleHoldOrder}
+            onRestoreHeldOrder={handleRestoreHeld}
+            onDiscardHeldOrder={handleDiscardHeld}
+            hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
+            onSubmitOrder={handleSubmitOrder}
+          />
+        </div>
+
+        <PosProductConfiguratorModal
+          open={Boolean(configProduct)}
+          product={configProduct}
+          outletPrice={configProduct ? getOutletPrice(configProduct, activeOutletId) : 0}
+          onClose={() => setConfigProduct(null)}
+          onSubmit={handleAddToCart}
+        />
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesposservicesposservicets"></a>
+### src\modules\pos\services\pos.service.ts
+- SHA: `4895882531fa`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type { Customer } from "@/types/customer";
+import type { Product, ProductCategory } from "@/types/product";
+
+export interface PosPaginationQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_active?: boolean | "";
+}
+
+export interface PosProductQuery extends PosPaginationQuery {
+  product_category_id?: number | "";
+  product_type?: "single" | "bundle" | "";
+}
+
+export interface PosCustomerQuery extends PosPaginationQuery {
+  is_member?: boolean | "";
+}
+
+export interface PosPaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PosPaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const posService = {
+  async getProductCategories(params: PosPaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<ProductCategory[]>>(
+      endpoints.productCategories.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getProducts(params: PosProductQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Product[]>>(endpoints.products.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getCustomers(params: PosCustomerQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Customer[]>>(endpoints.customers.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+};
+```
+</details>
+
+<a id="file-srcmodulespostypesposts"></a>
+### src\modules\pos\types\pos.ts
+- SHA: `867e839478e3`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { Customer } from "@/types/customer";
+import type { Product, ProductModifierGroup, ProductVariantGroup } from "@/types/product";
+
+export type PosOrderChannel =
+  | "pos"
+  | "takeaway"
+  | "dine_in"
+  | "pickup"
+  | "delivery"
+  | "website";
+
+export interface PosVariantSelection {
+  group_name: string;
+  option_name: string;
+  price_adjustment: number;
+}
+
+export interface PosModifierSelection {
+  group_name: string;
+  option_name: string;
+  qty: number;
+  price: number;
+}
+
+export interface PosCartItem {
+  id: string;
+  product_id: number;
+  product_name: string;
+  product_type: "single" | "bundle";
+  image_url: string | null;
+  qty: number;
+  base_unit_price: number;
+  notes: string;
+  selected_variants: PosVariantSelection[];
+  selected_modifiers: PosModifierSelection[];
+  line_total: number;
+}
+
+export interface PosHeldCart {
+  held_at: string;
+  customer: Customer | null;
+  order_channel: PosOrderChannel;
+  items: PosCartItem[];
+}
+
+export interface PosProductConfiguratorValue {
+  product: Product;
+  outlet_price: number;
+  selected_variant_ids: Record<number, number[]>;
+  selected_modifier_ids: Record<number, number[]>;
+  note: string;
+}
+
+export interface PosProductConfiguratorSubmit {
+  product: Product;
+  qty: number;
+  base_unit_price: number;
+  notes: string;
+  selected_variants: PosVariantSelection[];
+  selected_modifiers: PosModifierSelection[];
+}
+
+export interface PosDisplayProduct extends Product {
+  effective_price: number;
+  is_available_in_pos: boolean;
+}
+
+export interface PosProductFilterResult {
+  items: PosDisplayProduct[];
+  categories: Array<{
+    id: number;
+    name: string;
+    count: number;
+  }>;
+}
+
+export interface PosVariantGroupView extends ProductVariantGroup {
+  options: NonNullable<ProductVariantGroup["options"]>;
+}
+
+export interface PosModifierGroupView extends ProductModifierGroup {
+  options: NonNullable<ProductModifierGroup["options"]>;
+}
+```
+</details>
+
 
 ## Components (src/components)
 
@@ -4633,8 +7248,8 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `0d527e4967af`  
-- Ukuran: 1 KB
+- SHA: `a09f124f8586`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -4661,11 +7276,31 @@ export const adminNavigation: NavigationItem[] = [
     to: "/admin/products",
     permission: "products.view",
   },
+  {
+    label: "Product Variants",
+    to: "/admin/product-variants",
+    permission: "products.view",
+  },
+  {
+    label: "Product Modifiers",
+    to: "/admin/product-modifiers",
+    permission: "products.view",
+  },
+  {
+    label: "Product Bundles",
+    to: "/admin/product-bundles",
+    permission: "products.view",
+  },
+  {
+    label: "POS",
+    to: "/pos/orders",
+    permission: "products.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders" },
+  { label: "New Order", to: "/pos/orders", permission: "products.view" },
   { label: "Shift", to: "/pos/shifts" },
 ];
 
@@ -5817,7 +8452,7 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `a238404f6131`  
+- SHA: `ed185007bf5d`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -5882,6 +8517,14 @@ export const endpoints = {
     show: (id: number | string) => `/products/${id}`,
     update: (id: number | string) => `/products/${id}`,
     destroy: (id: number | string) => `/products/${id}`,
+  },
+
+  customers: {
+    index: "/customers",
+    store: "/customers",
+    show: (id: number | string) => `/customers/${id}`,
+    update: (id: number | string) => `/customers/${id}`,
+    destroy: (id: number | string) => `/customers/${id}`,
   },
 } as const;
 ```
@@ -6128,6 +8771,49 @@ export interface LoginPayload {
 
 export type LoginResult = User;
 export type MeResult = User;
+```
+</details>
+
+<a id="file-srctypescustomerts"></a>
+### src\types\customer.ts
+- SHA: `c6eb0d8af4fe`  
+- Ukuran: 751 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export interface CustomerAddress {
+  id: number;
+  label: string | null;
+  recipient_name: string | null;
+  recipient_phone: string | null;
+  address: string;
+  city: string | null;
+  province: string | null;
+  postal_code: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Customer {
+  id: number;
+  code: string | null;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  points: number;
+  total_spent: string | number;
+  is_member: boolean;
+  notes: string | null;
+  addresses?: CustomerAddress[];
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
 ```
 </details>
 

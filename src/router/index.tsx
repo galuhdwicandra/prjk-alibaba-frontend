@@ -20,6 +20,7 @@ import ProductsPage from "@/modules/admin/pages/ProductsPage";
 import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
 import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
+import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 
 export const router = createBrowserRouter([
   {
@@ -64,7 +65,7 @@ export const router = createBrowserRouter([
         element: <PosLayout />,
         children: [
           { index: true, element: <RoutePlaceholder title="POS Home" /> },
-          { path: "orders", element: <RoutePlaceholder title="New Order" /> },
+          { path: "orders", element: <PosOrdersPage /> },
           { path: "shifts", element: <RoutePlaceholder title="Shift" /> },
         ],
       },

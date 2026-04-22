@@ -36,11 +36,16 @@ export const adminNavigation: NavigationItem[] = [
     to: "/admin/product-bundles",
     permission: "products.view",
   },
+  {
+    label: "POS",
+    to: "/pos/orders",
+    permission: "products.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders" },
+  { label: "New Order", to: "/pos/orders", permission: "products.view" },
   { label: "Shift", to: "/pos/shifts" },
 ];
 
