@@ -17,6 +17,9 @@ import OutletsPage from "@/modules/admin/pages/OutletsPage";
 import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
 import ProductCategoriesPage from "@/modules/admin/pages/ProductCategoriesPage";
 import ProductsPage from "@/modules/admin/pages/ProductsPage";
+import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
+import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
+import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +54,9 @@ export const router = createBrowserRouter([
           { path: "system-settings", element: <SystemSettingsPage /> },
           { path: "product-categories", element: <ProductCategoriesPage /> },
           { path: "products", element: <ProductsPage /> },
+          { path: "product-variants", element: <ProductVariantsPage /> },
+          { path: "product-modifiers", element: <ProductModifiersPage /> },
+          { path: "product-bundles", element: <ProductBundlesPage /> },
         ],
       },
       {

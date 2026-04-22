@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-20 18:01:34_  
+_Dihasilkan otomatis: 2026-04-20 20:24:53_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -23,9 +23,12 @@ _Dihasilkan otomatis: 2026-04-20 18:01:34_
 - [Modules (src/modules)](#modules-src-modules)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
   - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
+  - [src\modules\admin\pages\ProductCategoriesPage.tsx](#file-srcmodulesadminpagesproductcategoriespagetsx)
+  - [src\modules\admin\pages\ProductsPage.tsx](#file-srcmodulesadminpagesproductspagetsx)
   - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
   - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
+  - [src\modules\admin\services\catalog.service.ts](#file-srcmodulesadminservicescatalogservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
   - [src\modules\auth\pages\LoginPage.tsx](#file-srcmodulesauthpagesloginpagetsx)
@@ -84,6 +87,7 @@ _Dihasilkan otomatis: 2026-04-20 18:01:34_
   - [src\types\auth.ts](#file-srctypesauthts)
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
+  - [src\types\product.ts](#file-srctypesproductts)
   - [src\types\role.ts](#file-srctypesrolets)
   - [src\types\settings.ts](#file-srctypessettingsts)
   - [src\types\user.ts](#file-srctypesuserts)
@@ -270,7 +274,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `f478452188e3`  
+- SHA: `a669d2286061`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -292,6 +296,8 @@ import RolesPage from "@/modules/admin/pages/RolesPage";
 import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
 import OutletsPage from "@/modules/admin/pages/OutletsPage";
 import SystemSettingsPage from "@/modules/admin/pages/SystemSettingsPage";
+import ProductCategoriesPage from "@/modules/admin/pages/ProductCategoriesPage";
+import ProductsPage from "@/modules/admin/pages/ProductsPage";
 
 export const router = createBrowserRouter([
   {
@@ -324,6 +330,8 @@ export const router = createBrowserRouter([
           { path: "permissions", element: <PermissionsPage /> },
           { path: "outlets", element: <OutletsPage /> },
           { path: "system-settings", element: <SystemSettingsPage /> },
+          { path: "product-categories", element: <ProductCategoriesPage /> },
+          { path: "products", element: <ProductsPage /> },
         ],
       },
       {
@@ -1010,6 +1018,1554 @@ export default function PermissionsPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="contoh: users.view"
           />
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesproductcategoriespagetsx"></a>
+### src\modules\admin\pages\ProductCategoriesPage.tsx
+- SHA: `5bed9c304e5a`  
+- Ukuran: 7 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  catalogService,
+  type ProductCategoryPayload,
+} from "@/modules/admin/services/catalog.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { ProductCategory } from "@/types/product";
+
+const initialForm: ProductCategoryPayload = {
+  name: "",
+  slug: "",
+  sort_order: 0,
+  is_active: true,
+};
+
+export default function ProductCategoriesPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<ProductCategory | null>(null);
+  const [form, setForm] = useState<ProductCategoryPayload>(initialForm);
+
+  const categoriesQuery = useQuery({
+    queryKey: ["admin-product-categories", search],
+    queryFn: () => catalogService.getProductCategories({ per_page: 100, search }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: ProductCategoryPayload) =>
+      editing
+        ? catalogService.updateProductCategory(editing.id, payload)
+        : catalogService.createProductCategory(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditing(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["admin-product-categories"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan kategori", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => catalogService.deleteProductCategory(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-product-categories"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus kategori", parseApiError(error)),
+  });
+
+  const categories = categoriesQuery.data?.items ?? [];
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setOpen(true);
+  };
+
+  const openEdit = (category: ProductCategory) => {
+    setEditing(category);
+    setForm({
+      name: category.name,
+      slug: category.slug ?? "",
+      sort_order: category.sort_order ?? 0,
+      is_active: category.is_active,
+    });
+    setOpen(true);
+  };
+
+  return (
+    <PermissionWrapper permission="product_categories.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Product Categories"
+          description="Kelola kategori menu Chicken Alibaba."
+          actions={<Button onClick={openCreate}>Tambah Kategori</Button>}
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari nama atau slug kategori..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </Card>
+
+        {categoriesQuery.isLoading ? (
+          <Card>Memuat kategori produk...</Card>
+        ) : categoriesQuery.isError ? (
+          <PageErrorState onRetry={() => void categoriesQuery.refetch()} />
+        ) : !categories.length ? (
+          <PageEmptyState title="Belum ada kategori produk" />
+        ) : (
+          <Card>
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium text-slate-900">{category.name}</div>
+                    <div className="text-xs text-slate-500">
+                      slug: {category.slug ?? "-"} • sort: {category.sort_order ?? 0} • produk:{" "}
+                      {category.products_count ?? 0}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={category.is_active ? "success" : "danger"}>
+                      {category.is_active ? "Aktif" : "Nonaktif"}
+                    </Badge>
+
+                    <Button variant="outline" onClick={() => openEdit(category)}>
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="danger"
+                      loading={deleteMutation.isPending}
+                      onClick={() => deleteMutation.mutate(category.id)}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        <Modal
+          open={open}
+          title={editing ? "Edit Kategori Produk" : "Tambah Kategori Produk"}
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Nama Kategori"
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            />
+
+            <Input
+              label="Slug"
+              value={form.slug ?? ""}
+              onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+            />
+
+            <Input
+              label="Sort Order"
+              type="number"
+              value={String(form.sort_order ?? 0)}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  sort_order: Number(e.target.value || 0),
+                }))
+              }
+            />
+
+            <div className="md:col-span-2">
+              <Checkbox
+                label="Kategori aktif"
+                checked={Boolean(form.is_active)}
+                onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+              />
+            </div>
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesproductspagetsx"></a>
+### src\modules\admin\pages\ProductsPage.tsx
+- SHA: `a1be01ee9029`  
+- Ukuran: 53 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  catalogService,
+  type ProductBundleItemPayload,
+  type ProductModifierGroupPayload,
+  type ProductOutletStatusPayload,
+  type ProductPayload,
+  type ProductPricePayload,
+  type ProductVariantGroupPayload,
+} from "@/modules/admin/services/catalog.service";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Product } from "@/types/product";
+
+const initialForm: ProductPayload = {
+  product_category_id: 0,
+  sku: "",
+  code: "",
+  name: "",
+  slug: "",
+  description: "",
+  image_url: "",
+  base_price: 0,
+  product_type: "single",
+  is_active: true,
+  is_featured: false,
+  track_recipe: true,
+  track_stock_direct: false,
+  prices: [],
+  outlet_statuses: [],
+  variant_groups: [],
+  modifier_groups: [],
+  bundle_items: [],
+};
+
+const createEmptyPrice = (): ProductPricePayload => ({
+  outlet_id: 0,
+  price: 0,
+  dine_in_price: null,
+  takeaway_price: null,
+  delivery_price: null,
+  starts_at: null,
+  ends_at: null,
+  is_active: true,
+});
+
+const createEmptyOutletStatus = (): ProductOutletStatusPayload => ({
+  outlet_id: 0,
+  is_available: true,
+  is_hidden: false,
+  daily_limit: null,
+  notes: "",
+});
+
+const createEmptyVariantGroup = (): ProductVariantGroupPayload => ({
+  name: "",
+  selection_type: "single",
+  is_required: true,
+  sort_order: 0,
+  options: [
+    {
+      name: "",
+      price_adjustment: 0,
+      sort_order: 0,
+      is_active: true,
+    },
+  ],
+});
+
+const createEmptyModifierGroup = (): ProductModifierGroupPayload => ({
+  name: "",
+  min_select: 0,
+  max_select: 1,
+  is_required: false,
+  sort_order: 0,
+  options: [
+    {
+      name: "",
+      price: 0,
+      sort_order: 0,
+      is_active: true,
+    },
+  ],
+});
+
+const createEmptyBundleItem = (): ProductBundleItemPayload => ({
+  bundled_product_id: 0,
+  qty: 1,
+});
+
+export default function ProductsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<number | "">("");
+  const [typeFilter, setTypeFilter] = useState<"single" | "bundle" | "">("");
+  const [statusFilter, setStatusFilter] = useState<boolean | "">("");
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
+  const [form, setForm] = useState<ProductPayload>(initialForm);
+
+  const categoriesQuery = useQuery({
+    queryKey: ["admin-product-category-options"],
+    queryFn: () => catalogService.getProductCategories({ per_page: 100 }),
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["admin-product-outlet-options"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+  });
+
+  const productsQuery = useQuery({
+    queryKey: ["admin-products", page, search, categoryFilter, typeFilter, statusFilter],
+    queryFn: () =>
+      catalogService.getProducts({
+        page,
+        per_page: 10,
+        search,
+        product_category_id: categoryFilter,
+        product_type: typeFilter,
+        is_active: statusFilter,
+      }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: ProductPayload) =>
+      editing ? catalogService.updateProduct(editing.id, payload) : catalogService.createProduct(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpen(false);
+      setEditing(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan produk", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => catalogService.deleteProduct(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus produk", parseApiError(error)),
+  });
+
+  const categoryOptions = categoriesQuery.data?.items ?? [];
+  const outletOptions = outletsQuery.data?.items ?? [];
+  const products = productsQuery.data?.items ?? [];
+  const meta = productsQuery.data?.meta;
+  const totalPages = Number(meta?.last_page ?? 1);
+
+  const bundleCandidateProducts = useMemo(() => {
+    return products.filter((item) => item.id !== editing?.id);
+  }, [products, editing?.id]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setOpen(true);
+  };
+
+  const openEdit = (product: Product) => {
+    setEditing(product);
+    setForm({
+      product_category_id: product.product_category_id,
+      sku: product.sku ?? "",
+      code: product.code ?? "",
+      name: product.name,
+      slug: product.slug ?? "",
+      description: product.description ?? "",
+      image_url: product.image_url ?? "",
+      base_price: Number(product.base_price ?? 0),
+      product_type: product.product_type,
+      is_active: product.is_active,
+      is_featured: product.is_featured,
+      track_recipe: product.track_recipe,
+      track_stock_direct: product.track_stock_direct,
+      prices:
+        product.prices?.map((item) => ({
+          outlet_id: item.outlet_id,
+          price: Number(item.price ?? 0),
+          dine_in_price: item.dine_in_price !== null ? Number(item.dine_in_price ?? 0) : null,
+          takeaway_price:
+            item.takeaway_price !== null ? Number(item.takeaway_price ?? 0) : null,
+          delivery_price:
+            item.delivery_price !== null ? Number(item.delivery_price ?? 0) : null,
+          starts_at: item.starts_at ?? null,
+          ends_at: item.ends_at ?? null,
+          is_active: item.is_active ?? true,
+        })) ?? [],
+      outlet_statuses:
+        product.outlet_statuses?.map((item) => ({
+          outlet_id: item.outlet_id,
+          is_available: item.is_available ?? true,
+          is_hidden: item.is_hidden ?? false,
+          daily_limit: item.daily_limit ?? null,
+          notes: item.notes ?? "",
+        })) ?? [],
+      variant_groups:
+        product.variant_groups?.map((group) => ({
+          name: group.name,
+          selection_type: group.selection_type,
+          is_required: group.is_required ?? true,
+          sort_order: group.sort_order ?? 0,
+          options:
+            group.options?.map((option) => ({
+              name: option.name,
+              price_adjustment: Number(option.price_adjustment ?? 0),
+              sort_order: option.sort_order ?? 0,
+              is_active: option.is_active ?? true,
+            })) ?? [],
+        })) ?? [],
+      modifier_groups:
+        product.modifier_groups?.map((group) => ({
+          name: group.name,
+          min_select: group.min_select ?? 0,
+          max_select: group.max_select ?? 1,
+          is_required: group.is_required ?? false,
+          sort_order: group.sort_order ?? 0,
+          options:
+            group.options?.map((option) => ({
+              name: option.name,
+              price: Number(option.price ?? 0),
+              sort_order: option.sort_order ?? 0,
+              is_active: option.is_active ?? true,
+            })) ?? [],
+        })) ?? [],
+      bundle_items:
+        product.bundle_items?.map((item) => ({
+          bundled_product_id: item.bundled_product_id,
+          qty: Number(item.qty ?? 1),
+        })) ?? [],
+    });
+    setOpen(true);
+  };
+
+  const sanitizePayload = (payload: ProductPayload): ProductPayload => ({
+    ...payload,
+    sku: payload.sku || null,
+    code: payload.code || null,
+    slug: payload.slug || null,
+    description: payload.description || null,
+    image_url: payload.image_url || null,
+    prices: (payload.prices ?? []).filter((item) => item.outlet_id > 0),
+    outlet_statuses: (payload.outlet_statuses ?? []).filter((item) => item.outlet_id > 0),
+    variant_groups: (payload.variant_groups ?? [])
+      .filter((group) => group.name.trim() !== "")
+      .map((group) => ({
+        ...group,
+        options: group.options.filter((option) => option.name.trim() !== ""),
+      }))
+      .filter((group) => group.options.length > 0),
+    modifier_groups: (payload.modifier_groups ?? [])
+      .filter((group) => group.name.trim() !== "")
+      .map((group) => ({
+        ...group,
+        options: group.options.filter((option) => option.name.trim() !== ""),
+      }))
+      .filter((group) => group.options.length > 0),
+    bundle_items:
+      payload.product_type === "bundle"
+        ? (payload.bundle_items ?? []).filter((item) => item.bundled_product_id > 0)
+        : [],
+  });
+
+  return (
+    <PermissionWrapper permission="products.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Products"
+          description="Kelola menu, harga outlet, status jual, varian, modifier, dan paket."
+          actions={<Button onClick={openCreate}>Tambah Produk</Button>}
+        />
+
+        <Card>
+          <div className="grid gap-3 md:grid-cols-4">
+            <Input
+              placeholder="Cari nama, SKU, code, atau slug..."
+              value={search}
+              onChange={(e) => {
+                setPage(1);
+                setSearch(e.target.value);
+              }}
+            />
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={categoryFilter}
+              onChange={(e) => {
+                setPage(1);
+                setCategoryFilter(e.target.value ? Number(e.target.value) : "");
+              }}
+            >
+              <option value="">Semua kategori</option>
+              {categoryOptions.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={typeFilter}
+              onChange={(e) => {
+                setPage(1);
+                setTypeFilter((e.target.value as "single" | "bundle" | "") || "");
+              }}
+            >
+              <option value="">Semua tipe</option>
+              <option value="single">single</option>
+              <option value="bundle">bundle</option>
+            </select>
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={statusFilter === "" ? "" : statusFilter ? "1" : "0"}
+              onChange={(e) => {
+                setPage(1);
+                if (e.target.value === "") {
+                  setStatusFilter("");
+                } else {
+                  setStatusFilter(e.target.value === "1");
+                }
+              }}
+            >
+              <option value="">Semua status</option>
+              <option value="1">Aktif</option>
+              <option value="0">Nonaktif</option>
+            </select>
+          </div>
+        </Card>
+
+        {productsQuery.isLoading ? (
+          <Card>Memuat produk...</Card>
+        ) : productsQuery.isError ? (
+          <PageErrorState onRetry={() => void productsQuery.refetch()} />
+        ) : !products.length ? (
+          <PageEmptyState title="Belum ada produk" />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-left text-slate-500">
+                    <th className="px-3 py-3">Produk</th>
+                    <th className="px-3 py-3">Kategori</th>
+                    <th className="px-3 py-3">Harga Dasar</th>
+                    <th className="px-3 py-3">Tipe</th>
+                    <th className="px-3 py-3">Tag</th>
+                    <th className="px-3 py-3">Status</th>
+                    <th className="px-3 py-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product.id} className="border-b border-slate-100 align-top">
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-slate-900">{product.name}</div>
+                        <div className="text-xs text-slate-500">
+                          SKU: {product.sku ?? "-"} • Code: {product.code ?? "-"}
+                        </div>
+                        {product.image_url ? (
+                          <div className="mt-2 text-xs text-blue-600 break-all">{product.image_url}</div>
+                        ) : null}
+                      </td>
+
+                      <td className="px-3 py-3 text-slate-600">{product.category?.name ?? "-"}</td>
+
+                      <td className="px-3 py-3 text-slate-600">
+                        Rp {Number(product.base_price ?? 0).toLocaleString("id-ID")}
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <Badge variant={product.product_type === "bundle" ? "warning" : "info"}>
+                          {product.product_type}
+                        </Badge>
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {product.is_featured ? <Badge variant="info">featured</Badge> : null}
+                          {product.track_recipe ? <Badge variant="success">recipe</Badge> : null}
+                          {product.track_stock_direct ? (
+                            <Badge variant="warning">direct-stock</Badge>
+                          ) : null}
+                          {product.variant_groups?.length ? (
+                            <Badge variant="info">variants: {product.variant_groups.length}</Badge>
+                          ) : null}
+                          {product.modifier_groups?.length ? (
+                            <Badge variant="info">modifiers: {product.modifier_groups.length}</Badge>
+                          ) : null}
+                          {product.bundle_items?.length ? (
+                            <Badge variant="warning">bundle: {product.bundle_items.length}</Badge>
+                          ) : null}
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <Badge variant={product.is_active ? "success" : "danger"}>
+                          {product.is_active ? "Aktif" : "Nonaktif"}
+                        </Badge>
+                      </td>
+
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => openEdit(product)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="danger"
+                            loading={deleteMutation.isPending}
+                            onClick={() => deleteMutation.mutate(product.id)}
+                          >
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-slate-500">
+                Halaman {meta?.current_page ?? 1} dari {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={(meta?.current_page ?? 1) <= 1}
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                >
+                  Sebelumnya
+                </Button>
+
+                <Button
+                  variant="outline"
+                  disabled={(meta?.current_page ?? 1) >= totalPages}
+                  onClick={() => setPage((prev) => prev + 1)}
+                >
+                  Berikutnya
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <Modal
+          open={open}
+          title={editing ? "Edit Produk" : "Tambah Produk"}
+          onClose={() => setOpen(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                loading={saveMutation.isPending}
+                onClick={() => saveMutation.mutate(sanitizePayload(form))}
+              >
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.product_category_id || ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      product_category_id: Number(e.target.value || 0),
+                    }))
+                  }
+                >
+                  <option value="">Pilih kategori</option>
+                  {categoryOptions.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Product Type</label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.product_type}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      product_type: e.target.value as "single" | "bundle",
+                    }))
+                  }
+                >
+                  <option value="single">single</option>
+                  <option value="bundle">bundle</option>
+                </select>
+              </div>
+
+              <Input
+                label="Nama Produk"
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+              />
+
+              <Input
+                label="Harga Dasar"
+                type="number"
+                value={String(form.base_price ?? 0)}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    base_price: Number(e.target.value || 0),
+                  }))
+                }
+              />
+
+              <Input
+                label="SKU"
+                value={form.sku ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
+              />
+
+              <Input
+                label="Code"
+                value={form.code ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
+              />
+
+              <Input
+                label="Slug"
+                value={form.slug ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+              />
+
+              <Input
+                label="Image URL"
+                value={form.image_url ?? ""}
+                onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
+              />
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Deskripsi</label>
+                <textarea
+                  className="min-h-[100px] w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.description ?? ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="md:col-span-2 grid gap-2 md:grid-cols-2">
+                <Checkbox
+                  label="Produk aktif"
+                  checked={Boolean(form.is_active)}
+                  onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                />
+                <Checkbox
+                  label="Featured"
+                  checked={Boolean(form.is_featured)}
+                  onChange={(e) => setForm((prev) => ({ ...prev, is_featured: e.target.checked }))}
+                />
+                <Checkbox
+                  label="Track recipe"
+                  checked={Boolean(form.track_recipe)}
+                  onChange={(e) => setForm((prev) => ({ ...prev, track_recipe: e.target.checked }))}
+                />
+                <Checkbox
+                  label="Track stock direct"
+                  checked={Boolean(form.track_stock_direct)}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      track_stock_direct: e.target.checked,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <Card title="Harga per Outlet" description="Pengaturan harga penjualan per cabang.">
+              <div className="space-y-4">
+                {(form.prices ?? []).map((price, index) => (
+                  <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          value={price.outlet_id || ""}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.prices ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                outlet_id: Number(e.target.value || 0),
+                              };
+                              return { ...prev, prices: next };
+                            })
+                          }
+                        >
+                          <option value="">Pilih outlet</option>
+                          {outletOptions.map((outlet) => (
+                            <option key={outlet.id} value={outlet.id}>
+                              {outlet.name} ({outlet.code})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <Input
+                        label="Price"
+                        type="number"
+                        value={String(price.price ?? 0)}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.prices ?? [])];
+                            next[index] = { ...next[index], price: Number(e.target.value || 0) };
+                            return { ...prev, prices: next };
+                          })
+                        }
+                      />
+
+                      <div className="flex items-end">
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              prices: (prev.prices ?? []).filter((_, i) => i !== index),
+                            }))
+                          }
+                        >
+                          Hapus Baris
+                        </Button>
+                      </div>
+
+                      <Input
+                        label="Dine In Price"
+                        type="number"
+                        value={price.dine_in_price === null ? "" : String(price.dine_in_price ?? "")}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.prices ?? [])];
+                            next[index] = {
+                              ...next[index],
+                              dine_in_price: e.target.value === "" ? null : Number(e.target.value),
+                            };
+                            return { ...prev, prices: next };
+                          })
+                        }
+                      />
+
+                      <Input
+                        label="Takeaway Price"
+                        type="number"
+                        value={
+                          price.takeaway_price === null ? "" : String(price.takeaway_price ?? "")
+                        }
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.prices ?? [])];
+                            next[index] = {
+                              ...next[index],
+                              takeaway_price: e.target.value === "" ? null : Number(e.target.value),
+                            };
+                            return { ...prev, prices: next };
+                          })
+                        }
+                      />
+
+                      <Input
+                        label="Delivery Price"
+                        type="number"
+                        value={
+                          price.delivery_price === null ? "" : String(price.delivery_price ?? "")
+                        }
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.prices ?? [])];
+                            next[index] = {
+                              ...next[index],
+                              delivery_price: e.target.value === "" ? null : Number(e.target.value),
+                            };
+                            return { ...prev, prices: next };
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      prices: [...(prev.prices ?? []), createEmptyPrice()],
+                    }))
+                  }
+                >
+                  Tambah Harga Outlet
+                </Button>
+              </div>
+            </Card>
+
+            <Card title="Status Produk per Outlet" description="Aktifasi jual dan visibility per outlet.">
+              <div className="space-y-4">
+                {(form.outlet_statuses ?? []).map((status, index) => (
+                  <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          value={status.outlet_id || ""}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.outlet_statuses ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                outlet_id: Number(e.target.value || 0),
+                              };
+                              return { ...prev, outlet_statuses: next };
+                            })
+                          }
+                        >
+                          <option value="">Pilih outlet</option>
+                          {outletOptions.map((outlet) => (
+                            <option key={outlet.id} value={outlet.id}>
+                              {outlet.name} ({outlet.code})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <Input
+                        label="Daily Limit"
+                        type="number"
+                        value={status.daily_limit === null ? "" : String(status.daily_limit ?? "")}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.outlet_statuses ?? [])];
+                            next[index] = {
+                              ...next[index],
+                              daily_limit: e.target.value === "" ? null : Number(e.target.value),
+                            };
+                            return { ...prev, outlet_statuses: next };
+                          })
+                        }
+                      />
+
+                      <div className="flex items-end">
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              outlet_statuses: (prev.outlet_statuses ?? []).filter(
+                                (_, i) => i !== index
+                              ),
+                            }))
+                          }
+                        >
+                          Hapus Baris
+                        </Button>
+                      </div>
+
+                      <div className="md:col-span-3">
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Notes</label>
+                        <textarea
+                          className="min-h-[70px] w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          value={status.notes ?? ""}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.outlet_statuses ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                notes: e.target.value,
+                              };
+                              return { ...prev, outlet_statuses: next };
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="md:col-span-3 grid gap-2 md:grid-cols-2">
+                        <Checkbox
+                          label="Is available"
+                          checked={Boolean(status.is_available)}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.outlet_statuses ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                is_available: e.target.checked,
+                              };
+                              return { ...prev, outlet_statuses: next };
+                            })
+                          }
+                        />
+                        <Checkbox
+                          label="Is hidden"
+                          checked={Boolean(status.is_hidden)}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.outlet_statuses ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                is_hidden: e.target.checked,
+                              };
+                              return { ...prev, outlet_statuses: next };
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      outlet_statuses: [...(prev.outlet_statuses ?? []), createEmptyOutletStatus()],
+                    }))
+                  }
+                >
+                  Tambah Status Outlet
+                </Button>
+              </div>
+            </Card>
+
+            <Card title="Variant Groups" description="Contoh: potongan ayam, level pedas.">
+              <div className="space-y-4">
+                {(form.variant_groups ?? []).map((group, groupIndex) => (
+                  <div key={groupIndex} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <Input
+                        label="Nama Group"
+                        value={group.name}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.variant_groups ?? [])];
+                            next[groupIndex] = { ...next[groupIndex], name: e.target.value };
+                            return { ...prev, variant_groups: next };
+                          })
+                        }
+                      />
+
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                          Selection Type
+                        </label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          value={group.selection_type}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.variant_groups ?? [])];
+                              next[groupIndex] = {
+                                ...next[groupIndex],
+                                selection_type: e.target.value as "single" | "multiple",
+                              };
+                              return { ...prev, variant_groups: next };
+                            })
+                          }
+                        >
+                          <option value="single">single</option>
+                          <option value="multiple">multiple</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-end">
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              variant_groups: (prev.variant_groups ?? []).filter(
+                                (_, i) => i !== groupIndex
+                              ),
+                            }))
+                          }
+                        >
+                          Hapus Group
+                        </Button>
+                      </div>
+
+                      <div className="md:col-span-3 grid gap-2 md:grid-cols-2">
+                        <Checkbox
+                          label="Required"
+                          checked={Boolean(group.is_required)}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.variant_groups ?? [])];
+                              next[groupIndex] = {
+                                ...next[groupIndex],
+                                is_required: e.target.checked,
+                              };
+                              return { ...prev, variant_groups: next };
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {group.options.map((option, optionIndex) => (
+                        <div
+                          key={optionIndex}
+                          className="grid gap-3 rounded-xl border border-slate-100 p-3 md:grid-cols-4"
+                        >
+                          <Input
+                            label="Option Name"
+                            value={option.name}
+                            onChange={(e) =>
+                              setForm((prev) => {
+                                const groups = [...(prev.variant_groups ?? [])];
+                                const options = [...groups[groupIndex].options];
+                                options[optionIndex] = {
+                                  ...options[optionIndex],
+                                  name: e.target.value,
+                                };
+                                groups[groupIndex] = { ...groups[groupIndex], options };
+                                return { ...prev, variant_groups: groups };
+                              })
+                            }
+                          />
+
+                          <Input
+                            label="Price Adjustment"
+                            type="number"
+                            value={String(option.price_adjustment ?? 0)}
+                            onChange={(e) =>
+                              setForm((prev) => {
+                                const groups = [...(prev.variant_groups ?? [])];
+                                const options = [...groups[groupIndex].options];
+                                options[optionIndex] = {
+                                  ...options[optionIndex],
+                                  price_adjustment: Number(e.target.value || 0),
+                                };
+                                groups[groupIndex] = { ...groups[groupIndex], options };
+                                return { ...prev, variant_groups: groups };
+                              })
+                            }
+                          />
+
+                          <div className="flex items-end">
+                            <Checkbox
+                              label="Aktif"
+                              checked={Boolean(option.is_active)}
+                              onChange={(e) =>
+                                setForm((prev) => {
+                                  const groups = [...(prev.variant_groups ?? [])];
+                                  const options = [...groups[groupIndex].options];
+                                  options[optionIndex] = {
+                                    ...options[optionIndex],
+                                    is_active: e.target.checked,
+                                  };
+                                  groups[groupIndex] = { ...groups[groupIndex], options };
+                                  return { ...prev, variant_groups: groups };
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="flex items-end">
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                setForm((prev) => {
+                                  const groups = [...(prev.variant_groups ?? [])];
+                                  const options = groups[groupIndex].options.filter(
+                                    (_, i) => i !== optionIndex
+                                  );
+                                  groups[groupIndex] = { ...groups[groupIndex], options };
+                                  return { ...prev, variant_groups: groups };
+                                })
+                              }
+                            >
+                              Hapus Option
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setForm((prev) => {
+                            const next = [...(prev.variant_groups ?? [])];
+                            next[groupIndex] = {
+                              ...next[groupIndex],
+                              options: [
+                                ...next[groupIndex].options,
+                                {
+                                  name: "",
+                                  price_adjustment: 0,
+                                  sort_order: 0,
+                                  is_active: true,
+                                },
+                              ],
+                            };
+                            return { ...prev, variant_groups: next };
+                          })
+                        }
+                      >
+                        Tambah Option Variant
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      variant_groups: [...(prev.variant_groups ?? []), createEmptyVariantGroup()],
+                    }))
+                  }
+                >
+                  Tambah Variant Group
+                </Button>
+              </div>
+            </Card>
+
+            <Card title="Modifier Groups" description="Contoh: extra sambal, saus, nasi.">
+              <div className="space-y-4">
+                {(form.modifier_groups ?? []).map((group, groupIndex) => (
+                  <div key={groupIndex} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="grid gap-3 md:grid-cols-4">
+                      <Input
+                        label="Nama Group"
+                        value={group.name}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.modifier_groups ?? [])];
+                            next[groupIndex] = { ...next[groupIndex], name: e.target.value };
+                            return { ...prev, modifier_groups: next };
+                          })
+                        }
+                      />
+
+                      <Input
+                        label="Min Select"
+                        type="number"
+                        value={String(group.min_select ?? 0)}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.modifier_groups ?? [])];
+                            next[groupIndex] = {
+                              ...next[groupIndex],
+                              min_select: Number(e.target.value || 0),
+                            };
+                            return { ...prev, modifier_groups: next };
+                          })
+                        }
+                      />
+
+                      <Input
+                        label="Max Select"
+                        type="number"
+                        value={String(group.max_select ?? 1)}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.modifier_groups ?? [])];
+                            next[groupIndex] = {
+                              ...next[groupIndex],
+                              max_select: Number(e.target.value || 1),
+                            };
+                            return { ...prev, modifier_groups: next };
+                          })
+                        }
+                      />
+
+                      <div className="flex items-end">
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              modifier_groups: (prev.modifier_groups ?? []).filter(
+                                (_, i) => i !== groupIndex
+                              ),
+                            }))
+                          }
+                        >
+                          Hapus Group
+                        </Button>
+                      </div>
+
+                      <div className="md:col-span-4">
+                        <Checkbox
+                          label="Required"
+                          checked={Boolean(group.is_required)}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.modifier_groups ?? [])];
+                              next[groupIndex] = {
+                                ...next[groupIndex],
+                                is_required: e.target.checked,
+                              };
+                              return { ...prev, modifier_groups: next };
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {group.options.map((option, optionIndex) => (
+                        <div
+                          key={optionIndex}
+                          className="grid gap-3 rounded-xl border border-slate-100 p-3 md:grid-cols-4"
+                        >
+                          <Input
+                            label="Option Name"
+                            value={option.name}
+                            onChange={(e) =>
+                              setForm((prev) => {
+                                const groups = [...(prev.modifier_groups ?? [])];
+                                const options = [...groups[groupIndex].options];
+                                options[optionIndex] = {
+                                  ...options[optionIndex],
+                                  name: e.target.value,
+                                };
+                                groups[groupIndex] = { ...groups[groupIndex], options };
+                                return { ...prev, modifier_groups: groups };
+                              })
+                            }
+                          />
+
+                          <Input
+                            label="Price"
+                            type="number"
+                            value={String(option.price ?? 0)}
+                            onChange={(e) =>
+                              setForm((prev) => {
+                                const groups = [...(prev.modifier_groups ?? [])];
+                                const options = [...groups[groupIndex].options];
+                                options[optionIndex] = {
+                                  ...options[optionIndex],
+                                  price: Number(e.target.value || 0),
+                                };
+                                groups[groupIndex] = { ...groups[groupIndex], options };
+                                return { ...prev, modifier_groups: groups };
+                              })
+                            }
+                          />
+
+                          <div className="flex items-end">
+                            <Checkbox
+                              label="Aktif"
+                              checked={Boolean(option.is_active)}
+                              onChange={(e) =>
+                                setForm((prev) => {
+                                  const groups = [...(prev.modifier_groups ?? [])];
+                                  const options = [...groups[groupIndex].options];
+                                  options[optionIndex] = {
+                                    ...options[optionIndex],
+                                    is_active: e.target.checked,
+                                  };
+                                  groups[groupIndex] = { ...groups[groupIndex], options };
+                                  return { ...prev, modifier_groups: groups };
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="flex items-end">
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                setForm((prev) => {
+                                  const groups = [...(prev.modifier_groups ?? [])];
+                                  const options = groups[groupIndex].options.filter(
+                                    (_, i) => i !== optionIndex
+                                  );
+                                  groups[groupIndex] = { ...groups[groupIndex], options };
+                                  return { ...prev, modifier_groups: groups };
+                                })
+                              }
+                            >
+                              Hapus Option
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setForm((prev) => {
+                            const next = [...(prev.modifier_groups ?? [])];
+                            next[groupIndex] = {
+                              ...next[groupIndex],
+                              options: [
+                                ...next[groupIndex].options,
+                                {
+                                  name: "",
+                                  price: 0,
+                                  sort_order: 0,
+                                  is_active: true,
+                                },
+                              ],
+                            };
+                            return { ...prev, modifier_groups: next };
+                          })
+                        }
+                      >
+                        Tambah Option Modifier
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      modifier_groups: [...(prev.modifier_groups ?? []), createEmptyModifierGroup()],
+                    }))
+                  }
+                >
+                  Tambah Modifier Group
+                </Button>
+              </div>
+            </Card>
+
+            {form.product_type === "bundle" ? (
+              <Card title="Bundle Items" description="Komponen produk untuk paket/combo.">
+                <div className="space-y-4">
+                  {(form.bundle_items ?? []).map((item, index) => (
+                    <div key={index} className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-3">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Bundled Product</label>
+                        <select
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          value={item.bundled_product_id || ""}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.bundle_items ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                bundled_product_id: Number(e.target.value || 0),
+                              };
+                              return { ...prev, bundle_items: next };
+                            })
+                          }
+                        >
+                          <option value="">Pilih produk</option>
+                          {bundleCandidateProducts.map((product) => (
+                            <option key={product.id} value={product.id}>
+                              {product.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <Input
+                        label="Qty"
+                        type="number"
+                        value={String(item.qty ?? 1)}
+                        onChange={(e) =>
+                          setForm((prev) => {
+                            const next = [...(prev.bundle_items ?? [])];
+                            next[index] = { ...next[index], qty: Number(e.target.value || 1) };
+                            return { ...prev, bundle_items: next };
+                          })
+                        }
+                      />
+
+                      <div className="flex items-end">
+                        <Button
+                          variant="danger"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              bundle_items: (prev.bundle_items ?? []).filter((_, i) => i !== index),
+                            }))
+                          }
+                        >
+                          Hapus Item
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        bundle_items: [...(prev.bundle_items ?? []), createEmptyBundleItem()],
+                      }))
+                    }
+                  >
+                    Tambah Bundle Item
+                  </Button>
+                </div>
+              </Card>
+            ) : null}
+          </div>
         </Modal>
       </div>
     </PermissionWrapper>
@@ -1740,6 +3296,207 @@ export default function UsersPage() {
     </PermissionWrapper>
   );
 }
+```
+</details>
+
+<a id="file-srcmodulesadminservicescatalogservicets"></a>
+### src\modules\admin\services\catalog.service.ts
+- SHA: `14e6905c0e73`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type {
+  Product,
+  ProductBundleItem,
+  ProductCategory,
+  ProductModifierGroup,
+  ProductOutletStatus,
+  ProductPrice,
+  ProductVariantGroup,
+} from "@/types/product";
+
+export interface PaginationQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_active?: boolean | "";
+}
+
+export interface ProductCategoryQuery extends PaginationQuery {}
+
+export interface ProductQuery extends PaginationQuery {
+  product_category_id?: number | "";
+  product_type?: "single" | "bundle" | "";
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+export interface ProductCategoryPayload {
+  name: string;
+  slug?: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface ProductPricePayload {
+  outlet_id: number;
+  price: number;
+  dine_in_price?: number | null;
+  takeaway_price?: number | null;
+  delivery_price?: number | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active?: boolean;
+}
+
+export interface ProductOutletStatusPayload {
+  outlet_id: number;
+  is_available?: boolean;
+  is_hidden?: boolean;
+  daily_limit?: number | null;
+  notes?: string | null;
+}
+
+export interface ProductVariantOptionPayload {
+  name: string;
+  price_adjustment?: number;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface ProductVariantGroupPayload {
+  name: string;
+  selection_type: "single" | "multiple";
+  is_required?: boolean;
+  sort_order?: number;
+  options: ProductVariantOptionPayload[];
+}
+
+export interface ProductModifierOptionPayload {
+  name: string;
+  price?: number;
+  is_active?: boolean;
+  sort_order?: number;
+}
+
+export interface ProductModifierGroupPayload {
+  name: string;
+  min_select?: number;
+  max_select?: number;
+  is_required?: boolean;
+  sort_order?: number;
+  options: ProductModifierOptionPayload[];
+}
+
+export interface ProductBundleItemPayload {
+  bundled_product_id: number;
+  qty: number;
+}
+
+export interface ProductPayload {
+  product_category_id: number;
+  sku?: string | null;
+  code?: string | null;
+  name: string;
+  slug?: string | null;
+  description?: string | null;
+  image_url?: string | null;
+  base_price: number;
+  product_type: "single" | "bundle";
+  is_active?: boolean;
+  is_featured?: boolean;
+  track_recipe?: boolean;
+  track_stock_direct?: boolean;
+  prices?: ProductPricePayload[];
+  outlet_statuses?: ProductOutletStatusPayload[];
+  variant_groups?: ProductVariantGroupPayload[];
+  modifier_groups?: ProductModifierGroupPayload[];
+  bundle_items?: ProductBundleItemPayload[];
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const catalogService = {
+  async getProductCategories(params: ProductCategoryQuery = {}) {
+    const response = await apiClient.get<ApiResponse<ProductCategory[]>>(
+      endpoints.productCategories.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createProductCategory(payload: ProductCategoryPayload) {
+    const response = await apiClient.post<ApiResponse<ProductCategory>>(
+      endpoints.productCategories.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateProductCategory(id: number, payload: ProductCategoryPayload) {
+    const response = await apiClient.put<ApiResponse<ProductCategory>>(
+      endpoints.productCategories.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteProductCategory(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.productCategories.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getProducts(params: ProductQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Product[]>>(endpoints.products.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createProduct(payload: ProductPayload) {
+    const response = await apiClient.post<ApiResponse<Product>>(endpoints.products.store, payload);
+    return response.data;
+  },
+
+  async updateProduct(id: number, payload: ProductPayload) {
+    const response = await apiClient.put<ApiResponse<Product>>(endpoints.products.update(id), payload);
+    return response.data;
+  },
+
+  async deleteProduct(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.products.destroy(id));
+    return response.data;
+  },
+};
+
+export type {
+  Product,
+  ProductBundleItem,
+  ProductCategory,
+  ProductModifierGroup,
+  ProductOutletStatus,
+  ProductPrice,
+  ProductVariantGroup,
+};
 ```
 </details>
 
@@ -2876,7 +4633,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `d2b8d0204b2b`  
+- SHA: `0d527e4967af`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -2894,6 +4651,16 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
   { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
   { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
+  {
+    label: "Product Categories",
+    to: "/admin/product-categories",
+    permission: "product_categories.view",
+  },
+  {
+    label: "Products",
+    to: "/admin/products",
+    permission: "products.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -4050,8 +5817,8 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `f661c6e1b460`  
-- Ukuran: 1 KB
+- SHA: `a238404f6131`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -4099,6 +5866,22 @@ export const endpoints = {
   systemSettings: {
     index: "/system-settings",
     upsert: "/system-settings",
+  },
+
+  productCategories: {
+    index: "/product-categories",
+    store: "/product-categories",
+    show: (id: number | string) => `/product-categories/${id}`,
+    update: (id: number | string) => `/product-categories/${id}`,
+    destroy: (id: number | string) => `/product-categories/${id}`,
+  },
+
+  products: {
+    index: "/products",
+    store: "/products",
+    show: (id: number | string) => `/products/${id}`,
+    update: (id: number | string) => `/products/${id}`,
+    destroy: (id: number | string) => `/products/${id}`,
   },
 } as const;
 ```
@@ -4414,6 +6197,123 @@ export interface Permission {
   guard_name: string;
   created_at: string;
   updated_at: string;
+}
+```
+</details>
+
+<a id="file-srctypesproductts"></a>
+### src\types\product.ts
+- SHA: `4a12cec8c54a`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { Outlet } from "@/types/outlet";
+
+export interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string | null;
+  sort_order: number;
+  is_active: boolean;
+  products_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ProductPrice {
+  id?: number;
+  outlet_id: number;
+  price: number | string;
+  dine_in_price?: number | string | null;
+  takeaway_price?: number | string | null;
+  delivery_price?: number | string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active?: boolean;
+  outlet?: Outlet;
+}
+
+export interface ProductOutletStatus {
+  id?: number;
+  outlet_id: number;
+  is_available?: boolean;
+  is_hidden?: boolean;
+  daily_limit?: number | null;
+  notes?: string | null;
+  outlet?: Outlet;
+}
+
+export interface ProductVariantOption {
+  id?: number;
+  name: string;
+  price_adjustment?: number | string;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface ProductVariantGroup {
+  id?: number;
+  name: string;
+  selection_type: "single" | "multiple";
+  is_required?: boolean;
+  sort_order?: number;
+  options: ProductVariantOption[];
+}
+
+export interface ProductModifierOption {
+  id?: number;
+  name: string;
+  price?: number | string;
+  is_active?: boolean;
+  sort_order?: number;
+}
+
+export interface ProductModifierGroup {
+  id?: number;
+  name: string;
+  min_select?: number;
+  max_select?: number;
+  is_required?: boolean;
+  sort_order?: number;
+  options: ProductModifierOption[];
+}
+
+export interface ProductBundleItem {
+  id?: number;
+  bundled_product_id: number;
+  qty: number | string;
+  bundled_product?: {
+    id: number;
+    name: string;
+    sku?: string | null;
+    code?: string | null;
+  };
+}
+
+export interface Product {
+  id: number;
+  product_category_id: number;
+  sku: string | null;
+  code: string | null;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  image_url: string | null;
+  base_price: number | string;
+  product_type: "single" | "bundle";
+  is_active: boolean;
+  is_featured: boolean;
+  track_recipe: boolean;
+  track_stock_direct: boolean;
+  category?: ProductCategory | null;
+  prices?: ProductPrice[];
+  outlet_statuses?: ProductOutletStatus[];
+  variant_groups?: ProductVariantGroup[];
+  modifier_groups?: ProductModifierGroup[];
+  bundle_items?: ProductBundleItem[];
+  created_at?: string;
+  updated_at?: string;
 }
 ```
 </details>

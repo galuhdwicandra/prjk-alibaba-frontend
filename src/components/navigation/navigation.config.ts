@@ -21,6 +21,21 @@ export const adminNavigation: NavigationItem[] = [
     to: "/admin/products",
     permission: "products.view",
   },
+  {
+    label: "Product Variants",
+    to: "/admin/product-variants",
+    permission: "products.view",
+  },
+  {
+    label: "Product Modifiers",
+    to: "/admin/product-modifiers",
+    permission: "products.view",
+  },
+  {
+    label: "Product Bundles",
+    to: "/admin/product-bundles",
+    permission: "products.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
