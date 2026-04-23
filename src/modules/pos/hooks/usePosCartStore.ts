@@ -2,139 +2,163 @@ import { create } from "zustand";
 import type { Customer } from "@/types/customer";
 import type {
   PosCartItem,
+  PosCartItemInput,
+  PosCartState,
   PosHeldCart,
-  PosModifierSelection,
   PosOrderChannel,
-  PosVariantSelection,
 } from "@/modules/pos/types/pos";
 
-const HELD_CART_STORAGE_KEY = "chicken_alibaba_pos_held_cart";
+const HELD_CART_STORAGE_KEY = "chicken-alibaba-pos-held-cart";
 
-const roundMoney = (value: number) => Math.round(value * 100) / 100;
+const generateCartItemId = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-const computeLineTotal = (
-  qty: number,
-  baseUnitPrice: number,
-  selectedVariants: PosVariantSelection[],
-  selectedModifiers: PosModifierSelection[]
-) => {
-  const variantDelta = selectedVariants.reduce(
-    (sum, item) => sum + Number(item.price_adjustment ?? 0),
+const calculateLineTotal = (item: {
+  qty: number;
+  base_unit_price: number;
+  selected_variants: Array<{ price_adjustment: number }>;
+  selected_modifiers: Array<{ qty: number; price: number }>;
+}) => {
+  const variantTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
     0
   );
 
-  const modifierDelta = selectedModifiers.reduce(
-    (sum, item) => sum + Number(item.price ?? 0) * Number(item.qty ?? 1),
+  const modifierTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
     0
   );
 
-  return roundMoney((Number(baseUnitPrice) + variantDelta + modifierDelta) * Number(qty));
+  const unitPrice = Number(item.base_unit_price || 0) + variantTotal + modifierTotal;
+
+  return unitPrice * Number(item.qty || 0);
 };
 
-const createCartItemId = () => `pos-item-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const areSameSelection = (left: PosCartItemInput, right: PosCartItemInput) => {
+  return JSON.stringify(left) === JSON.stringify(right);
+};
 
-interface PosCartState {
-  orderChannel: PosOrderChannel;
-  customer: Customer | null;
-  items: PosCartItem[];
-  heldCartMeta: PosHeldCart | null;
-  setOrderChannel: (channel: PosOrderChannel) => void;
-  setCustomer: (customer: Customer | null) => void;
-  addItem: (payload: {
-    product_id: number;
-    product_name: string;
-    product_type: "single" | "bundle";
-    image_url?: string | null;
-    qty?: number;
-    base_unit_price: number;
-    notes?: string;
-    selected_variants?: PosVariantSelection[];
-    selected_modifiers?: PosModifierSelection[];
-  }) => void;
-  updateQty: (itemId: string, qty: number) => void;
-  updateNotes: (itemId: string, notes: string) => void;
-  removeItem: (itemId: string) => void;
-  clearCart: () => void;
-  holdCart: () => void;
-  restoreHeldCart: () => boolean;
-  discardHeldCart: () => void;
-}
+const initialState = {
+  items: [] as PosCartItem[],
+  customer: null as Customer | null,
+  orderChannel: "takeaway" as PosOrderChannel,
+  heldCartMeta: null as PosHeldCart | null,
+};
 
 export const usePosCartStore = create<PosCartState>((set, get) => ({
-  orderChannel: "takeaway",
-  customer: null,
-  items: [],
-  heldCartMeta: null,
-
-  setOrderChannel: (orderChannel) => set({ orderChannel }),
+  ...initialState,
 
   setCustomer: (customer) => set({ customer }),
 
-  addItem: (payload) =>
-    set((state) => {
-      const qty = Number(payload.qty ?? 1);
-      const selectedVariants = payload.selected_variants ?? [];
-      const selectedModifiers = payload.selected_modifiers ?? [];
-      const lineTotal = computeLineTotal(
-        qty,
-        payload.base_unit_price,
-        selectedVariants,
-        selectedModifiers
-      );
+  setOrderChannel: (orderChannel) => set({ orderChannel }),
 
-      const newItem: PosCartItem = {
-        id: createCartItemId(),
-        product_id: payload.product_id,
-        product_name: payload.product_name,
-        product_type: payload.product_type,
-        image_url: payload.image_url ?? null,
-        qty,
-        base_unit_price: Number(payload.base_unit_price ?? 0),
-        notes: payload.notes ?? "",
-        selected_variants: selectedVariants,
-        selected_modifiers: selectedModifiers,
-        line_total: lineTotal,
+  addItem: (item) => {
+    const nextItem: PosCartItem = {
+      ...item,
+      id: generateCartItemId(),
+      line_total: calculateLineTotal(item),
+    };
+
+    const existingIndex = get().items.findIndex((current) =>
+      areSameSelection(
+        {
+          product_id: current.product_id,
+          product_name: current.product_name,
+          product_type: current.product_type,
+          image_url: current.image_url,
+          qty: current.qty,
+          base_unit_price: current.base_unit_price,
+          notes: current.notes,
+          selected_variants: current.selected_variants,
+          selected_modifiers: current.selected_modifiers,
+        },
+        {
+          product_id: nextItem.product_id,
+          product_name: nextItem.product_name,
+          product_type: nextItem.product_type,
+          image_url: nextItem.image_url,
+          qty: nextItem.qty,
+          base_unit_price: nextItem.base_unit_price,
+          notes: nextItem.notes,
+          selected_variants: nextItem.selected_variants,
+          selected_modifiers: nextItem.selected_modifiers,
+        }
+      )
+    );
+
+    if (existingIndex >= 0) {
+      const items = [...get().items];
+      const mergedQty = Number(items[existingIndex].qty) + Number(nextItem.qty);
+
+      items[existingIndex] = {
+        ...items[existingIndex],
+        qty: mergedQty,
+        line_total: calculateLineTotal({
+          qty: mergedQty,
+          base_unit_price: items[existingIndex].base_unit_price,
+          selected_variants: items[existingIndex].selected_variants,
+          selected_modifiers: items[existingIndex].selected_modifiers,
+        }),
       };
 
-      return {
-        items: [...state.items, newItem],
-      };
-    }),
+      set({ items });
+      return;
+    }
 
-  updateQty: (itemId, qty) =>
-    set((state) => ({
-      items: state.items.map((item) => {
-        if (item.id !== itemId) return item;
+    set({
+      items: [...get().items, nextItem],
+    });
+  },
 
-        const normalizedQty = Math.max(1, Number(qty || 1));
+  updateQty: (itemId, qty) => {
+    if (qty <= 0) {
+      set({
+        items: get().items.filter((item) => item.id !== itemId),
+      });
+      return;
+    }
 
-        return {
-          ...item,
-          qty: normalizedQty,
-          line_total: computeLineTotal(
-            normalizedQty,
-            item.base_unit_price,
-            item.selected_variants,
-            item.selected_modifiers
-          ),
-        };
-      }),
-    })),
+    set({
+      items: get().items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              qty,
+              line_total: calculateLineTotal({
+                qty,
+                base_unit_price: item.base_unit_price,
+                selected_variants: item.selected_variants,
+                selected_modifiers: item.selected_modifiers,
+              }),
+            }
+          : item
+      ),
+    });
+  },
 
-  updateNotes: (itemId, notes) =>
-    set((state) => ({
-      items: state.items.map((item) => (item.id === itemId ? { ...item, notes } : item)),
-    })),
+  updateNotes: (itemId, notes) => {
+    set({
+      items: get().items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              notes,
+            }
+          : item
+      ),
+    });
+  },
 
-  removeItem: (itemId) =>
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== itemId),
-    })),
+  removeItem: (itemId) => {
+    set({
+      items: get().items.filter((item) => item.id !== itemId),
+    });
+  },
 
   clearCart: () =>
     set({
-      customer: null,
       items: [],
+      customer: null,
       orderChannel: "takeaway",
     }),
 
@@ -152,6 +176,7 @@ export const usePosCartStore = create<PosCartState>((set, get) => ({
 
   restoreHeldCart: () => {
     const raw = localStorage.getItem(HELD_CART_STORAGE_KEY);
+
     if (!raw) {
       return false;
     }

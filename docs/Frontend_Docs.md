@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-22 19:03:19_  
+_Dihasilkan otomatis: 2026-04-23 10:38:07_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -45,6 +45,8 @@ _Dihasilkan otomatis: 2026-04-22 19:03:19_
   - [src\modules\auth\services\auth.service.ts](#file-srcmodulesauthservicesauthservicets)
   - [src\modules\auth\store\auth.store.ts](#file-srcmodulesauthstoreauthstorets)
   - [src\modules\pos\components\PosCartPanel.tsx](#file-srcmodulesposcomponentsposcartpaneltsx)
+  - [src\modules\pos\components\PosCheckoutSuccessModal.tsx](#file-srcmodulesposcomponentsposcheckoutsuccessmodaltsx)
+  - [src\modules\pos\components\PosPaymentModal.tsx](#file-srcmodulesposcomponentspospaymentmodaltsx)
   - [src\modules\pos\components\PosProductConfiguratorModal.tsx](#file-srcmodulesposcomponentsposproductconfiguratormodaltsx)
   - [src\modules\pos\hooks\usePosCartStore.ts](#file-srcmodulesposhooksuseposcartstorets)
   - [src\modules\pos\pages\PosOrdersPage.tsx](#file-srcmodulespospagesposorderspagetsx)
@@ -5226,8 +5228,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 <a id="file-srcmodulesposcomponentsposcartpaneltsx"></a>
 ### src\modules\pos\components\PosCartPanel.tsx
-- SHA: `b32ed01fe399`  
-- Ukuran: 11 KB
+- SHA: `2e3554a7e459`  
+- Ukuran: 10 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -5256,6 +5258,8 @@ interface PosCartPanelProps {
   onDiscardHeldOrder: () => void;
   hasHeldOrder: boolean;
   onSubmitOrder: () => void;
+  subtotal: number;
+  totalQty: number;
 }
 
 const formatCurrency = (value: number) =>
@@ -5265,13 +5269,21 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
 
-const channelOptions: Array<{ value: PosOrderChannel; label: string }> = [
-  { value: "pos", label: "POS" },
-  { value: "takeaway", label: "Takeaway" },
-  { value: "dine_in", label: "Dine In" },
-  { value: "pickup", label: "Pickup" },
-  { value: "delivery", label: "Delivery" },
-];
+const getItemUnitPrice = (item: PosCartItem) => {
+  const variantsTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
+    0
+  );
+
+  const modifiersTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
+    0
+  );
+
+  return Number(item.base_unit_price || 0) + variantsTotal + modifiersTotal;
+};
+
+const getItemLineTotal = (item: PosCartItem) => getItemUnitPrice(item) * Number(item.qty || 0);
 
 export function PosCartPanel({
   items,
@@ -5294,223 +5306,786 @@ export function PosCartPanel({
   onDiscardHeldOrder,
   hasHeldOrder,
   onSubmitOrder,
+  subtotal,
+  totalQty,
 }: PosCartPanelProps) {
-  const itemCount = items.reduce((sum, item) => sum + Number(item.qty ?? 0), 0);
-  const subtotal = items.reduce((sum, item) => sum + Number(item.line_total ?? 0), 0);
-
   return (
-    <div className="space-y-4">
-      <Card title="Order Context">
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Order Channel
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {channelOptions.map((option) => {
-                const active = option.value === orderChannel;
+    <Card title="Cart & Checkout" description="Ringkasan order kasir dan aksi checkout.">
+      <div className="space-y-4">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-700">Order Channel</label>
+          <select
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            value={orderChannel}
+            onChange={(event) => onOrderChannelChange(event.target.value as PosOrderChannel)}
+          >
+            <option value="pos">pos</option>
+            <option value="takeaway">takeaway</option>
+            <option value="pickup">pickup</option>
+            <option value="dine_in">dine_in</option>
+            <option value="delivery">delivery</option>
+            <option value="website">website</option>
+          </select>
+        </div>
 
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => onOrderChannelChange(option.value)}
-                    className={[
-                      "rounded-xl border px-3 py-2 text-sm font-medium transition",
-                      active
-                        ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
+        <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm font-semibold text-slate-900">Customer</div>
+            {customer ? (
+              <Button variant="outline" onClick={onClearCustomer}>
+                Lepas Customer
+              </Button>
+            ) : null}
+          </div>
+
+          {customer ? (
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="font-semibold text-slate-900">{customer.name}</div>
+              <div>{customer.phone ?? "-"}</div>
+              <div>{customer.email ?? "-"}</div>
             </div>
-          </div>
+          ) : canSearchCustomer ? (
+            <div className="space-y-3">
+              <Input
+                placeholder="Cari customer minimal 2 huruf..."
+                value={customerSearch}
+                onChange={(event) => onCustomerSearchChange(event.target.value)}
+              />
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Customer Quick Assign
-            </label>
-
-            {!canSearchCustomer ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                Permission `customers.view` belum tersedia untuk user ini.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Input
-                  placeholder="Cari nama, phone, atau email customer..."
-                  value={customerSearch}
-                  onChange={(event) => onCustomerSearchChange(event.target.value)}
-                />
-
-                {customer ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-medium text-emerald-900">{customer.name}</div>
-                        <div className="mt-1 text-xs text-emerald-700">
-                          {customer.phone ?? customer.email ?? "Tanpa kontak"}
-                        </div>
+              {loadingCustomers ? (
+                <div className="text-sm text-slate-500">Mencari customer...</div>
+              ) : customerSearch.trim().length >= 2 && customerResults.length ? (
+                <div className="space-y-2">
+                  {customerResults.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className="w-full rounded-xl border border-slate-200 p-3 text-left hover:bg-slate-50"
+                      onClick={() => onPickCustomer(entry)}
+                    >
+                      <div className="font-medium text-slate-900">{entry.name}</div>
+                      <div className="text-xs text-slate-500">
+                        {entry.phone ?? "-"} · {entry.email ?? "-"}
                       </div>
-                      <Button variant="outline" onClick={onClearCustomer}>
-                        Lepas
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {loadingCustomers ? (
-                  <div className="text-sm text-slate-500">Mencari customer...</div>
-                ) : customerSearch.trim().length >= 2 && !customerResults.length ? (
-                  <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
-                ) : customerResults.length ? (
-                  <div className="max-h-56 space-y-2 overflow-y-auto">
-                    {customerResults.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => onPickCustomer(item)}
-                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50"
-                      >
-                        <div className="font-medium text-slate-900">{item.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">
-                          {item.phone ?? item.email ?? "Tanpa kontak"}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card
-        title="Cart"
-        description={`${itemCount} item`}
-        actions={
-          items.length ? (
-            <Badge variant="info">{formatCurrency(subtotal)}</Badge>
+                    </button>
+                  ))}
+                </div>
+              ) : customerSearch.trim().length >= 2 ? (
+                <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
+              ) : (
+                <div className="text-sm text-slate-500">
+                  Customer opsional. Bisa lanjut tanpa customer.
+                </div>
+              )}
+            </div>
           ) : (
-            <Badge variant="warning">Kosong</Badge>
-          )
-        }
-      >
-        {!items.length ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
-            Belum ada item di cart.
-          </div>
-        ) : (
-          <div className="max-h-[48vh] space-y-3 overflow-y-auto pr-1">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium text-slate-900">{item.product_name}</div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      Harga dasar {formatCurrency(item.base_unit_price)}
-                    </div>
-                  </div>
-                  <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
-                    Hapus
-                  </Button>
-                </div>
-
-                {item.selected_variants.length ? (
-                  <div className="mt-3 space-y-1">
-                    {item.selected_variants.map((variant, index) => (
-                      <div key={`${item.id}-variant-${index}`} className="text-xs text-slate-600">
-                        Variant: {variant.group_name} — {variant.option_name}
-                        {Number(variant.price_adjustment ?? 0) > 0
-                          ? ` (+${formatCurrency(Number(variant.price_adjustment ?? 0))})`
-                          : ""}
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                {item.selected_modifiers.length ? (
-                  <div className="mt-3 space-y-1">
-                    {item.selected_modifiers.map((modifier, index) => (
-                      <div key={`${item.id}-modifier-${index}`} className="text-xs text-slate-600">
-                        Modifier: {modifier.group_name} — {modifier.option_name}
-                        {Number(modifier.price ?? 0) > 0
-                          ? ` (+${formatCurrency(Number(modifier.price ?? 0))})`
-                          : ""}
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <Input
-                    label="Qty"
-                    type="number"
-                    value={String(item.qty)}
-                    onChange={(event) => onUpdateQty(item.id, Number(event.target.value || 1))}
-                  />
-                  <Input
-                    label="Catatan"
-                    value={item.notes}
-                    onChange={(event) => onUpdateNotes(item.id, event.target.value)}
-                    placeholder="Opsional"
-                  />
-                </div>
-
-                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-                  <span className="text-sm text-slate-500">Total line</span>
-                  <span className="font-semibold text-slate-900">
-                    {formatCurrency(item.line_total)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      <Card title="Order Summary">
-        <div className="space-y-3 text-sm text-slate-700">
-          <div className="flex items-center justify-between">
-            <span>Total qty</span>
-            <span>{itemCount}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-            <span>Total sementara</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
+            <div className="text-sm text-slate-500">
+              User ini tidak memiliki permission untuk mencari customer.
+            </div>
+          )}
         </div>
 
-        <div className="mt-4 grid gap-2">
-          <Button variant="secondary" onClick={onHoldOrder} disabled={!items.length}>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Button variant="outline" onClick={onHoldOrder}>
             Hold Order
           </Button>
           <Button variant="outline" onClick={onRestoreHeldOrder} disabled={!hasHeldOrder}>
-            Muat Held Order
+            Restore Held
           </Button>
-          <Button variant="outline" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
-            Hapus Held Order
+          <Button variant="danger" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
+            Hapus Held
           </Button>
-          <Button variant="outline" onClick={onClearCart} disabled={!items.length}>
+        </div>
+
+        {!items.length ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+            Cart masih kosong.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {items.map((item) => {
+              const unitPrice = getItemUnitPrice(item);
+              const lineTotal = getItemLineTotal(item);
+
+              return (
+                <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-slate-900">{item.product_name}</div>
+                      <div className="text-xs text-slate-500">{formatCurrency(unitPrice)} / item</div>
+                    </div>
+
+                    <Badge variant={item.product_type === "bundle" ? "warning" : "info"}>
+                      {item.product_type}
+                    </Badge>
+                  </div>
+
+                  {item.selected_variants?.length ? (
+                    <div className="mt-3 space-y-1 text-xs text-slate-600">
+                      {item.selected_variants.map((entry, index) => (
+                        <div key={`${item.id}-variant-${index}`}>
+                          Variant: {entry.group_name} - {entry.option_name}
+                          {Number(entry.price_adjustment) > 0
+                            ? ` (+${formatCurrency(entry.price_adjustment)})`
+                            : ""}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {item.selected_modifiers?.length ? (
+                    <div className="mt-3 space-y-1 text-xs text-slate-600">
+                      {item.selected_modifiers.map((entry, index) => (
+                        <div key={`${item.id}-modifier-${index}`}>
+                          Modifier: {entry.group_name} - {entry.option_name} x{entry.qty}
+                          {Number(entry.price) > 0 ? ` (+${formatCurrency(entry.price)})` : ""}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 grid gap-3">
+                    <div className="grid grid-cols-[90px_1fr_auto] items-center gap-3">
+                      <Input
+                        label="Qty"
+                        type="number"
+                        value={String(item.qty)}
+                        onChange={(event) =>
+                          onUpdateQty(item.id, Math.max(0, Number(event.target.value || 0)))
+                        }
+                      />
+
+                      <Input
+                        label="Catatan"
+                        value={item.notes}
+                        onChange={(event) => onUpdateNotes(item.id, event.target.value)}
+                        placeholder="Catatan item..."
+                      />
+
+                      <div className="pt-7">
+                        <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="text-right text-sm font-semibold text-slate-900">
+                      Line Total: {formatCurrency(lineTotal)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="rounded-2xl bg-slate-900 p-4 text-white">
+          <div className="flex items-center justify-between text-sm">
+            <span>Total Item</span>
+            <span>{totalQty}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-sm">Subtotal</span>
+            <span className="text-xl font-bold">{formatCurrency(subtotal)}</span>
+          </div>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="danger" onClick={onClearCart} disabled={!items.length}>
             Clear Cart
           </Button>
           <Button onClick={onSubmitOrder} disabled={!items.length}>
-            Simpan Order
+            Checkout & Payment
           </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesposcomponentsposcheckoutsuccessmodaltsx"></a>
+### src\modules\pos\components\PosCheckoutSuccessModal.tsx
+- SHA: `276e8e20d361`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Badge, Button, Card, Modal } from "@/components/ui";
+import type { PosReceiptSnapshot } from "@/modules/pos/types/pos";
+
+interface PosCheckoutSuccessModalProps {
+  open: boolean;
+  receipt: PosReceiptSnapshot | null;
+  onClose: () => void;
+  onReprint: (receipt: PosReceiptSnapshot) => void;
+}
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+export function PosCheckoutSuccessModal({
+  open,
+  receipt,
+  onClose,
+  onReprint,
+}: PosCheckoutSuccessModalProps) {
+  return (
+    <Modal
+      open={open}
+      title="Transaksi Berhasil"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Tutup
+          </Button>
+          <Button onClick={() => receipt && onReprint(receipt)} disabled={!receipt}>
+            Print / Reprint Receipt
+          </Button>
+        </>
+      }
+    >
+      {!receipt ? (
+        <div className="text-sm text-slate-500">Receipt belum tersedia.</div>
+      ) : (
+        <div className="space-y-4">
+          <Card>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="success">success</Badge>
+              <Badge variant="info">{receipt.order_channel}</Badge>
+              <Badge variant={receipt.payment_status === "success" ? "success" : "warning"}>
+                {receipt.payment_status}
+              </Badge>
+            </div>
+
+            <div className="mt-4 space-y-2 text-sm text-slate-700">
+              <div>
+                <span className="font-medium text-slate-900">Order Number:</span> {receipt.order_number}
+              </div>
+              <div>
+                <span className="font-medium text-slate-900">Outlet:</span> {receipt.outlet_name}
+              </div>
+              <div>
+                <span className="font-medium text-slate-900">Kasir:</span> {receipt.cashier_name}
+              </div>
+              <div>
+                <span className="font-medium text-slate-900">Customer:</span>{" "}
+                {receipt.customer_name ?? "Tanpa customer"}
+              </div>
+              <div>
+                <span className="font-medium text-slate-900">Waktu:</span>{" "}
+                {new Date(receipt.ordered_at).toLocaleString("id-ID")}
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Ringkasan Pembayaran">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span>Subtotal</span>
+                <span>{formatCurrency(receipt.subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Diskon</span>
+                <span>- {formatCurrency(receipt.discount_amount)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Pajak</span>
+                <span>{formatCurrency(receipt.tax_amount)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Service Charge</span>
+                <span>{formatCurrency(receipt.service_charge_amount)}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-slate-200 pt-2 font-semibold">
+                <span>Grand Total</span>
+                <span>{formatCurrency(receipt.grand_total)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Dibayar</span>
+                <span>{formatCurrency(receipt.paid_total)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Kembalian</span>
+                <span>{formatCurrency(receipt.change_amount)}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Items">
+            <div className="space-y-3">
+              {receipt.items.map((item, index) => (
+                <div key={`${receipt.order_number}-item-${index}`} className="rounded-xl border border-slate-200 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-medium text-slate-900">
+                      {item.product_name} x{item.qty}
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      {formatCurrency(item.line_total)}
+                    </div>
+                  </div>
+
+                  {item.variants?.length ? (
+                    <div className="mt-2 space-y-1 text-xs text-slate-600">
+                      {item.variants.map((entry, entryIndex) => (
+                        <div key={`variant-${entryIndex}`}>
+                          Variant: {entry.group_name} - {entry.option_name}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {item.modifiers?.length ? (
+                    <div className="mt-2 space-y-1 text-xs text-slate-600">
+                      {item.modifiers.map((entry, entryIndex) => (
+                        <div key={`modifier-${entryIndex}`}>
+                          Modifier: {entry.group_name} - {entry.option_name} x{entry.qty}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {item.notes?.trim() ? (
+                    <div className="mt-2 text-xs text-slate-500">Catatan: {item.notes}</div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+    </Modal>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesposcomponentspospaymentmodaltsx"></a>
+### src\modules\pos\components\PosPaymentModal.tsx
+- SHA: `6f6c1e25d414`  
+- Ukuran: 14 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useEffect, useMemo, useState } from "react";
+import { Badge, Button, Card, Input, Modal } from "@/components/ui";
+import type { Customer } from "@/types/customer";
+import type {
+  PosCartItem,
+  PosCheckoutTotals,
+  PosPaymentMethodOption,
+  PosPaymentSplitRow,
+  PosVoucher,
+} from "@/modules/pos/types/pos";
+
+interface PosPaymentModalProps {
+  open: boolean;
+  onClose: () => void;
+  items: PosCartItem[];
+  customer: Customer | null;
+  outletName: string;
+  cashierName: string;
+  paymentMethods: PosPaymentMethodOption[];
+  availableVouchers: PosVoucher[];
+  voucherLoading?: boolean;
+  orderChannel: string;
+  subtotal: number;
+  taxPercent: number;
+  serviceChargePercent: number;
+  onApplyVoucher: (voucherCode: string) => Promise<void> | void;
+  voucherCode: string;
+  voucherDiscount: number;
+  appliedVoucher: PosVoucher | null;
+  onVoucherCodeChange: (value: string) => void;
+  onRemoveVoucher: () => void;
+  onConfirm: (payload: {
+    payments: PosPaymentSplitRow[];
+    totals: PosCheckoutTotals;
+  }) => void;
+}
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+
+const createPaymentRow = (paymentMethodCode = "cash"): PosPaymentSplitRow => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  payment_method_code: paymentMethodCode,
+  amount: 0,
+  reference_number: "",
+  notes: "",
+});
+
+export function PosPaymentModal({
+  open,
+  onClose,
+  items,
+  customer,
+  outletName,
+  cashierName,
+  paymentMethods,
+  availableVouchers,
+  voucherLoading = false,
+  orderChannel,
+  subtotal,
+  taxPercent,
+  serviceChargePercent,
+  onApplyVoucher,
+  voucherCode,
+  voucherDiscount,
+  appliedVoucher,
+  onVoucherCodeChange,
+  onRemoveVoucher,
+  onConfirm,
+}: PosPaymentModalProps) {
+  const [payments, setPayments] = useState<PosPaymentSplitRow[]>([createPaymentRow("cash")]);
+
+  useEffect(() => {
+    if (!open) {
+      setPayments([createPaymentRow("cash")]);
+    }
+  }, [open]);
+
+  const totals = useMemo<PosCheckoutTotals>(() => {
+    const taxBase = Math.max(0, subtotal - voucherDiscount);
+    const tax = Math.round((taxBase * Number(taxPercent || 0)) / 100);
+    const serviceCharge = Math.round((taxBase * Number(serviceChargePercent || 0)) / 100);
+    const grandTotal = Math.max(0, taxBase + tax + serviceCharge);
+    const paidTotal = payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const remaining = Math.max(0, grandTotal - paidTotal);
+    const changeAmount = Math.max(0, paidTotal - grandTotal);
+
+    return {
+      subtotal,
+      discount: voucherDiscount,
+      tax,
+      serviceCharge,
+      grandTotal,
+      paidTotal,
+      remaining,
+      changeAmount,
+    };
+  }, [payments, serviceChargePercent, subtotal, taxPercent, voucherDiscount]);
+
+  const cashRow = payments.find((item) => item.payment_method_code === "cash") ?? null;
+
+  const suggestedVoucherList = useMemo(() => {
+    return availableVouchers.slice(0, 6);
+  }, [availableVouchers]);
+
+  const handleChangePayment = (
+    rowId: string,
+    key: keyof PosPaymentSplitRow,
+    value: string | number
+  ) => {
+    setPayments((prev) =>
+      prev.map((row) =>
+        row.id === rowId
+          ? {
+              ...row,
+              [key]: value,
+            }
+          : row
+      )
+    );
+  };
+
+  const handleAddPayment = () => {
+    const fallbackCode = paymentMethods.find((method) => method.code !== "cash")?.code ?? "cash";
+    setPayments((prev) => [...prev, createPaymentRow(fallbackCode)]);
+  };
+
+  const handleRemovePayment = (rowId: string) => {
+    setPayments((prev) => {
+      if (prev.length <= 1) {
+        return prev;
+      }
+
+      return prev.filter((row) => row.id !== rowId);
+    });
+  };
+
+  const handleAutoFillCash = () => {
+    if (!cashRow) {
+      return;
+    }
+
+    setPayments((prev) =>
+      prev.map((row) =>
+        row.id === cashRow.id
+          ? {
+              ...row,
+              amount: totals.grandTotal,
+            }
+          : row
+      )
+    );
+  };
+
+  const handleConfirm = () => {
+    if (!items.length) {
+      return;
+    }
+
+    const invalidRow = payments.find(
+      (row) =>
+        !row.payment_method_code ||
+        Number(row.amount || 0) <= 0 ||
+        !Number.isFinite(Number(row.amount))
+    );
+
+    if (invalidRow) {
+      return;
+    }
+
+    onConfirm({
+      payments,
+      totals,
+    });
+  };
+
+  return (
+    <Modal
+      open={open}
+      title="Checkout & Payment"
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Batal
+          </Button>
+          <Button onClick={handleConfirm} disabled={!items.length || totals.paidTotal <= 0}>
+            Selesaikan Checkout
+          </Button>
+        </>
+      }
+    >
+      <div className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
+        <Card>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="text-xs uppercase tracking-wide text-slate-500">Outlet</div>
+              <div className="font-semibold text-slate-900">{outletName}</div>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="text-xs uppercase tracking-wide text-slate-500">Kasir</div>
+              <div className="font-semibold text-slate-900">{cashierName}</div>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="text-xs uppercase tracking-wide text-slate-500">Channel</div>
+              <div className="font-semibold text-slate-900">{orderChannel}</div>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="text-xs uppercase tracking-wide text-slate-500">Customer</div>
+              <div className="font-semibold text-slate-900">{customer?.name ?? "Tanpa customer"}</div>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Voucher">
+          <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
+            <Input
+              label="Kode Voucher"
+              value={voucherCode}
+              onChange={(event) => onVoucherCodeChange(event.target.value.toUpperCase())}
+              placeholder="contoh: HEMAT10K"
+            />
+
+            <div className="pt-7">
+              <Button variant="outline" onClick={() => onApplyVoucher(voucherCode)} disabled={!voucherCode.trim()}>
+                Terapkan
+              </Button>
+            </div>
+
+            <div className="pt-7">
+              <Button variant="danger" onClick={onRemoveVoucher} disabled={!appliedVoucher}>
+                Hapus Voucher
+              </Button>
+            </div>
+          </div>
+
+          {appliedVoucher ? (
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              <div className="font-semibold">
+                {appliedVoucher.code} - {appliedVoucher.name}
+              </div>
+              <div>Diskon diterapkan: {formatCurrency(voucherDiscount)}</div>
+            </div>
+          ) : null}
+
+          {voucherLoading ? (
+            <div className="mt-3 text-sm text-slate-500">Memuat voucher...</div>
+          ) : suggestedVoucherList.length ? (
+            <div className="mt-4 space-y-2">
+              <div className="text-sm font-medium text-slate-700">Voucher tersedia</div>
+              <div className="flex flex-wrap gap-2">
+                {suggestedVoucherList.map((voucher) => (
+                  <button
+                    key={voucher.id}
+                    type="button"
+                    className="rounded-xl border border-slate-300 px-3 py-2 text-left text-sm hover:bg-slate-50"
+                    onClick={() => {
+                      onVoucherCodeChange(voucher.code);
+                      void onApplyVoucher(voucher.code);
+                    }}
+                  >
+                    <div className="font-semibold text-slate-900">{voucher.code}</div>
+                    <div className="text-xs text-slate-500">{voucher.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Card>
+
+        <Card
+          title="Split Payment"
+          actions={
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleAddPayment}>
+                Tambah Payment
+              </Button>
+              {cashRow ? (
+                <Button variant="secondary" onClick={handleAutoFillCash}>
+                  Pas Bayar Tunai
+                </Button>
+              ) : null}
+            </div>
+          }
+        >
+          <div className="space-y-3">
+            {payments.map((row, index) => {
+              const selectedMethod =
+                paymentMethods.find((method) => method.code === row.payment_method_code) ?? null;
+
+              return (
+                <div key={row.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="font-semibold text-slate-900">Payment #{index + 1}</div>
+                    <Button
+                      variant="danger"
+                      onClick={() => handleRemovePayment(row.id)}
+                      disabled={payments.length <= 1}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-slate-700">
+                        Metode Pembayaran
+                      </label>
+                      <select
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                        value={row.payment_method_code}
+                        onChange={(event) =>
+                          handleChangePayment(row.id, "payment_method_code", event.target.value)
+                        }
+                      >
+                        {paymentMethods
+                          .filter((method) => method.is_active)
+                          .map((method) => (
+                            <option key={method.code} value={method.code}>
+                              {method.name}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <Input
+                      label="Nominal"
+                      type="number"
+                      value={String(row.amount || 0)}
+                      onChange={(event) =>
+                        handleChangePayment(row.id, "amount", Number(event.target.value || 0))
+                      }
+                    />
+
+                    <Input
+                      label="Reference Number"
+                      value={row.reference_number}
+                      onChange={(event) =>
+                        handleChangePayment(row.id, "reference_number", event.target.value)
+                      }
+                      placeholder={
+                        selectedMethod?.requires_reference
+                          ? "Wajib untuk metode ini"
+                          : "Opsional"
+                      }
+                    />
+
+                    <Input
+                      label="Catatan Pembayaran"
+                      value={row.notes}
+                      onChange={(event) => handleChangePayment(row.id, "notes", event.target.value)}
+                      placeholder="Opsional"
+                    />
+                  </div>
+
+                  <div className="mt-3">
+                    <Badge variant="info">
+                      {selectedMethod?.name ?? row.payment_method_code}
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card title="Ringkasan Total">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Subtotal</span>
+              <span>{formatCurrency(totals.subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Diskon Voucher</span>
+              <span>- {formatCurrency(totals.discount)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Pajak</span>
+              <span>{formatCurrency(totals.tax)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Service Charge</span>
+              <span>{formatCurrency(totals.serviceCharge)}</span>
+            </div>
+            <div className="border-t border-slate-200 pt-2 text-base font-semibold">
+              <div className="flex items-center justify-between">
+                <span>Grand Total</span>
+                <span>{formatCurrency(totals.grandTotal)}</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Total Dibayar</span>
+              <span>{formatCurrency(totals.paidTotal)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Sisa Bayar</span>
+              <span>{formatCurrency(totals.remaining)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Kembalian</span>
+              <span>{formatCurrency(totals.changeAmount)}</span>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </Modal>
   );
 }
 ```
@@ -5926,7 +6501,7 @@ export function PosProductConfiguratorModal({
 
 <a id="file-srcmodulesposhooksuseposcartstorets"></a>
 ### src\modules\pos\hooks\usePosCartStore.ts
-- SHA: `b790597f82dc`  
+- SHA: `5b595d1b2a20`  
 - Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -5935,139 +6510,163 @@ import { create } from "zustand";
 import type { Customer } from "@/types/customer";
 import type {
   PosCartItem,
+  PosCartItemInput,
+  PosCartState,
   PosHeldCart,
-  PosModifierSelection,
   PosOrderChannel,
-  PosVariantSelection,
 } from "@/modules/pos/types/pos";
 
-const HELD_CART_STORAGE_KEY = "chicken_alibaba_pos_held_cart";
+const HELD_CART_STORAGE_KEY = "chicken-alibaba-pos-held-cart";
 
-const roundMoney = (value: number) => Math.round(value * 100) / 100;
+const generateCartItemId = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-const computeLineTotal = (
-  qty: number,
-  baseUnitPrice: number,
-  selectedVariants: PosVariantSelection[],
-  selectedModifiers: PosModifierSelection[]
-) => {
-  const variantDelta = selectedVariants.reduce(
-    (sum, item) => sum + Number(item.price_adjustment ?? 0),
+const calculateLineTotal = (item: {
+  qty: number;
+  base_unit_price: number;
+  selected_variants: Array<{ price_adjustment: number }>;
+  selected_modifiers: Array<{ qty: number; price: number }>;
+}) => {
+  const variantTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
     0
   );
 
-  const modifierDelta = selectedModifiers.reduce(
-    (sum, item) => sum + Number(item.price ?? 0) * Number(item.qty ?? 1),
+  const modifierTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
     0
   );
 
-  return roundMoney((Number(baseUnitPrice) + variantDelta + modifierDelta) * Number(qty));
+  const unitPrice = Number(item.base_unit_price || 0) + variantTotal + modifierTotal;
+
+  return unitPrice * Number(item.qty || 0);
 };
 
-const createCartItemId = () => `pos-item-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const areSameSelection = (left: PosCartItemInput, right: PosCartItemInput) => {
+  return JSON.stringify(left) === JSON.stringify(right);
+};
 
-interface PosCartState {
-  orderChannel: PosOrderChannel;
-  customer: Customer | null;
-  items: PosCartItem[];
-  heldCartMeta: PosHeldCart | null;
-  setOrderChannel: (channel: PosOrderChannel) => void;
-  setCustomer: (customer: Customer | null) => void;
-  addItem: (payload: {
-    product_id: number;
-    product_name: string;
-    product_type: "single" | "bundle";
-    image_url?: string | null;
-    qty?: number;
-    base_unit_price: number;
-    notes?: string;
-    selected_variants?: PosVariantSelection[];
-    selected_modifiers?: PosModifierSelection[];
-  }) => void;
-  updateQty: (itemId: string, qty: number) => void;
-  updateNotes: (itemId: string, notes: string) => void;
-  removeItem: (itemId: string) => void;
-  clearCart: () => void;
-  holdCart: () => void;
-  restoreHeldCart: () => boolean;
-  discardHeldCart: () => void;
-}
+const initialState = {
+  items: [] as PosCartItem[],
+  customer: null as Customer | null,
+  orderChannel: "takeaway" as PosOrderChannel,
+  heldCartMeta: null as PosHeldCart | null,
+};
 
 export const usePosCartStore = create<PosCartState>((set, get) => ({
-  orderChannel: "takeaway",
-  customer: null,
-  items: [],
-  heldCartMeta: null,
-
-  setOrderChannel: (orderChannel) => set({ orderChannel }),
+  ...initialState,
 
   setCustomer: (customer) => set({ customer }),
 
-  addItem: (payload) =>
-    set((state) => {
-      const qty = Number(payload.qty ?? 1);
-      const selectedVariants = payload.selected_variants ?? [];
-      const selectedModifiers = payload.selected_modifiers ?? [];
-      const lineTotal = computeLineTotal(
-        qty,
-        payload.base_unit_price,
-        selectedVariants,
-        selectedModifiers
-      );
+  setOrderChannel: (orderChannel) => set({ orderChannel }),
 
-      const newItem: PosCartItem = {
-        id: createCartItemId(),
-        product_id: payload.product_id,
-        product_name: payload.product_name,
-        product_type: payload.product_type,
-        image_url: payload.image_url ?? null,
-        qty,
-        base_unit_price: Number(payload.base_unit_price ?? 0),
-        notes: payload.notes ?? "",
-        selected_variants: selectedVariants,
-        selected_modifiers: selectedModifiers,
-        line_total: lineTotal,
+  addItem: (item) => {
+    const nextItem: PosCartItem = {
+      ...item,
+      id: generateCartItemId(),
+      line_total: calculateLineTotal(item),
+    };
+
+    const existingIndex = get().items.findIndex((current) =>
+      areSameSelection(
+        {
+          product_id: current.product_id,
+          product_name: current.product_name,
+          product_type: current.product_type,
+          image_url: current.image_url,
+          qty: current.qty,
+          base_unit_price: current.base_unit_price,
+          notes: current.notes,
+          selected_variants: current.selected_variants,
+          selected_modifiers: current.selected_modifiers,
+        },
+        {
+          product_id: nextItem.product_id,
+          product_name: nextItem.product_name,
+          product_type: nextItem.product_type,
+          image_url: nextItem.image_url,
+          qty: nextItem.qty,
+          base_unit_price: nextItem.base_unit_price,
+          notes: nextItem.notes,
+          selected_variants: nextItem.selected_variants,
+          selected_modifiers: nextItem.selected_modifiers,
+        }
+      )
+    );
+
+    if (existingIndex >= 0) {
+      const items = [...get().items];
+      const mergedQty = Number(items[existingIndex].qty) + Number(nextItem.qty);
+
+      items[existingIndex] = {
+        ...items[existingIndex],
+        qty: mergedQty,
+        line_total: calculateLineTotal({
+          qty: mergedQty,
+          base_unit_price: items[existingIndex].base_unit_price,
+          selected_variants: items[existingIndex].selected_variants,
+          selected_modifiers: items[existingIndex].selected_modifiers,
+        }),
       };
 
-      return {
-        items: [...state.items, newItem],
-      };
-    }),
+      set({ items });
+      return;
+    }
 
-  updateQty: (itemId, qty) =>
-    set((state) => ({
-      items: state.items.map((item) => {
-        if (item.id !== itemId) return item;
+    set({
+      items: [...get().items, nextItem],
+    });
+  },
 
-        const normalizedQty = Math.max(1, Number(qty || 1));
+  updateQty: (itemId, qty) => {
+    if (qty <= 0) {
+      set({
+        items: get().items.filter((item) => item.id !== itemId),
+      });
+      return;
+    }
 
-        return {
-          ...item,
-          qty: normalizedQty,
-          line_total: computeLineTotal(
-            normalizedQty,
-            item.base_unit_price,
-            item.selected_variants,
-            item.selected_modifiers
-          ),
-        };
-      }),
-    })),
+    set({
+      items: get().items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              qty,
+              line_total: calculateLineTotal({
+                qty,
+                base_unit_price: item.base_unit_price,
+                selected_variants: item.selected_variants,
+                selected_modifiers: item.selected_modifiers,
+              }),
+            }
+          : item
+      ),
+    });
+  },
 
-  updateNotes: (itemId, notes) =>
-    set((state) => ({
-      items: state.items.map((item) => (item.id === itemId ? { ...item, notes } : item)),
-    })),
+  updateNotes: (itemId, notes) => {
+    set({
+      items: get().items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              notes,
+            }
+          : item
+      ),
+    });
+  },
 
-  removeItem: (itemId) =>
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== itemId),
-    })),
+  removeItem: (itemId) => {
+    set({
+      items: get().items.filter((item) => item.id !== itemId),
+    });
+  },
 
   clearCart: () =>
     set({
-      customer: null,
       items: [],
+      customer: null,
       orderChannel: "takeaway",
     }),
 
@@ -6085,6 +6684,7 @@ export const usePosCartStore = create<PosCartState>((set, get) => ({
 
   restoreHeldCart: () => {
     const raw = localStorage.getItem(HELD_CART_STORAGE_KEY);
+
     if (!raw) {
       return false;
     }
@@ -6117,8 +6717,8 @@ export const usePosCartStore = create<PosCartState>((set, get) => ({
 
 <a id="file-srcmodulespospagesposorderspagetsx"></a>
 ### src\modules\pos\pages\PosOrdersPage.tsx
-- SHA: `dacb146f5eb8`  
-- Ukuran: 13 KB
+- SHA: `285b7e7ec485`  
+- Ukuran: 24 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -6132,12 +6732,21 @@ import { PageErrorState } from "@/components/feedback/PageErrorState";
 import { useToast } from "@/hooks/useToast";
 import { useActiveOutlet } from "@/hooks/useActiveOutlet";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
 import { posService } from "@/modules/pos/services/pos.service";
 import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
 import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
+import { PosPaymentModal } from "@/modules/pos/components/PosPaymentModal";
+import { PosCheckoutSuccessModal } from "@/modules/pos/components/PosCheckoutSuccessModal";
 import type { Customer } from "@/types/customer";
 import type { Product } from "@/types/product";
+import type {
+  PosCheckoutTotals,
+  PosPaymentSplitRow,
+  PosReceiptSnapshot,
+  PosVoucher,
+} from "@/modules/pos/types/pos";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -6186,9 +6795,158 @@ const isProductAvailableForOutlet = (product: Product, outletId: number | null) 
   return true;
 };
 
+const getCartItemUnitPrice = (item: {
+  base_unit_price: number;
+  selected_variants?: Array<{ price_adjustment: number }>;
+  selected_modifiers?: Array<{ qty: number; price: number }>;
+}) => {
+  const variantsTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
+    0
+  );
+
+  const modifiersTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
+    0
+  );
+
+  return Number(item.base_unit_price || 0) + variantsTotal + modifiersTotal;
+};
+
+const printReceipt = (receipt: PosReceiptSnapshot) => {
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(Number(value || 0));
+
+  const itemRows = receipt.items
+    .map((item) => {
+      const variantRows = (item.variants ?? [])
+        .map(
+          (entry) =>
+            `<div style="font-size:11px;color:#444;">Variant: ${entry.group_name} - ${entry.option_name}</div>`
+        )
+        .join("");
+
+      const modifierRows = (item.modifiers ?? [])
+        .map(
+          (entry) =>
+            `<div style="font-size:11px;color:#444;">Modifier: ${entry.group_name} - ${entry.option_name} x${entry.qty}</div>`
+        )
+        .join("");
+
+      const noteRow = item.notes?.trim()
+        ? `<div style="font-size:11px;color:#444;">Catatan: ${item.notes}</div>`
+        : "";
+
+      return `
+        <div style="padding:8px 0;border-bottom:1px dashed #999;">
+          <div style="display:flex;justify-content:space-between;gap:8px;">
+            <div style="font-weight:600;">${item.product_name} x${item.qty}</div>
+            <div style="font-weight:600;">${formatMoney(item.line_total)}</div>
+          </div>
+          ${variantRows}
+          ${modifierRows}
+          ${noteRow}
+        </div>
+      `;
+    })
+    .join("");
+
+  const paymentRows = receipt.payments
+    .map(
+      (payment) => `
+        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px;">
+          <span>${payment.payment_method_code.toUpperCase()}</span>
+          <span>${formatMoney(payment.amount)}</span>
+        </div>
+        ${payment.reference_number?.trim()
+          ? `<div style="font-size:11px;color:#444;">Ref: ${payment.reference_number}</div>`
+          : ""
+        }
+      `
+    )
+    .join("");
+
+  const html = `
+    <html>
+      <head>
+        <title>${receipt.order_number}</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;padding:16px;color:#111;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;">Chicken Alibaba</div>
+            <div style="font-size:12px;">${receipt.outlet_name}</div>
+            <div style="font-size:12px;">Order #${receipt.order_number}</div>
+            <div style="font-size:12px;">${new Date(receipt.ordered_at).toLocaleString("id-ID")}</div>
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div>Kasir: ${receipt.cashier_name}</div>
+            <div>Channel: ${receipt.order_channel}</div>
+            <div>Customer: ${receipt.customer_name ?? "Tanpa customer"}</div>
+            ${receipt.customer_phone
+      ? `<div>Phone: ${receipt.customer_phone}</div>`
+      : ""
+    }
+            ${receipt.voucher_code
+      ? `<div>Voucher: ${receipt.voucher_code}</div>`
+      : ""
+    }
+          </div>
+
+          <div style="margin-top:12px;">${itemRows}</div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span>Subtotal</span><span>${formatMoney(receipt.subtotal)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Diskon</span><span>- ${formatMoney(receipt.discount_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Pajak</span><span>${formatMoney(receipt.tax_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Service</span><span>${formatMoney(receipt.service_charge_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid #111;padding-top:6px;margin-top:6px;"><span>Total</span><span>${formatMoney(receipt.grand_total)}</span></div>
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            ${paymentRows}
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span>Dibayar</span><span>${formatMoney(receipt.paid_total)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Kembalian</span><span>${formatMoney(receipt.change_amount)}</span></div>
+          </div>
+
+          <div style="margin-top:16px;text-align:center;font-size:11px;">
+            Terima kasih telah berbelanja.
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const win = window.open("", "_blank", "width=420,height=720");
+
+  if (!win) {
+    return false;
+  }
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+
+  return true;
+};
+
 export default function PosOrdersPage() {
   const toast = useToast();
+  const user = useAuthStore((state) => state.user);
   const { activeOutlet, activeOutletId } = useActiveOutlet();
+  const currentOutletName =
+    activeOutlet?.outlet_name ??
+    (activeOutlet?.outlet_id ? `Outlet #${activeOutlet.outlet_id}` : "Belum dipilih");
   const canViewCustomers = usePermission("customers.view");
 
   const {
@@ -6211,6 +6969,12 @@ export default function PosOrdersPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<number | "all">("all");
   const [customerSearch, setCustomerSearch] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<PosVoucher | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [latestReceipt, setLatestReceipt] = useState<PosReceiptSnapshot | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ["pos-product-categories"],
@@ -6237,9 +7001,22 @@ export default function PosOrdersPage() {
     enabled: canViewCustomers && customerSearch.trim().length >= 2,
   });
 
+  const vouchersQuery = useQuery({
+    queryKey: ["pos-vouchers"],
+    queryFn: () =>
+      posService.getVouchers({
+        per_page: 100,
+        is_active: true,
+      }),
+    retry: 0,
+  });
+
+  const paymentMethods = useMemo(() => posService.getPaymentMethods(), []);
+
   const categoryOptions = categoriesQuery.data?.items ?? [];
   const rawProducts = productsQuery.data?.items ?? [];
   const customerOptions = customersQuery.data?.items ?? [];
+  const availableVouchers = vouchersQuery.data?.items ?? [];
 
   const visibleProducts = useMemo(() => {
     return rawProducts
@@ -6273,6 +7050,19 @@ export default function PosOrdersPage() {
         count: counts.get(category.id) ?? 0,
       }));
   }, [activeOutletId, categoryOptions, rawProducts]);
+
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      return sum + getCartItemUnitPrice(item) * Number(item.qty || 0);
+    }, 0);
+  }, [items]);
+
+  const totalQty = useMemo(() => {
+    return items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+  }, [items]);
+
+  const taxPercent = 0;
+  const serviceChargePercent = 0;
 
   const handleOpenConfigurator = (product: Product) => {
     setConfigProduct(product);
@@ -6345,28 +7135,168 @@ export default function PosOrdersPage() {
 
   const handleClearCart = () => {
     clearCart();
+    setVoucherCode("");
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
     toast.success("Cart dibersihkan");
   };
 
   const handleSubmitOrder = () => {
-    toast.warning(
-      "Backend order belum tersedia",
-      "UI POS dasar sudah siap. Integrasi submit order akan dilanjutkan saat endpoint orders tersedia."
+    if (!activeOutletId) {
+      toast.warning(
+        "Outlet belum aktif",
+        "Pilih default outlet dulu dari data user sebelum checkout."
+      );
+      return;
+    }
+
+    if (!items.length) {
+      toast.warning("Cart kosong", "Tambahkan produk dulu sebelum checkout.");
+      return;
+    }
+
+    setPaymentOpen(true);
+  };
+
+  const handleApplyVoucher = async (code: string) => {
+    if (!code.trim()) {
+      toast.warning("Voucher kosong", "Masukkan kode voucher terlebih dahulu.");
+      return;
+    }
+
+    if (vouchersQuery.isError) {
+      toast.warning(
+        "Voucher belum bisa diverifikasi dari backend",
+        "Endpoint voucher tersedia, tetapi akses user saat ini mungkin belum diizinkan."
+      );
+      return;
+    }
+
+    const result = posService.evaluateVoucher({
+      vouchers: availableVouchers,
+      voucherCode: code,
+      subtotal,
+    });
+
+    if (!result.valid || !result.voucher) {
+      setAppliedVoucher(null);
+      setVoucherDiscount(0);
+      toast.warning("Voucher tidak valid", result.message);
+      return;
+    }
+
+    setAppliedVoucher(result.voucher);
+    setVoucherCode(result.voucher.code);
+    setVoucherDiscount(result.discount_amount);
+    toast.success("Voucher diterapkan", result.message);
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+    setVoucherDiscount(0);
+    toast.success("Voucher dihapus");
+  };
+
+  const handleConfirmCheckout = (payload: {
+    payments: PosPaymentSplitRow[];
+    totals: PosCheckoutTotals;
+  }) => {
+    if (!activeOutletId) {
+      toast.warning("Outlet belum aktif");
+      return;
+    }
+
+    const hasInvalidReference = payload.payments.some((payment) => {
+      const method = paymentMethods.find((entry) => entry.code === payment.payment_method_code);
+
+      if (!method?.requires_reference) {
+        return false;
+      }
+
+      return !payment.reference_number.trim();
+    });
+
+    if (hasInvalidReference) {
+      toast.warning(
+        "Reference number wajib",
+        "QRIS atau transfer harus memiliki reference number."
+      );
+      return;
+    }
+
+    const paymentStatus = payload.totals.remaining > 0 ? "pending" : "success";
+
+    const result = posService.submitCheckoutDraft({
+      outlet_name: currentOutletName,
+      cashier_name: user?.name ?? "Kasir",
+      order_channel: orderChannel,
+      customer_name: customer?.name ?? null,
+      customer_phone: customer?.phone ?? null,
+      voucher_code: appliedVoucher?.code ?? null,
+      subtotal: payload.totals.subtotal,
+      discount_amount: payload.totals.discount,
+      tax_amount: payload.totals.tax,
+      service_charge_amount: payload.totals.serviceCharge,
+      grand_total: payload.totals.grandTotal,
+      paid_total: payload.totals.paidTotal,
+      change_amount: payload.totals.changeAmount,
+      payment_status: paymentStatus,
+      payments: payload.payments,
+      items: items.map((item) => ({
+        product_name: item.product_name,
+        qty: item.qty,
+        unit_price: getCartItemUnitPrice(item),
+        notes: item.notes,
+        variants: item.selected_variants,
+        modifiers: item.selected_modifiers,
+        line_total: getCartItemUnitPrice(item) * Number(item.qty || 0),
+      })),
+    });
+
+    setLatestReceipt(result.receipt);
+    setPaymentOpen(false);
+    setSuccessOpen(true);
+
+    clearCart();
+    setVoucherCode("");
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
+
+    toast.success(
+      paymentStatus === "success" ? "Checkout selesai" : "Checkout pending",
+      result.message
     );
+  };
+
+  const handleReprintReceipt = (receipt: PosReceiptSnapshot) => {
+    const printed = printReceipt(receipt);
+
+    if (!printed) {
+      toast.warning(
+        "Print gagal dibuka",
+        "Popup browser tertutup. Izinkan popup untuk print receipt."
+      );
+      return;
+    }
+
+    toast.success("Receipt dibuka", "Preview print receipt sudah dikirim ke browser.");
   };
 
   return (
     <PermissionWrapper permission="products.view">
       <div className="space-y-4">
         <PageHeader
-          title="POS Kasir Dasar"
-          description="Katalog cepat, cart interaktif, customer quick assign, dan konfigurasi variant/modifier."
+          title="POS Checkout & Payment"
+          description="Katalog cepat, cart interaktif, voucher, split payment, dan receipt print."
           actions={
             <div className="flex flex-wrap gap-2">
               <Badge variant="info">
-                Outlet: {activeOutlet?.outlet_name ?? "Belum dipilih"}
+                Outlet: {currentOutletName}
               </Badge>
-              <Badge variant="warning">Mode: SCAFFOLD Submit Order</Badge>
+              <Badge variant="warning">
+                Mode: Hybrid Voucher API + Checkout Draft
+              </Badge>
             </div>
           }
         />
@@ -6452,15 +7382,11 @@ export default function PosOrdersPage() {
                       <div>{product.description?.trim() || "Tanpa deskripsi produk."}</div>
 
                       {(product.variant_groups?.length ?? 0) > 0 ? (
-                        <div>
-                          Variant: {product.variant_groups?.length} group
-                        </div>
+                        <div>Variant: {product.variant_groups?.length} group</div>
                       ) : null}
 
                       {(product.modifier_groups?.length ?? 0) > 0 ? (
-                        <div>
-                          Modifier: {product.modifier_groups?.length} group
-                        </div>
+                        <div>Modifier: {product.modifier_groups?.length} group</div>
                       ) : null}
                     </div>
 
@@ -6496,6 +7422,8 @@ export default function PosOrdersPage() {
             onDiscardHeldOrder={handleDiscardHeld}
             hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
             onSubmitOrder={handleSubmitOrder}
+            subtotal={subtotal}
+            totalQty={totalQty}
           />
         </div>
 
@@ -6506,6 +7434,36 @@ export default function PosOrdersPage() {
           onClose={() => setConfigProduct(null)}
           onSubmit={handleAddToCart}
         />
+
+        <PosPaymentModal
+          open={paymentOpen}
+          onClose={() => setPaymentOpen(false)}
+          items={items}
+          customer={customer}
+          outletName={currentOutletName}
+          cashierName={user?.name ?? "Kasir"}
+          paymentMethods={paymentMethods}
+          availableVouchers={availableVouchers}
+          voucherLoading={vouchersQuery.isLoading}
+          orderChannel={orderChannel}
+          subtotal={subtotal}
+          taxPercent={taxPercent}
+          serviceChargePercent={serviceChargePercent}
+          onApplyVoucher={handleApplyVoucher}
+          voucherCode={voucherCode}
+          voucherDiscount={voucherDiscount}
+          appliedVoucher={appliedVoucher}
+          onVoucherCodeChange={setVoucherCode}
+          onRemoveVoucher={handleRemoveVoucher}
+          onConfirm={handleConfirmCheckout}
+        />
+
+        <PosCheckoutSuccessModal
+          open={successOpen}
+          receipt={latestReceipt}
+          onClose={() => setSuccessOpen(false)}
+          onReprint={handleReprintReceipt}
+        />
       </div>
     </PermissionWrapper>
   );
@@ -6515,8 +7473,8 @@ export default function PosOrdersPage() {
 
 <a id="file-srcmodulesposservicesposservicets"></a>
 ### src\modules\pos\services\pos.service.ts
-- SHA: `4895882531fa`  
-- Ukuran: 2 KB
+- SHA: `32962d927f2e`  
+- Ukuran: 8 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -6525,6 +7483,16 @@ import { endpoints } from "@/services/api/endpoints";
 import type { ApiMeta, ApiResponse } from "@/types/api";
 import type { Customer } from "@/types/customer";
 import type { Product, ProductCategory } from "@/types/product";
+import type {
+  PosCheckoutDraftResult,
+  PosOrderChannel,
+  PosPaymentMethodOption,
+  PosPaymentSplitRow,
+  PosReceiptItemSnapshot,
+  PosReceiptSnapshot,
+  PosVoucher,
+  PosVoucherEvaluationResult,
+} from "@/modules/pos/types/pos";
 
 export interface PosPaginationQuery {
   page?: number;
@@ -6542,10 +7510,33 @@ export interface PosCustomerQuery extends PosPaginationQuery {
   is_member?: boolean | "";
 }
 
+export interface PosVoucherQuery extends PosPaginationQuery {
+  discount_type?: "percent" | "fixed" | "";
+}
+
 export interface PosPaginatedResult<T> {
   items: T[];
   meta: ApiMeta | null;
   message: string;
+}
+
+export interface SubmitCheckoutDraftPayload {
+  outlet_name: string;
+  cashier_name: string;
+  order_channel: PosOrderChannel;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  voucher_code?: string | null;
+  subtotal: number;
+  discount_amount: number;
+  tax_amount: number;
+  service_charge_amount: number;
+  grand_total: number;
+  paid_total: number;
+  change_amount: number;
+  payment_status: "pending" | "success";
+  payments: PosPaymentSplitRow[];
+  items: PosReceiptItemSnapshot[];
 }
 
 const unwrapPaginated = <T>(response: ApiResponse<T[]>): PosPaginatedResult<T> => ({
@@ -6553,6 +7544,26 @@ const unwrapPaginated = <T>(response: ApiResponse<T[]>): PosPaginatedResult<T> =
   meta: response.meta ?? null,
   message: response.message,
 });
+
+const RECEIPT_DRAFTS_STORAGE_KEY = "chicken-alibaba-pos-receipt-drafts";
+
+const formatOrderNumber = () => {
+  const now = new Date();
+  const stamp = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+    String(now.getHours()).padStart(2, "0"),
+    String(now.getMinutes()).padStart(2, "0"),
+    String(now.getSeconds()).padStart(2, "0"),
+  ].join("");
+
+  return `ORD-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+};
+
+const parseNumber = (value: number | string | null | undefined) => Number(value ?? 0);
+
+const nowIsoLocal = () => new Date().toISOString();
 
 export const posService = {
   async getProductCategories(params: PosPaginationQuery = {}) {
@@ -6579,14 +7590,215 @@ export const posService = {
 
     return unwrapPaginated(response.data);
   },
+
+  async getVouchers(params: PosVoucherQuery = {}) {
+    const response = await apiClient.get<ApiResponse<PosVoucher[]>>(endpoints.vouchers.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  getPaymentMethods(): PosPaymentMethodOption[] {
+    return [
+      {
+        code: "cash",
+        name: "Tunai",
+        type: "cash",
+        is_active: true,
+        allow_overpay: true,
+      },
+      {
+        code: "qris",
+        name: "QRIS",
+        type: "qris",
+        is_active: true,
+        requires_reference: true,
+        allow_overpay: false,
+      },
+      {
+        code: "transfer",
+        name: "Transfer",
+        type: "transfer",
+        is_active: true,
+        requires_reference: true,
+        allow_overpay: false,
+      },
+    ];
+  },
+
+  evaluateVoucher(params: {
+    vouchers: PosVoucher[];
+    voucherCode: string;
+    subtotal: number;
+  }): PosVoucherEvaluationResult {
+    const code = params.voucherCode.trim().toUpperCase();
+
+    if (!code) {
+      return {
+        valid: false,
+        message: "Kode voucher masih kosong.",
+        discount_amount: 0,
+        voucher: null,
+      };
+    }
+
+    const voucher =
+      params.vouchers.find((item) => item.code.trim().toUpperCase() === code) ?? null;
+
+    if (!voucher) {
+      return {
+        valid: false,
+        message: "Voucher tidak ditemukan.",
+        discount_amount: 0,
+        voucher: null,
+      };
+    }
+
+    if (!voucher.is_active) {
+      return {
+        valid: false,
+        message: "Voucher tidak aktif.",
+        discount_amount: 0,
+        voucher,
+      };
+    }
+
+    const now = Date.now();
+    const startsAt = voucher.starts_at ? new Date(voucher.starts_at).getTime() : null;
+    const endsAt = voucher.ends_at ? new Date(voucher.ends_at).getTime() : null;
+
+    if (startsAt && now < startsAt) {
+      return {
+        valid: false,
+        message: "Voucher belum mulai berlaku.",
+        discount_amount: 0,
+        voucher,
+      };
+    }
+
+    if (endsAt && now > endsAt) {
+      return {
+        valid: false,
+        message: "Voucher sudah berakhir.",
+        discount_amount: 0,
+        voucher,
+      };
+    }
+
+    const minOrderTotal = parseNumber(voucher.min_order_total);
+
+    if (params.subtotal < minOrderTotal) {
+      return {
+        valid: false,
+        message: `Minimal transaksi untuk voucher ini adalah Rp${minOrderTotal.toLocaleString("id-ID")}.`,
+        discount_amount: 0,
+        voucher,
+      };
+    }
+
+    if (
+      typeof voucher.quota === "number" &&
+      typeof voucher.used_count === "number" &&
+      voucher.quota > 0 &&
+      voucher.used_count >= voucher.quota
+    ) {
+      return {
+        valid: false,
+        message: "Kuota voucher sudah habis.",
+        discount_amount: 0,
+        voucher,
+      };
+    }
+
+    let discountAmount = 0;
+
+    if (voucher.discount_type === "fixed") {
+      discountAmount = parseNumber(voucher.discount_value);
+    } else {
+      discountAmount = (params.subtotal * parseNumber(voucher.discount_value)) / 100;
+      const maxDiscount = parseNumber(voucher.max_discount);
+
+      if (maxDiscount > 0) {
+        discountAmount = Math.min(discountAmount, maxDiscount);
+      }
+    }
+
+    discountAmount = Math.min(discountAmount, params.subtotal);
+
+    return {
+      valid: true,
+      message: `Voucher ${voucher.code} berhasil diterapkan.`,
+      discount_amount: discountAmount,
+      voucher,
+    };
+  },
+
+  submitCheckoutDraft(payload: SubmitCheckoutDraftPayload): PosCheckoutDraftResult {
+    const order_number = formatOrderNumber();
+
+    const receipt: PosReceiptSnapshot = {
+      order_number,
+      order_channel: payload.order_channel,
+      outlet_name: payload.outlet_name,
+      cashier_name: payload.cashier_name,
+      customer_name: payload.customer_name ?? null,
+      customer_phone: payload.customer_phone ?? null,
+      ordered_at: nowIsoLocal(),
+      voucher_code: payload.voucher_code ?? null,
+      subtotal: payload.subtotal,
+      discount_amount: payload.discount_amount,
+      tax_amount: payload.tax_amount,
+      service_charge_amount: payload.service_charge_amount,
+      grand_total: payload.grand_total,
+      paid_total: payload.paid_total,
+      change_amount: payload.change_amount,
+      payment_status: payload.payment_status,
+      payments: payload.payments,
+      items: payload.items,
+    };
+
+    const raw = localStorage.getItem(RECEIPT_DRAFTS_STORAGE_KEY);
+    const existing = raw ? ((JSON.parse(raw) as PosReceiptSnapshot[]) ?? []) : [];
+    const next = [receipt, ...existing].slice(0, 50);
+
+    localStorage.setItem(RECEIPT_DRAFTS_STORAGE_KEY, JSON.stringify(next));
+
+    return {
+      message:
+        "Checkout draft berhasil dibuat. Siap diganti ke submit API saat backend orders/payments tersedia.",
+      order_number,
+      receipt,
+    };
+  },
+
+  getStoredReceipts(): PosReceiptSnapshot[] {
+    const raw = localStorage.getItem(RECEIPT_DRAFTS_STORAGE_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(raw) as PosReceiptSnapshot[];
+    } catch {
+      localStorage.removeItem(RECEIPT_DRAFTS_STORAGE_KEY);
+      return [];
+    }
+  },
+
+  getStoredReceiptByOrderNumber(orderNumber: string): PosReceiptSnapshot | null {
+    const receipts = this.getStoredReceipts();
+    return receipts.find((item) => item.order_number === orderNumber) ?? null;
+  },
 };
 ```
 </details>
 
 <a id="file-srcmodulespostypesposts"></a>
 ### src\modules\pos\types\pos.ts
-- SHA: `867e839478e3`  
-- Ukuran: 2 KB
+- SHA: `937c28a31595`  
+- Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -6627,6 +7839,8 @@ export interface PosCartItem {
   selected_modifiers: PosModifierSelection[];
   line_total: number;
 }
+
+export type PosCartItemInput = Omit<PosCartItem, "id" | "line_total">;
 
 export interface PosHeldCart {
   held_at: string;
@@ -6672,6 +7886,112 @@ export interface PosVariantGroupView extends ProductVariantGroup {
 
 export interface PosModifierGroupView extends ProductModifierGroup {
   options: NonNullable<ProductModifierGroup["options"]>;
+}
+
+export interface PosCartState {
+  items: PosCartItem[];
+  customer: Customer | null;
+  orderChannel: PosOrderChannel;
+  heldCartMeta: PosHeldCart | null;
+  setCustomer: (customer: Customer | null) => void;
+  setOrderChannel: (channel: PosOrderChannel) => void;
+  addItem: (item: PosCartItemInput) => void;
+  updateQty: (itemId: string, qty: number) => void;
+  updateNotes: (itemId: string, notes: string) => void;
+  removeItem: (itemId: string) => void;
+  clearCart: () => void;
+  holdCart: () => void;
+  restoreHeldCart: () => boolean;
+  discardHeldCart: () => void;
+}
+
+export interface PosPaymentMethodOption {
+  code: string;
+  name: string;
+  type: "cash" | "qris" | "transfer" | "ewallet" | "other";
+  is_active: boolean;
+  requires_reference?: boolean;
+  allow_overpay?: boolean;
+}
+
+export interface PosPaymentSplitRow {
+  id: string;
+  payment_method_code: string;
+  amount: number;
+  reference_number: string;
+  notes: string;
+}
+
+export interface PosVoucher {
+  id: number;
+  code: string;
+  name: string;
+  description?: string | null;
+  discount_type: "percent" | "fixed";
+  discount_value: number | string;
+  max_discount?: number | string | null;
+  min_order_total: number | string;
+  quota?: number | null;
+  used_count?: number;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active: boolean;
+  applies_to: "all" | "specific_products" | "specific_categories";
+}
+
+export interface PosVoucherEvaluationResult {
+  valid: boolean;
+  message: string;
+  discount_amount: number;
+  voucher: PosVoucher | null;
+}
+
+export interface PosCheckoutTotals {
+  subtotal: number;
+  discount: number;
+  tax: number;
+  serviceCharge: number;
+  grandTotal: number;
+  paidTotal: number;
+  remaining: number;
+  changeAmount: number;
+}
+
+export interface PosReceiptItemSnapshot {
+  product_name: string;
+  qty: number;
+  unit_price: number;
+  notes?: string;
+  variants: PosVariantSelection[];
+  modifiers: PosModifierSelection[];
+  line_total: number;
+}
+
+export interface PosReceiptSnapshot {
+  order_number: string;
+  order_channel: PosOrderChannel;
+  outlet_name: string;
+  cashier_name: string;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  ordered_at: string;
+  voucher_code?: string | null;
+  subtotal: number;
+  discount_amount: number;
+  tax_amount: number;
+  service_charge_amount: number;
+  grand_total: number;
+  paid_total: number;
+  change_amount: number;
+  payment_status: "pending" | "success";
+  payments: PosPaymentSplitRow[];
+  items: PosReceiptItemSnapshot[];
+}
+
+export interface PosCheckoutDraftResult {
+  message: string;
+  order_number: string;
+  receipt: PosReceiptSnapshot;
 }
 ```
 </details>
@@ -8452,7 +9772,7 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `ed185007bf5d`  
+- SHA: `41ed8fac0ca5`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -8525,6 +9845,14 @@ export const endpoints = {
     show: (id: number | string) => `/customers/${id}`,
     update: (id: number | string) => `/customers/${id}`,
     destroy: (id: number | string) => `/customers/${id}`,
+  },
+
+  vouchers: {
+    index: "/vouchers",
+    store: "/vouchers",
+    show: (id: number | string) => `/vouchers/${id}`,
+    update: (id: number | string) => `/vouchers/${id}`,
+    destroy: (id: number | string) => `/vouchers/${id}`,
   },
 } as const;
 ```

@@ -23,6 +23,8 @@ interface PosCartPanelProps {
   onDiscardHeldOrder: () => void;
   hasHeldOrder: boolean;
   onSubmitOrder: () => void;
+  subtotal: number;
+  totalQty: number;
 }
 
 const formatCurrency = (value: number) =>
@@ -32,13 +34,21 @@ const formatCurrency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(Number(value || 0));
 
-const channelOptions: Array<{ value: PosOrderChannel; label: string }> = [
-  { value: "pos", label: "POS" },
-  { value: "takeaway", label: "Takeaway" },
-  { value: "dine_in", label: "Dine In" },
-  { value: "pickup", label: "Pickup" },
-  { value: "delivery", label: "Delivery" },
-];
+const getItemUnitPrice = (item: PosCartItem) => {
+  const variantsTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
+    0
+  );
+
+  const modifiersTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
+    0
+  );
+
+  return Number(item.base_unit_price || 0) + variantsTotal + modifiersTotal;
+};
+
+const getItemLineTotal = (item: PosCartItem) => getItemUnitPrice(item) * Number(item.qty || 0);
 
 export function PosCartPanel({
   items,
@@ -61,222 +71,199 @@ export function PosCartPanel({
   onDiscardHeldOrder,
   hasHeldOrder,
   onSubmitOrder,
+  subtotal,
+  totalQty,
 }: PosCartPanelProps) {
-  const itemCount = items.reduce((sum, item) => sum + Number(item.qty ?? 0), 0);
-  const subtotal = items.reduce((sum, item) => sum + Number(item.line_total ?? 0), 0);
-
   return (
-    <div className="space-y-4">
-      <Card title="Order Context">
-        <div className="space-y-4">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Order Channel
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {channelOptions.map((option) => {
-                const active = option.value === orderChannel;
+    <Card title="Cart & Checkout" description="Ringkasan order kasir dan aksi checkout.">
+      <div className="space-y-4">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-700">Order Channel</label>
+          <select
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            value={orderChannel}
+            onChange={(event) => onOrderChannelChange(event.target.value as PosOrderChannel)}
+          >
+            <option value="pos">pos</option>
+            <option value="takeaway">takeaway</option>
+            <option value="pickup">pickup</option>
+            <option value="dine_in">dine_in</option>
+            <option value="delivery">delivery</option>
+            <option value="website">website</option>
+          </select>
+        </div>
 
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => onOrderChannelChange(option.value)}
-                    className={[
-                      "rounded-xl border px-3 py-2 text-sm font-medium transition",
-                      active
-                        ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
-                    ].join(" ")}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
+        <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-sm font-semibold text-slate-900">Customer</div>
+            {customer ? (
+              <Button variant="outline" onClick={onClearCustomer}>
+                Lepas Customer
+              </Button>
+            ) : null}
+          </div>
+
+          {customer ? (
+            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="font-semibold text-slate-900">{customer.name}</div>
+              <div>{customer.phone ?? "-"}</div>
+              <div>{customer.email ?? "-"}</div>
             </div>
-          </div>
+          ) : canSearchCustomer ? (
+            <div className="space-y-3">
+              <Input
+                placeholder="Cari customer minimal 2 huruf..."
+                value={customerSearch}
+                onChange={(event) => onCustomerSearchChange(event.target.value)}
+              />
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">
-              Customer Quick Assign
-            </label>
-
-            {!canSearchCustomer ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                Permission `customers.view` belum tersedia untuk user ini.
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Input
-                  placeholder="Cari nama, phone, atau email customer..."
-                  value={customerSearch}
-                  onChange={(event) => onCustomerSearchChange(event.target.value)}
-                />
-
-                {customer ? (
-                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-medium text-emerald-900">{customer.name}</div>
-                        <div className="mt-1 text-xs text-emerald-700">
-                          {customer.phone ?? customer.email ?? "Tanpa kontak"}
-                        </div>
+              {loadingCustomers ? (
+                <div className="text-sm text-slate-500">Mencari customer...</div>
+              ) : customerSearch.trim().length >= 2 && customerResults.length ? (
+                <div className="space-y-2">
+                  {customerResults.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className="w-full rounded-xl border border-slate-200 p-3 text-left hover:bg-slate-50"
+                      onClick={() => onPickCustomer(entry)}
+                    >
+                      <div className="font-medium text-slate-900">{entry.name}</div>
+                      <div className="text-xs text-slate-500">
+                        {entry.phone ?? "-"} · {entry.email ?? "-"}
                       </div>
-                      <Button variant="outline" onClick={onClearCustomer}>
-                        Lepas
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {loadingCustomers ? (
-                  <div className="text-sm text-slate-500">Mencari customer...</div>
-                ) : customerSearch.trim().length >= 2 && !customerResults.length ? (
-                  <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
-                ) : customerResults.length ? (
-                  <div className="max-h-56 space-y-2 overflow-y-auto">
-                    {customerResults.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => onPickCustomer(item)}
-                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50"
-                      >
-                        <div className="font-medium text-slate-900">{item.name}</div>
-                        <div className="mt-1 text-xs text-slate-500">
-                          {item.phone ?? item.email ?? "Tanpa kontak"}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card
-        title="Cart"
-        description={`${itemCount} item`}
-        actions={
-          items.length ? (
-            <Badge variant="info">{formatCurrency(subtotal)}</Badge>
+                    </button>
+                  ))}
+                </div>
+              ) : customerSearch.trim().length >= 2 ? (
+                <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
+              ) : (
+                <div className="text-sm text-slate-500">
+                  Customer opsional. Bisa lanjut tanpa customer.
+                </div>
+              )}
+            </div>
           ) : (
-            <Badge variant="warning">Kosong</Badge>
-          )
-        }
-      >
-        {!items.length ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
-            Belum ada item di cart.
-          </div>
-        ) : (
-          <div className="max-h-[48vh] space-y-3 overflow-y-auto pr-1">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium text-slate-900">{item.product_name}</div>
-                    <div className="mt-1 text-xs text-slate-500">
-                      Harga dasar {formatCurrency(item.base_unit_price)}
-                    </div>
-                  </div>
-                  <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
-                    Hapus
-                  </Button>
-                </div>
-
-                {item.selected_variants.length ? (
-                  <div className="mt-3 space-y-1">
-                    {item.selected_variants.map((variant, index) => (
-                      <div key={`${item.id}-variant-${index}`} className="text-xs text-slate-600">
-                        Variant: {variant.group_name} — {variant.option_name}
-                        {Number(variant.price_adjustment ?? 0) > 0
-                          ? ` (+${formatCurrency(Number(variant.price_adjustment ?? 0))})`
-                          : ""}
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                {item.selected_modifiers.length ? (
-                  <div className="mt-3 space-y-1">
-                    {item.selected_modifiers.map((modifier, index) => (
-                      <div key={`${item.id}-modifier-${index}`} className="text-xs text-slate-600">
-                        Modifier: {modifier.group_name} — {modifier.option_name}
-                        {Number(modifier.price ?? 0) > 0
-                          ? ` (+${formatCurrency(Number(modifier.price ?? 0))})`
-                          : ""}
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <Input
-                    label="Qty"
-                    type="number"
-                    value={String(item.qty)}
-                    onChange={(event) => onUpdateQty(item.id, Number(event.target.value || 1))}
-                  />
-                  <Input
-                    label="Catatan"
-                    value={item.notes}
-                    onChange={(event) => onUpdateNotes(item.id, event.target.value)}
-                    placeholder="Opsional"
-                  />
-                </div>
-
-                <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-                  <span className="text-sm text-slate-500">Total line</span>
-                  <span className="font-semibold text-slate-900">
-                    {formatCurrency(item.line_total)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      <Card title="Order Summary">
-        <div className="space-y-3 text-sm text-slate-700">
-          <div className="flex items-center justify-between">
-            <span>Total qty</span>
-            <span>{itemCount}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Subtotal</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
-          <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-semibold text-slate-900">
-            <span>Total sementara</span>
-            <span>{formatCurrency(subtotal)}</span>
-          </div>
+            <div className="text-sm text-slate-500">
+              User ini tidak memiliki permission untuk mencari customer.
+            </div>
+          )}
         </div>
 
-        <div className="mt-4 grid gap-2">
-          <Button variant="secondary" onClick={onHoldOrder} disabled={!items.length}>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Button variant="outline" onClick={onHoldOrder}>
             Hold Order
           </Button>
           <Button variant="outline" onClick={onRestoreHeldOrder} disabled={!hasHeldOrder}>
-            Muat Held Order
+            Restore Held
           </Button>
-          <Button variant="outline" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
-            Hapus Held Order
+          <Button variant="danger" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
+            Hapus Held
           </Button>
-          <Button variant="outline" onClick={onClearCart} disabled={!items.length}>
+        </div>
+
+        {!items.length ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+            Cart masih kosong.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {items.map((item) => {
+              const unitPrice = getItemUnitPrice(item);
+              const lineTotal = getItemLineTotal(item);
+
+              return (
+                <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-slate-900">{item.product_name}</div>
+                      <div className="text-xs text-slate-500">{formatCurrency(unitPrice)} / item</div>
+                    </div>
+
+                    <Badge variant={item.product_type === "bundle" ? "warning" : "info"}>
+                      {item.product_type}
+                    </Badge>
+                  </div>
+
+                  {item.selected_variants?.length ? (
+                    <div className="mt-3 space-y-1 text-xs text-slate-600">
+                      {item.selected_variants.map((entry, index) => (
+                        <div key={`${item.id}-variant-${index}`}>
+                          Variant: {entry.group_name} - {entry.option_name}
+                          {Number(entry.price_adjustment) > 0
+                            ? ` (+${formatCurrency(entry.price_adjustment)})`
+                            : ""}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {item.selected_modifiers?.length ? (
+                    <div className="mt-3 space-y-1 text-xs text-slate-600">
+                      {item.selected_modifiers.map((entry, index) => (
+                        <div key={`${item.id}-modifier-${index}`}>
+                          Modifier: {entry.group_name} - {entry.option_name} x{entry.qty}
+                          {Number(entry.price) > 0 ? ` (+${formatCurrency(entry.price)})` : ""}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-3 grid gap-3">
+                    <div className="grid grid-cols-[90px_1fr_auto] items-center gap-3">
+                      <Input
+                        label="Qty"
+                        type="number"
+                        value={String(item.qty)}
+                        onChange={(event) =>
+                          onUpdateQty(item.id, Math.max(0, Number(event.target.value || 0)))
+                        }
+                      />
+
+                      <Input
+                        label="Catatan"
+                        value={item.notes}
+                        onChange={(event) => onUpdateNotes(item.id, event.target.value)}
+                        placeholder="Catatan item..."
+                      />
+
+                      <div className="pt-7">
+                        <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="text-right text-sm font-semibold text-slate-900">
+                      Line Total: {formatCurrency(lineTotal)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="rounded-2xl bg-slate-900 p-4 text-white">
+          <div className="flex items-center justify-between text-sm">
+            <span>Total Item</span>
+            <span>{totalQty}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-sm">Subtotal</span>
+            <span className="text-xl font-bold">{formatCurrency(subtotal)}</span>
+          </div>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="danger" onClick={onClearCart} disabled={!items.length}>
             Clear Cart
           </Button>
           <Button onClick={onSubmitOrder} disabled={!items.length}>
-            Simpan Order
+            Checkout & Payment
           </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Card>
   );
 }

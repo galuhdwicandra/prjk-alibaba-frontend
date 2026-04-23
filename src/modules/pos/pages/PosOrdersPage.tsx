@@ -8,12 +8,21 @@ import { PageErrorState } from "@/components/feedback/PageErrorState";
 import { useToast } from "@/hooks/useToast";
 import { useActiveOutlet } from "@/hooks/useActiveOutlet";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
 import { posService } from "@/modules/pos/services/pos.service";
 import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
 import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
+import { PosPaymentModal } from "@/modules/pos/components/PosPaymentModal";
+import { PosCheckoutSuccessModal } from "@/modules/pos/components/PosCheckoutSuccessModal";
 import type { Customer } from "@/types/customer";
 import type { Product } from "@/types/product";
+import type {
+  PosCheckoutTotals,
+  PosPaymentSplitRow,
+  PosReceiptSnapshot,
+  PosVoucher,
+} from "@/modules/pos/types/pos";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -62,9 +71,158 @@ const isProductAvailableForOutlet = (product: Product, outletId: number | null) 
   return true;
 };
 
+const getCartItemUnitPrice = (item: {
+  base_unit_price: number;
+  selected_variants?: Array<{ price_adjustment: number }>;
+  selected_modifiers?: Array<{ qty: number; price: number }>;
+}) => {
+  const variantsTotal = (item.selected_variants ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price_adjustment || 0),
+    0
+  );
+
+  const modifiersTotal = (item.selected_modifiers ?? []).reduce(
+    (sum, entry) => sum + Number(entry.price || 0) * Number(entry.qty || 0),
+    0
+  );
+
+  return Number(item.base_unit_price || 0) + variantsTotal + modifiersTotal;
+};
+
+const printReceipt = (receipt: PosReceiptSnapshot) => {
+  const formatMoney = (value: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(Number(value || 0));
+
+  const itemRows = receipt.items
+    .map((item) => {
+      const variantRows = (item.variants ?? [])
+        .map(
+          (entry) =>
+            `<div style="font-size:11px;color:#444;">Variant: ${entry.group_name} - ${entry.option_name}</div>`
+        )
+        .join("");
+
+      const modifierRows = (item.modifiers ?? [])
+        .map(
+          (entry) =>
+            `<div style="font-size:11px;color:#444;">Modifier: ${entry.group_name} - ${entry.option_name} x${entry.qty}</div>`
+        )
+        .join("");
+
+      const noteRow = item.notes?.trim()
+        ? `<div style="font-size:11px;color:#444;">Catatan: ${item.notes}</div>`
+        : "";
+
+      return `
+        <div style="padding:8px 0;border-bottom:1px dashed #999;">
+          <div style="display:flex;justify-content:space-between;gap:8px;">
+            <div style="font-weight:600;">${item.product_name} x${item.qty}</div>
+            <div style="font-weight:600;">${formatMoney(item.line_total)}</div>
+          </div>
+          ${variantRows}
+          ${modifierRows}
+          ${noteRow}
+        </div>
+      `;
+    })
+    .join("");
+
+  const paymentRows = receipt.payments
+    .map(
+      (payment) => `
+        <div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px;">
+          <span>${payment.payment_method_code.toUpperCase()}</span>
+          <span>${formatMoney(payment.amount)}</span>
+        </div>
+        ${payment.reference_number?.trim()
+          ? `<div style="font-size:11px;color:#444;">Ref: ${payment.reference_number}</div>`
+          : ""
+        }
+      `
+    )
+    .join("");
+
+  const html = `
+    <html>
+      <head>
+        <title>${receipt.order_number}</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;padding:16px;color:#111;">
+        <div style="max-width:320px;margin:0 auto;">
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;">Chicken Alibaba</div>
+            <div style="font-size:12px;">${receipt.outlet_name}</div>
+            <div style="font-size:12px;">Order #${receipt.order_number}</div>
+            <div style="font-size:12px;">${new Date(receipt.ordered_at).toLocaleString("id-ID")}</div>
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div>Kasir: ${receipt.cashier_name}</div>
+            <div>Channel: ${receipt.order_channel}</div>
+            <div>Customer: ${receipt.customer_name ?? "Tanpa customer"}</div>
+            ${receipt.customer_phone
+      ? `<div>Phone: ${receipt.customer_phone}</div>`
+      : ""
+    }
+            ${receipt.voucher_code
+      ? `<div>Voucher: ${receipt.voucher_code}</div>`
+      : ""
+    }
+          </div>
+
+          <div style="margin-top:12px;">${itemRows}</div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span>Subtotal</span><span>${formatMoney(receipt.subtotal)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Diskon</span><span>- ${formatMoney(receipt.discount_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Pajak</span><span>${formatMoney(receipt.tax_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Service</span><span>${formatMoney(receipt.service_charge_amount)}</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid #111;padding-top:6px;margin-top:6px;"><span>Total</span><span>${formatMoney(receipt.grand_total)}</span></div>
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            ${paymentRows}
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span>Dibayar</span><span>${formatMoney(receipt.paid_total)}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Kembalian</span><span>${formatMoney(receipt.change_amount)}</span></div>
+          </div>
+
+          <div style="margin-top:16px;text-align:center;font-size:11px;">
+            Terima kasih telah berbelanja.
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const win = window.open("", "_blank", "width=420,height=720");
+
+  if (!win) {
+    return false;
+  }
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+
+  return true;
+};
+
 export default function PosOrdersPage() {
   const toast = useToast();
+  const user = useAuthStore((state) => state.user);
   const { activeOutlet, activeOutletId } = useActiveOutlet();
+  const currentOutletName =
+    activeOutlet?.outlet_name ??
+    (activeOutlet?.outlet_id ? `Outlet #${activeOutlet.outlet_id}` : "Belum dipilih");
   const canViewCustomers = usePermission("customers.view");
 
   const {
@@ -87,6 +245,12 @@ export default function PosOrdersPage() {
   const [activeCategoryId, setActiveCategoryId] = useState<number | "all">("all");
   const [customerSearch, setCustomerSearch] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<PosVoucher | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [latestReceipt, setLatestReceipt] = useState<PosReceiptSnapshot | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ["pos-product-categories"],
@@ -113,9 +277,22 @@ export default function PosOrdersPage() {
     enabled: canViewCustomers && customerSearch.trim().length >= 2,
   });
 
+  const vouchersQuery = useQuery({
+    queryKey: ["pos-vouchers"],
+    queryFn: () =>
+      posService.getVouchers({
+        per_page: 100,
+        is_active: true,
+      }),
+    retry: 0,
+  });
+
+  const paymentMethods = useMemo(() => posService.getPaymentMethods(), []);
+
   const categoryOptions = categoriesQuery.data?.items ?? [];
   const rawProducts = productsQuery.data?.items ?? [];
   const customerOptions = customersQuery.data?.items ?? [];
+  const availableVouchers = vouchersQuery.data?.items ?? [];
 
   const visibleProducts = useMemo(() => {
     return rawProducts
@@ -149,6 +326,19 @@ export default function PosOrdersPage() {
         count: counts.get(category.id) ?? 0,
       }));
   }, [activeOutletId, categoryOptions, rawProducts]);
+
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      return sum + getCartItemUnitPrice(item) * Number(item.qty || 0);
+    }, 0);
+  }, [items]);
+
+  const totalQty = useMemo(() => {
+    return items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+  }, [items]);
+
+  const taxPercent = 0;
+  const serviceChargePercent = 0;
 
   const handleOpenConfigurator = (product: Product) => {
     setConfigProduct(product);
@@ -221,28 +411,168 @@ export default function PosOrdersPage() {
 
   const handleClearCart = () => {
     clearCart();
+    setVoucherCode("");
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
     toast.success("Cart dibersihkan");
   };
 
   const handleSubmitOrder = () => {
-    toast.warning(
-      "Backend order belum tersedia",
-      "UI POS dasar sudah siap. Integrasi submit order akan dilanjutkan saat endpoint orders tersedia."
+    if (!activeOutletId) {
+      toast.warning(
+        "Outlet belum aktif",
+        "Pilih default outlet dulu dari data user sebelum checkout."
+      );
+      return;
+    }
+
+    if (!items.length) {
+      toast.warning("Cart kosong", "Tambahkan produk dulu sebelum checkout.");
+      return;
+    }
+
+    setPaymentOpen(true);
+  };
+
+  const handleApplyVoucher = async (code: string) => {
+    if (!code.trim()) {
+      toast.warning("Voucher kosong", "Masukkan kode voucher terlebih dahulu.");
+      return;
+    }
+
+    if (vouchersQuery.isError) {
+      toast.warning(
+        "Voucher belum bisa diverifikasi dari backend",
+        "Endpoint voucher tersedia, tetapi akses user saat ini mungkin belum diizinkan."
+      );
+      return;
+    }
+
+    const result = posService.evaluateVoucher({
+      vouchers: availableVouchers,
+      voucherCode: code,
+      subtotal,
+    });
+
+    if (!result.valid || !result.voucher) {
+      setAppliedVoucher(null);
+      setVoucherDiscount(0);
+      toast.warning("Voucher tidak valid", result.message);
+      return;
+    }
+
+    setAppliedVoucher(result.voucher);
+    setVoucherCode(result.voucher.code);
+    setVoucherDiscount(result.discount_amount);
+    toast.success("Voucher diterapkan", result.message);
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+    setVoucherDiscount(0);
+    toast.success("Voucher dihapus");
+  };
+
+  const handleConfirmCheckout = (payload: {
+    payments: PosPaymentSplitRow[];
+    totals: PosCheckoutTotals;
+  }) => {
+    if (!activeOutletId) {
+      toast.warning("Outlet belum aktif");
+      return;
+    }
+
+    const hasInvalidReference = payload.payments.some((payment) => {
+      const method = paymentMethods.find((entry) => entry.code === payment.payment_method_code);
+
+      if (!method?.requires_reference) {
+        return false;
+      }
+
+      return !payment.reference_number.trim();
+    });
+
+    if (hasInvalidReference) {
+      toast.warning(
+        "Reference number wajib",
+        "QRIS atau transfer harus memiliki reference number."
+      );
+      return;
+    }
+
+    const paymentStatus = payload.totals.remaining > 0 ? "pending" : "success";
+
+    const result = posService.submitCheckoutDraft({
+      outlet_name: currentOutletName,
+      cashier_name: user?.name ?? "Kasir",
+      order_channel: orderChannel,
+      customer_name: customer?.name ?? null,
+      customer_phone: customer?.phone ?? null,
+      voucher_code: appliedVoucher?.code ?? null,
+      subtotal: payload.totals.subtotal,
+      discount_amount: payload.totals.discount,
+      tax_amount: payload.totals.tax,
+      service_charge_amount: payload.totals.serviceCharge,
+      grand_total: payload.totals.grandTotal,
+      paid_total: payload.totals.paidTotal,
+      change_amount: payload.totals.changeAmount,
+      payment_status: paymentStatus,
+      payments: payload.payments,
+      items: items.map((item) => ({
+        product_name: item.product_name,
+        qty: item.qty,
+        unit_price: getCartItemUnitPrice(item),
+        notes: item.notes,
+        variants: item.selected_variants,
+        modifiers: item.selected_modifiers,
+        line_total: getCartItemUnitPrice(item) * Number(item.qty || 0),
+      })),
+    });
+
+    setLatestReceipt(result.receipt);
+    setPaymentOpen(false);
+    setSuccessOpen(true);
+
+    clearCart();
+    setVoucherCode("");
+    setAppliedVoucher(null);
+    setVoucherDiscount(0);
+
+    toast.success(
+      paymentStatus === "success" ? "Checkout selesai" : "Checkout pending",
+      result.message
     );
+  };
+
+  const handleReprintReceipt = (receipt: PosReceiptSnapshot) => {
+    const printed = printReceipt(receipt);
+
+    if (!printed) {
+      toast.warning(
+        "Print gagal dibuka",
+        "Popup browser tertutup. Izinkan popup untuk print receipt."
+      );
+      return;
+    }
+
+    toast.success("Receipt dibuka", "Preview print receipt sudah dikirim ke browser.");
   };
 
   return (
     <PermissionWrapper permission="products.view">
       <div className="space-y-4">
         <PageHeader
-          title="POS Kasir Dasar"
-          description="Katalog cepat, cart interaktif, customer quick assign, dan konfigurasi variant/modifier."
+          title="POS Checkout & Payment"
+          description="Katalog cepat, cart interaktif, voucher, split payment, dan receipt print."
           actions={
             <div className="flex flex-wrap gap-2">
               <Badge variant="info">
-                Outlet: {activeOutlet?.outlet_name ?? "Belum dipilih"}
+                Outlet: {currentOutletName}
               </Badge>
-              <Badge variant="warning">Mode: SCAFFOLD Submit Order</Badge>
+              <Badge variant="warning">
+                Mode: Hybrid Voucher API + Checkout Draft
+              </Badge>
             </div>
           }
         />
@@ -328,15 +658,11 @@ export default function PosOrdersPage() {
                       <div>{product.description?.trim() || "Tanpa deskripsi produk."}</div>
 
                       {(product.variant_groups?.length ?? 0) > 0 ? (
-                        <div>
-                          Variant: {product.variant_groups?.length} group
-                        </div>
+                        <div>Variant: {product.variant_groups?.length} group</div>
                       ) : null}
 
                       {(product.modifier_groups?.length ?? 0) > 0 ? (
-                        <div>
-                          Modifier: {product.modifier_groups?.length} group
-                        </div>
+                        <div>Modifier: {product.modifier_groups?.length} group</div>
                       ) : null}
                     </div>
 
@@ -372,6 +698,8 @@ export default function PosOrdersPage() {
             onDiscardHeldOrder={handleDiscardHeld}
             hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
             onSubmitOrder={handleSubmitOrder}
+            subtotal={subtotal}
+            totalQty={totalQty}
           />
         </div>
 
@@ -381,6 +709,36 @@ export default function PosOrdersPage() {
           outletPrice={configProduct ? getOutletPrice(configProduct, activeOutletId) : 0}
           onClose={() => setConfigProduct(null)}
           onSubmit={handleAddToCart}
+        />
+
+        <PosPaymentModal
+          open={paymentOpen}
+          onClose={() => setPaymentOpen(false)}
+          items={items}
+          customer={customer}
+          outletName={currentOutletName}
+          cashierName={user?.name ?? "Kasir"}
+          paymentMethods={paymentMethods}
+          availableVouchers={availableVouchers}
+          voucherLoading={vouchersQuery.isLoading}
+          orderChannel={orderChannel}
+          subtotal={subtotal}
+          taxPercent={taxPercent}
+          serviceChargePercent={serviceChargePercent}
+          onApplyVoucher={handleApplyVoucher}
+          voucherCode={voucherCode}
+          voucherDiscount={voucherDiscount}
+          appliedVoucher={appliedVoucher}
+          onVoucherCodeChange={setVoucherCode}
+          onRemoveVoucher={handleRemoveVoucher}
+          onConfirm={handleConfirmCheckout}
+        />
+
+        <PosCheckoutSuccessModal
+          open={successOpen}
+          receipt={latestReceipt}
+          onClose={() => setSuccessOpen(false)}
+          onReprint={handleReprintReceipt}
         />
       </div>
     </PermissionWrapper>

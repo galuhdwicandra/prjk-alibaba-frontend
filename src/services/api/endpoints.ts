@@ -67,4 +67,12 @@ export const endpoints = {
     update: (id: number | string) => `/customers/${id}`,
     destroy: (id: number | string) => `/customers/${id}`,
   },
+
+  vouchers: {
+    index: "/vouchers",
+    store: "/vouchers",
+    show: (id: number | string) => `/vouchers/${id}`,
+    update: (id: number | string) => `/vouchers/${id}`,
+    destroy: (id: number | string) => `/vouchers/${id}`,
+  },
 } as const;
