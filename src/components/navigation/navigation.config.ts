@@ -41,6 +41,11 @@ export const adminNavigation: NavigationItem[] = [
     to: "/pos/orders",
     permission: "products.view",
   },
+  {
+    label: "Kitchen",
+    to: "/kitchen/tickets",
+    permission: "kitchen_tickets.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -50,9 +55,9 @@ export const posNavigation: NavigationItem[] = [
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Kitchen Home", to: "/kitchen" },
-  { label: "Tickets", to: "/kitchen/tickets" },
-  { label: "Ready Queue", to: "/kitchen/ready" },
+  { label: "Kitchen Home", to: "/kitchen", permission: "kitchen_tickets.view" },
+  { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
+  { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [

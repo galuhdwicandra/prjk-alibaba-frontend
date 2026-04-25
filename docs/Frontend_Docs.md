@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-25 18:14:35_  
+_Dihasilkan otomatis: 2026-04-25 18:58:40_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -44,6 +44,11 @@ _Dihasilkan otomatis: 2026-04-25 18:14:35_
   - [src\modules\auth\schemas\login.schema.ts](#file-srcmodulesauthschemasloginschemats)
   - [src\modules\auth\services\auth.service.ts](#file-srcmodulesauthservicesauthservicets)
   - [src\modules\auth\store\auth.store.ts](#file-srcmodulesauthstoreauthstorets)
+  - [src\modules\kitchen\components\KitchenTicketCard.tsx](#file-srcmoduleskitchencomponentskitchenticketcardtsx)
+  - [src\modules\kitchen\components\KitchenTicketDetailModal.tsx](#file-srcmoduleskitchencomponentskitchenticketdetailmodaltsx)
+  - [src\modules\kitchen\pages\KitchenTicketsPage.tsx](#file-srcmoduleskitchenpageskitchenticketspagetsx)
+  - [src\modules\kitchen\pages\ReadyQueuePage.tsx](#file-srcmoduleskitchenpagesreadyqueuepagetsx)
+  - [src\modules\kitchen\services\kitchen.service.ts](#file-srcmoduleskitchenserviceskitchenservicets)
   - [src\modules\pos\components\PosCartPanel.tsx](#file-srcmodulesposcomponentsposcartpaneltsx)
   - [src\modules\pos\components\PosCheckoutSuccessModal.tsx](#file-srcmodulesposcomponentsposcheckoutsuccessmodaltsx)
   - [src\modules\pos\components\PosPaymentModal.tsx](#file-srcmodulesposcomponentspospaymentmodaltsx)
@@ -104,6 +109,7 @@ _Dihasilkan otomatis: 2026-04-25 18:14:35_
   - [src\types\auth.ts](#file-srctypesauthts)
   - [src\types\cashier-shift.ts](#file-srctypescashier-shiftts)
   - [src\types\customer.ts](#file-srctypescustomerts)
+  - [src\types\kitchen.ts](#file-srctypeskitchents)
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
   - [src\types\product.ts](#file-srctypesproductts)
@@ -293,7 +299,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `744abb6e7769`  
+- SHA: `cea557627642`  
 - Ukuran: 4 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -324,6 +330,8 @@ import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
+import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
+import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
 
 export const router = createBrowserRouter([
   {
@@ -376,9 +384,9 @@ export const router = createBrowserRouter([
         path: "/kitchen",
         element: <KitchenLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Kitchen Home" /> },
-          { path: "tickets", element: <RoutePlaceholder title="Kitchen Tickets" /> },
-          { path: "ready", element: <RoutePlaceholder title="Ready Queue" /> },
+          { index: true, element: <Navigate to="/kitchen/tickets" replace /> },
+          { path: "tickets", element: <KitchenTicketsPage /> },
+          { path: "ready", element: <ReadyQueuePage /> },
         ],
       },
       {
@@ -5232,6 +5240,900 @@ export const useAuthStore = create<AuthState>((set) => ({
 ```
 </details>
 
+<a id="file-srcmoduleskitchencomponentskitchenticketcardtsx"></a>
+### src\modules\kitchen\components\KitchenTicketCard.tsx
+- SHA: `ec9044b182db`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Badge, Button, Card } from "@/components/ui";
+import type { KitchenTicket, KitchenTicketStatus } from "@/types/kitchen";
+
+interface KitchenTicketCardProps {
+  ticket: KitchenTicket;
+  loading?: boolean;
+  onView: (ticket: KitchenTicket) => void;
+  onPrint: (ticket: KitchenTicket) => void;
+  onStartPreparing: (ticket: KitchenTicket) => void;
+  onReady: (ticket: KitchenTicket) => void;
+  onServe: (ticket: KitchenTicket) => void;
+  onCancel: (ticket: KitchenTicket) => void;
+}
+
+const statusLabel: Record<KitchenTicketStatus, string> = {
+  pending: "Pending",
+  preparing: "Preparing",
+  ready: "Ready",
+  served: "Served",
+  cancelled: "Cancelled",
+};
+
+const statusVariant: Record<KitchenTicketStatus, "default" | "success" | "warning" | "danger" | "info"> = {
+  pending: "warning",
+  preparing: "info",
+  ready: "success",
+  served: "default",
+  cancelled: "danger",
+};
+
+const channelLabel: Record<string, string> = {
+  pos: "POS",
+  dine_in: "Dine In",
+  takeaway: "Takeaway",
+  pickup: "Pickup",
+  delivery: "Delivery",
+  website: "Website",
+};
+
+const formatTime = (value?: string | null) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+  }).format(new Date(value));
+};
+
+const getTicketAgeMinutes = (value?: string | null) => {
+  if (!value) {
+    return 0;
+  }
+
+  const createdTime = new Date(value).getTime();
+  const now = Date.now();
+
+  if (Number.isNaN(createdTime)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor((now - createdTime) / 60000));
+};
+
+export function KitchenTicketCard({
+  ticket,
+  loading = false,
+  onView,
+  onPrint,
+  onStartPreparing,
+  onReady,
+  onServe,
+  onCancel,
+}: KitchenTicketCardProps) {
+  const order = ticket.order;
+  const items = ticket.items ?? [];
+  const ageMinutes = getTicketAgeMinutes(ticket.created_at);
+  const isOverdue = ageMinutes >= 30 && !["served", "cancelled"].includes(ticket.status);
+
+  return (
+    <Card
+      className={[
+        "border-slate-700 bg-slate-900 text-white",
+        isOverdue ? "ring-2 ring-red-500" : "",
+      ].join(" ")}
+      title={ticket.ticket_number}
+      description={order?.order_number ?? "-"}
+      actions={<Badge variant={statusVariant[ticket.status]}>{statusLabel[ticket.status]}</Badge>}
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-xl bg-slate-800 p-3">
+            <div className="text-slate-400">Queue</div>
+            <div className="text-xl font-semibold">{order?.queue_number ?? "-"}</div>
+          </div>
+          <div className="rounded-xl bg-slate-800 p-3">
+            <div className="text-slate-400">Channel</div>
+            <div className="text-xl font-semibold">
+              {channelLabel[order?.order_channel ?? ""] ?? order?.order_channel ?? "-"}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <div className="text-slate-400">Outlet</div>
+            <div className="font-medium">{order?.outlet?.name ?? "-"}</div>
+          </div>
+          <div>
+            <div className="text-slate-400">Masuk</div>
+            <div className="font-medium">{formatTime(ticket.created_at)}</div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {items.length ? (
+            items.slice(0, 4).map((item) => (
+              <div key={item.id} className="rounded-xl bg-slate-800 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold">{item.item_name_snapshot}</div>
+                    {item.notes ? (
+                      <div className="mt-1 text-xs text-amber-300">{item.notes}</div>
+                    ) : null}
+                    {item.order_item?.notes && item.order_item.notes !== item.notes ? (
+                      <div className="mt-1 text-xs text-amber-300">{item.order_item.notes}</div>
+                    ) : null}
+                  </div>
+                  <div className="rounded-lg bg-slate-700 px-3 py-1 text-sm font-semibold">
+                    x{Number(item.qty)}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-xl bg-slate-800 p-3 text-sm text-slate-300">
+              Belum ada item.
+            </div>
+          )}
+
+          {items.length > 4 ? (
+            <div className="text-sm text-slate-400">+{items.length - 4} item lainnya</div>
+          ) : null}
+        </div>
+
+        {order?.notes ? (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-100">
+            {order.notes}
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="secondary" disabled={loading} onClick={() => onView(ticket)}>
+            Detail
+          </Button>
+
+          {!ticket.printed_at ? (
+            <Button variant="outline" disabled={loading} onClick={() => onPrint(ticket)}>
+              Print
+            </Button>
+          ) : null}
+
+          {ticket.status === "pending" ? (
+            <Button loading={loading} onClick={() => onStartPreparing(ticket)}>
+              Mulai
+            </Button>
+          ) : null}
+
+          {ticket.status === "preparing" ? (
+            <Button loading={loading} onClick={() => onReady(ticket)}>
+              Ready
+            </Button>
+          ) : null}
+
+          {ticket.status === "ready" ? (
+            <Button loading={loading} onClick={() => onServe(ticket)}>
+              Serve
+            </Button>
+          ) : null}
+
+          {["pending", "preparing"].includes(ticket.status) ? (
+            <Button variant="danger" disabled={loading} onClick={() => onCancel(ticket)}>
+              Cancel
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmoduleskitchencomponentskitchenticketdetailmodaltsx"></a>
+### src\modules\kitchen\components\KitchenTicketDetailModal.tsx
+- SHA: `eef8976e1d7d`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Badge, Button, Modal } from "@/components/ui";
+import type { KitchenTicket, KitchenTicketStatus } from "@/types/kitchen";
+
+interface KitchenTicketDetailModalProps {
+  open: boolean;
+  ticket: KitchenTicket | null;
+  loading?: boolean;
+  onClose: () => void;
+  onStartPreparing: (ticket: KitchenTicket) => void;
+  onReady: (ticket: KitchenTicket) => void;
+  onServe: (ticket: KitchenTicket) => void;
+  onCancel: (ticket: KitchenTicket) => void;
+}
+
+const statusVariant: Record<KitchenTicketStatus, "default" | "success" | "warning" | "danger" | "info"> = {
+  pending: "warning",
+  preparing: "info",
+  ready: "success",
+  served: "default",
+  cancelled: "danger",
+};
+
+const formatDateTime = (value?: string | null) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+export function KitchenTicketDetailModal({
+  open,
+  ticket,
+  loading = false,
+  onClose,
+  onStartPreparing,
+  onReady,
+  onServe,
+  onCancel,
+}: KitchenTicketDetailModalProps) {
+  const items = ticket?.items ?? [];
+
+  return (
+    <Modal
+      open={open}
+      title={ticket ? `Detail Ticket ${ticket.ticket_number}` : "Detail Ticket"}
+      onClose={onClose}
+      footer={
+        ticket ? (
+          <>
+            <Button variant="outline" onClick={onClose}>
+              Tutup
+            </Button>
+
+            {ticket.status === "pending" ? (
+              <Button loading={loading} onClick={() => onStartPreparing(ticket)}>
+                Mulai Preparing
+              </Button>
+            ) : null}
+
+            {ticket.status === "preparing" ? (
+              <Button loading={loading} onClick={() => onReady(ticket)}>
+                Tandai Ready
+              </Button>
+            ) : null}
+
+            {ticket.status === "ready" ? (
+              <Button loading={loading} onClick={() => onServe(ticket)}>
+                Serve
+              </Button>
+            ) : null}
+
+            {["pending", "preparing"].includes(ticket.status) ? (
+              <Button variant="danger" disabled={loading} onClick={() => onCancel(ticket)}>
+                Cancel
+              </Button>
+            ) : null}
+          </>
+        ) : null
+      }
+    >
+      {!ticket ? null : (
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={statusVariant[ticket.status]}>{ticket.status}</Badge>
+            <Badge>{ticket.order?.order_channel ?? "-"}</Badge>
+            <Badge>{ticket.order?.payment_status ?? "-"}</Badge>
+          </div>
+
+          <div className="grid gap-3 rounded-2xl bg-slate-50 p-4 text-sm md:grid-cols-2">
+            <div>
+              <div className="text-slate-500">Order Number</div>
+              <div className="font-semibold text-slate-900">{ticket.order?.order_number ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Queue Number</div>
+              <div className="font-semibold text-slate-900">{ticket.order?.queue_number ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Outlet</div>
+              <div className="font-semibold text-slate-900">{ticket.order?.outlet?.name ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Customer</div>
+              <div className="font-semibold text-slate-900">{ticket.order?.customer?.name ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Created</div>
+              <div className="font-semibold text-slate-900">{formatDateTime(ticket.created_at)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Printed</div>
+              <div className="font-semibold text-slate-900">{formatDateTime(ticket.printed_at)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Prepared</div>
+              <div className="font-semibold text-slate-900">{formatDateTime(ticket.prepared_at)}</div>
+            </div>
+            <div>
+              <div className="text-slate-500">Ready</div>
+              <div className="font-semibold text-slate-900">{formatDateTime(ticket.ready_at)}</div>
+            </div>
+          </div>
+
+          {ticket.order?.notes ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              {ticket.order.notes}
+            </div>
+          ) : null}
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-slate-900">Item Pesanan</h3>
+
+            {items.length ? (
+              items.map((item) => (
+                <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-slate-900">{item.item_name_snapshot}</div>
+                      <div className="mt-1 text-sm text-slate-500">
+                        Qty: {Number(item.qty)}
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-800">
+                      x{Number(item.qty)}
+                    </div>
+                  </div>
+
+                  {item.notes ? (
+                    <div className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
+                      Catatan item: {item.notes}
+                    </div>
+                  ) : null}
+
+                  {item.order_item?.notes && item.order_item.notes !== item.notes ? (
+                    <div className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
+                      Catatan order item: {item.order_item.notes}
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-slate-200 p-4 text-sm text-slate-500">
+                Belum ada item pada ticket ini.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+```
+</details>
+
+<a id="file-srcmoduleskitchenpageskitchenticketspagetsx"></a>
+### src\modules\kitchen\pages\KitchenTicketsPage.tsx
+- SHA: `a1266712187a`  
+- Ukuran: 8 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input } from "@/components/ui";
+import { KitchenTicketCard } from "@/modules/kitchen/components/KitchenTicketCard";
+import { KitchenTicketDetailModal } from "@/modules/kitchen/components/KitchenTicketDetailModal";
+import { kitchenService } from "@/modules/kitchen/services/kitchen.service";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import type { KitchenTicket, KitchenTicketStatus } from "@/types/kitchen";
+
+const statusOptions: Array<{ label: string; value: KitchenTicketStatus | "" }> = [
+  { label: "Semua", value: "" },
+  { label: "Pending", value: "pending" },
+  { label: "Preparing", value: "preparing" },
+  { label: "Ready", value: "ready" },
+  { label: "Served", value: "served" },
+  { label: "Cancelled", value: "cancelled" },
+];
+
+const statusVariant: Record<KitchenTicketStatus, "default" | "success" | "warning" | "danger" | "info"> = {
+  pending: "warning",
+  preparing: "info",
+  ready: "success",
+  served: "default",
+  cancelled: "danger",
+};
+
+export default function KitchenTicketsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const { activeOutletId } = useActiveOutlet();
+
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<KitchenTicketStatus | "">("");
+  const [selectedTicket, setSelectedTicket] = useState<KitchenTicket | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const ticketsQuery = useQuery({
+    queryKey: ["kitchen-tickets", search, status, activeOutletId],
+    queryFn: () =>
+      kitchenService.getTickets({
+        per_page: 100,
+        search,
+        status,
+        outlet_id: activeOutletId ?? "",
+      }),
+    refetchInterval: 10000,
+  });
+
+  const tickets = ticketsQuery.data?.items ?? [];
+
+  const counters = useMemo(() => {
+    return tickets.reduce<Record<KitchenTicketStatus, number>>(
+      (accumulator, ticket) => {
+        accumulator[ticket.status] += 1;
+        return accumulator;
+      },
+      {
+        pending: 0,
+        preparing: 0,
+        ready: 0,
+        served: 0,
+        cancelled: 0,
+      }
+    );
+  }, [tickets]);
+
+  const invalidateTickets = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["kitchen-tickets"] });
+  };
+
+  const actionMutation = useMutation({
+    mutationFn: async ({
+      ticket,
+      action,
+    }: {
+      ticket: KitchenTicket;
+      action: "print" | "start" | "ready" | "serve" | "cancel";
+    }) => {
+      if (action === "print") {
+        return kitchenService.markPrinted(ticket.id);
+      }
+
+      if (action === "start") {
+        return kitchenService.startPreparing(ticket.id);
+      }
+
+      if (action === "ready") {
+        return kitchenService.markReady(ticket.id);
+      }
+
+      if (action === "serve") {
+        return kitchenService.serve(ticket.id);
+      }
+
+      return kitchenService.cancel(ticket.id);
+    },
+    onSuccess: async (response) => {
+      toast.success(response.message);
+      setSelectedTicket(response.data);
+      await invalidateTickets();
+    },
+    onError: (error) => {
+      toast.error("Gagal memproses kitchen ticket", parseApiError(error));
+    },
+  });
+
+  const openDetail = (ticket: KitchenTicket) => {
+    setSelectedTicket(ticket);
+    setDetailOpen(true);
+  };
+
+  return (
+    <PermissionWrapper permission="kitchen_tickets.view">
+      <div
+        className={[
+          "space-y-4",
+          fullscreen ? "fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-4" : "",
+        ].join(" ")}
+      >
+        <PageHeader
+          title="Kitchen Ticket Board"
+          description="Pantau antrian pesanan dapur dan ubah status pengerjaan secara cepat."
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => void ticketsQuery.refetch()}>
+                Refresh
+              </Button>
+              <Button variant={fullscreen ? "secondary" : "primary"} onClick={() => setFullscreen((prev) => !prev)}>
+                {fullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              </Button>
+            </div>
+          }
+        />
+
+        <div className="grid gap-3 md:grid-cols-5">
+          {(["pending", "preparing", "ready", "served", "cancelled"] as KitchenTicketStatus[]).map(
+            (item) => (
+              <Card key={item} className={fullscreen ? "border-slate-700 bg-slate-900" : ""}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className={fullscreen ? "text-sm text-slate-400" : "text-sm text-slate-500"}>
+                      {item}
+                    </div>
+                    <div className={fullscreen ? "text-3xl font-semibold text-white" : "text-3xl font-semibold text-slate-900"}>
+                      {counters[item]}
+                    </div>
+                  </div>
+                  <Badge variant={statusVariant[item]}>{item}</Badge>
+                </div>
+              </Card>
+            )
+          )}
+        </div>
+
+        <Card className={fullscreen ? "border-slate-700 bg-slate-900" : ""}>
+          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+            <Input
+              placeholder="Cari ticket, order number, atau queue number..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={status}
+              onChange={(event) => setStatus(event.target.value as KitchenTicketStatus | "")}
+            >
+              {statusOptions.map((option) => (
+                <option key={option.label} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
+
+        {ticketsQuery.isLoading ? (
+          <Card className={fullscreen ? "border-slate-700 bg-slate-900 text-white" : ""}>
+            Memuat kitchen tickets...
+          </Card>
+        ) : ticketsQuery.isError ? (
+          <PageErrorState onRetry={() => void ticketsQuery.refetch()} />
+        ) : !tickets.length ? (
+          <PageEmptyState title="Belum ada kitchen ticket" />
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+            {tickets.map((ticket) => (
+              <KitchenTicketCard
+                key={ticket.id}
+                ticket={ticket}
+                loading={actionMutation.isPending}
+                onView={openDetail}
+                onPrint={(item) => actionMutation.mutate({ ticket: item, action: "print" })}
+                onStartPreparing={(item) => actionMutation.mutate({ ticket: item, action: "start" })}
+                onReady={(item) => actionMutation.mutate({ ticket: item, action: "ready" })}
+                onServe={(item) => actionMutation.mutate({ ticket: item, action: "serve" })}
+                onCancel={(item) => actionMutation.mutate({ ticket: item, action: "cancel" })}
+              />
+            ))}
+          </div>
+        )}
+
+        <KitchenTicketDetailModal
+          open={detailOpen}
+          ticket={selectedTicket}
+          loading={actionMutation.isPending}
+          onClose={() => setDetailOpen(false)}
+          onStartPreparing={(item) => actionMutation.mutate({ ticket: item, action: "start" })}
+          onReady={(item) => actionMutation.mutate({ ticket: item, action: "ready" })}
+          onServe={(item) => actionMutation.mutate({ ticket: item, action: "serve" })}
+          onCancel={(item) => actionMutation.mutate({ ticket: item, action: "cancel" })}
+        />
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmoduleskitchenpagesreadyqueuepagetsx"></a>
+### src\modules\kitchen\pages\ReadyQueuePage.tsx
+- SHA: `1685d1caa430`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input } from "@/components/ui";
+import { kitchenService } from "@/modules/kitchen/services/kitchen.service";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import type { KitchenTicket } from "@/types/kitchen";
+
+const formatTime = (value?: string | null) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+  }).format(new Date(value));
+};
+
+export default function ReadyQueuePage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const { activeOutletId } = useActiveOutlet();
+
+  const [search, setSearch] = useState("");
+
+  const readyQuery = useQuery({
+    queryKey: ["kitchen-ready-queue", search, activeOutletId],
+    queryFn: () =>
+      kitchenService.getTickets({
+        per_page: 100,
+        search,
+        status: "ready",
+        outlet_id: activeOutletId ?? "",
+      }),
+    refetchInterval: 10000,
+  });
+
+  const readyTickets = readyQuery.data?.items ?? [];
+
+  const serveMutation = useMutation({
+    mutationFn: (ticket: KitchenTicket) => kitchenService.serve(ticket.id),
+    onSuccess: async (response) => {
+      toast.success(response.message);
+      await queryClient.invalidateQueries({ queryKey: ["kitchen-ready-queue"] });
+      await queryClient.invalidateQueries({ queryKey: ["kitchen-tickets"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menyelesaikan ticket", parseApiError(error));
+    },
+  });
+
+  return (
+    <PermissionWrapper permission="kitchen_tickets.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Ready Queue"
+          description="Daftar pesanan yang sudah siap disajikan atau diserahkan."
+          actions={
+            <Button variant="outline" onClick={() => void readyQuery.refetch()}>
+              Refresh
+            </Button>
+          }
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari ticket, order number, atau queue number..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Card>
+
+        {readyQuery.isLoading ? (
+          <Card>Memuat ready queue...</Card>
+        ) : readyQuery.isError ? (
+          <PageErrorState onRetry={() => void readyQuery.refetch()} />
+        ) : !readyTickets.length ? (
+          <PageEmptyState title="Belum ada pesanan ready" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            {readyTickets.map((ticket) => (
+              <Card
+                key={ticket.id}
+                title={ticket.ticket_number}
+                description={ticket.order?.order_number ?? "-"}
+                actions={<Badge variant="success">Ready</Badge>}
+              >
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <div className="text-slate-500">Queue</div>
+                      <div className="text-2xl font-semibold text-slate-900">
+                        {ticket.order?.queue_number ?? "-"}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <div className="text-slate-500">Ready At</div>
+                      <div className="font-semibold text-slate-900">
+                        {formatTime(ticket.ready_at)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(ticket.items ?? []).map((item) => (
+                      <div key={item.id} className="flex justify-between rounded-xl border border-slate-200 p-3">
+                        <div>
+                          <div className="font-medium text-slate-900">{item.item_name_snapshot}</div>
+                          {item.notes ? (
+                            <div className="mt-1 text-xs text-amber-700">{item.notes}</div>
+                          ) : null}
+                        </div>
+                        <div className="font-semibold text-slate-900">x{Number(item.qty)}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    fullWidth
+                    loading={serveMutation.isPending}
+                    onClick={() => serveMutation.mutate(ticket)}
+                  >
+                    Serve / Selesai
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmoduleskitchenserviceskitchenservicets"></a>
+### src\modules\kitchen\services\kitchen.service.ts
+- SHA: `dd144fb806c5`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import type { ApiResponse } from "@/types/api";
+import type {
+  KitchenPaginatedResult,
+  KitchenTicket,
+  KitchenTicketActionPayload,
+  KitchenTicketQuery,
+} from "@/types/kitchen";
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): KitchenPaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+const kitchenTicketEndpoints = {
+  index: "/kitchen-tickets",
+  show: (id: number | string) => `/kitchen-tickets/${id}`,
+  print: (id: number | string) => `/kitchen-tickets/${id}/print`,
+  startPreparing: (id: number | string) => `/kitchen-tickets/${id}/start-preparing`,
+  ready: (id: number | string) => `/kitchen-tickets/${id}/ready`,
+  serve: (id: number | string) => `/kitchen-tickets/${id}/serve`,
+  cancel: (id: number | string) => `/kitchen-tickets/${id}/cancel`,
+  destroy: (id: number | string) => `/kitchen-tickets/${id}`,
+};
+
+export const kitchenService = {
+  async getTickets(params: KitchenTicketQuery = {}) {
+    const response = await apiClient.get<ApiResponse<KitchenTicket[]>>(
+      kitchenTicketEndpoints.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getTicket(id: number) {
+    const response = await apiClient.get<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.show(id)
+    );
+
+    return response.data;
+  },
+
+  async markPrinted(id: number, payload: KitchenTicketActionPayload = {}) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.print(id),
+      {
+        printed_at: payload.printed_at ?? new Date().toISOString(),
+      }
+    );
+
+    return response.data;
+  },
+
+  async startPreparing(id: number, payload: KitchenTicketActionPayload = {}) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.startPreparing(id),
+      {
+        prepared_at: payload.prepared_at ?? new Date().toISOString(),
+        notes: payload.notes ?? null,
+      }
+    );
+
+    return response.data;
+  },
+
+  async markReady(id: number, payload: KitchenTicketActionPayload = {}) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.ready(id),
+      {
+        ready_at: payload.ready_at ?? new Date().toISOString(),
+        notes: payload.notes ?? null,
+      }
+    );
+
+    return response.data;
+  },
+
+  async serve(id: number, payload: KitchenTicketActionPayload = {}) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.serve(id),
+      {
+        completed_at: payload.completed_at ?? new Date().toISOString(),
+        notes: payload.notes ?? null,
+      }
+    );
+
+    return response.data;
+  },
+
+  async cancel(id: number, payload: KitchenTicketActionPayload = {}) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.cancel(id),
+      {
+        cancelled_at: payload.cancelled_at ?? new Date().toISOString(),
+        notes: payload.notes ?? null,
+      }
+    );
+
+    return response.data;
+  },
+
+  async deleteTicket(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      kitchenTicketEndpoints.destroy(id)
+    );
+
+    return response.data;
+  },
+};
+```
+</details>
+
 <a id="file-srcmodulesposcomponentsposcartpaneltsx"></a>
 ### src\modules\pos\components\PosCartPanel.tsx
 - SHA: `2e3554a7e459`  
@@ -9365,7 +10267,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `a09f124f8586`  
+- SHA: `cd25b1c1bcf5`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -9413,6 +10315,11 @@ export const adminNavigation: NavigationItem[] = [
     to: "/pos/orders",
     permission: "products.view",
   },
+  {
+    label: "Kitchen",
+    to: "/kitchen/tickets",
+    permission: "kitchen_tickets.view",
+  },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -9422,9 +10329,9 @@ export const posNavigation: NavigationItem[] = [
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Kitchen Home", to: "/kitchen" },
-  { label: "Tickets", to: "/kitchen/tickets" },
-  { label: "Ready Queue", to: "/kitchen/ready" },
+  { label: "Kitchen Home", to: "/kitchen", permission: "kitchen_tickets.view" },
+  { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
+  { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
@@ -11049,6 +11956,121 @@ export interface Customer {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+}
+```
+</details>
+
+<a id="file-srctypeskitchents"></a>
+### src\types\kitchen.ts
+- SHA: `4b1d3de66a2b`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { ApiMeta } from "@/types/api";
+
+export type KitchenTicketStatus =
+  | "pending"
+  | "preparing"
+  | "ready"
+  | "served"
+  | "cancelled";
+
+export type KitchenOrderChannel =
+  | "pos"
+  | "dine_in"
+  | "takeaway"
+  | "pickup"
+  | "delivery"
+  | "website";
+
+export interface KitchenTicketOrderOutlet {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface KitchenTicketOrderCustomer {
+  id: number;
+  code?: string | null;
+  name: string;
+  phone?: string | null;
+}
+
+export interface KitchenTicketOrder {
+  id: number;
+  order_number: string;
+  queue_number?: string | null;
+  order_channel: KitchenOrderChannel;
+  order_status: string;
+  payment_status: string;
+  outlet_id: number;
+  outlet?: KitchenTicketOrderOutlet | null;
+  customer?: KitchenTicketOrderCustomer | null;
+  ordered_at?: string | null;
+  notes?: string | null;
+}
+
+export interface KitchenTicketOrderItem {
+  id: number;
+  product_id?: number | null;
+  product_name_snapshot: string;
+  sku_snapshot?: string | null;
+  qty: number | string;
+  unit_price: number | string;
+  discount_amount: number | string;
+  line_total: number | string;
+  notes?: string | null;
+}
+
+export interface KitchenTicketItem {
+  id: number;
+  kitchen_ticket_id: number;
+  order_item_id: number;
+  item_name_snapshot: string;
+  qty: number | string;
+  notes?: string | null;
+  order_item?: KitchenTicketOrderItem | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface KitchenTicket {
+  id: number;
+  order_id: number;
+  ticket_number: string;
+  status: KitchenTicketStatus;
+  printed_at?: string | null;
+  prepared_at?: string | null;
+  ready_at?: string | null;
+  order?: KitchenTicketOrder | null;
+  items?: KitchenTicketItem[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface KitchenTicketQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: KitchenTicketStatus | "";
+  outlet_id?: number | "";
+  order_id?: number | "";
+}
+
+export interface KitchenTicketActionPayload {
+  notes?: string | null;
+  printed_at?: string | null;
+  prepared_at?: string | null;
+  ready_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+}
+
+export interface KitchenPaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
 }
 ```
 </details>

@@ -24,6 +24,8 @@ import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
+import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
+import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
 
 export const router = createBrowserRouter([
   {
@@ -76,9 +78,9 @@ export const router = createBrowserRouter([
         path: "/kitchen",
         element: <KitchenLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Kitchen Home" /> },
-          { path: "tickets", element: <RoutePlaceholder title="Kitchen Tickets" /> },
-          { path: "ready", element: <RoutePlaceholder title="Ready Queue" /> },
+          { index: true, element: <Navigate to="/kitchen/tickets" replace /> },
+          { path: "tickets", element: <KitchenTicketsPage /> },
+          { path: "ready", element: <ReadyQueuePage /> },
         ],
       },
       {
