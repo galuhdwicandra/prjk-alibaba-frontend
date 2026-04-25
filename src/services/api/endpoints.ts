@@ -1,4 +1,3 @@
-// src/services/api/endpoints.ts
 export const endpoints = {
   auth: {
     login: "/auth/login",
@@ -77,6 +76,90 @@ export const endpoints = {
     destroy: (id: number | string) => `/vouchers/${id}`,
   },
 
+  promotions: {
+    index: "/promotions",
+    store: "/promotions",
+    show: (id: number | string) => `/promotions/${id}`,
+    update: (id: number | string) => `/promotions/${id}`,
+    destroy: (id: number | string) => `/promotions/${id}`,
+  },
+
+  units: {
+    index: "/units",
+    store: "/units",
+    show: (id: number | string) => `/units/${id}`,
+    update: (id: number | string) => `/units/${id}`,
+    destroy: (id: number | string) => `/units/${id}`,
+  },
+
+  unitConversions: {
+    index: "/unit-conversions",
+    store: "/unit-conversions",
+    show: (id: number | string) => `/unit-conversions/${id}`,
+    update: (id: number | string) => `/unit-conversions/${id}`,
+    destroy: (id: number | string) => `/unit-conversions/${id}`,
+  },
+
+  rawMaterialCategories: {
+    index: "/raw-material-categories",
+    store: "/raw-material-categories",
+    show: (id: number | string) => `/raw-material-categories/${id}`,
+    update: (id: number | string) => `/raw-material-categories/${id}`,
+    destroy: (id: number | string) => `/raw-material-categories/${id}`,
+  },
+
+  rawMaterials: {
+    index: "/raw-materials",
+    store: "/raw-materials",
+    show: (id: number | string) => `/raw-materials/${id}`,
+    update: (id: number | string) => `/raw-materials/${id}`,
+    destroy: (id: number | string) => `/raw-materials/${id}`,
+  },
+
+  outletMaterialStocks: {
+    index: "/outlet-material-stocks",
+    upsert: "/outlet-material-stocks/upsert",
+    show: (id: number | string) => `/outlet-material-stocks/${id}`,
+  },
+
+  productBoms: {
+    index: "/product-boms",
+    store: "/product-boms",
+    show: (id: number | string) => `/product-boms/${id}`,
+    update: (id: number | string) => `/product-boms/${id}`,
+    destroy: (id: number | string) => `/product-boms/${id}`,
+  },
+
+  orders: {
+    index: "/orders",
+    store: "/orders",
+    show: (id: number | string) => `/orders/${id}`,
+    update: (id: number | string) => `/orders/${id}`,
+    destroy: (id: number | string) => `/orders/${id}`,
+    confirm: (id: number | string) => `/orders/${id}/confirm`,
+    complete: (id: number | string) => `/orders/${id}/complete`,
+    cancel: (id: number | string) => `/orders/${id}/cancel`,
+  },
+
+  payments: {
+    index: "/payments",
+    store: "/payments",
+    show: (id: number | string) => `/payments/${id}`,
+    cancel: (id: number | string) => `/payments/${id}/cancel`,
+  },
+
+  paymentMethods: {
+    index: "/payment-methods",
+    store: "/payment-methods",
+    show: (id: number | string) => `/payment-methods/${id}`,
+    update: (id: number | string) => `/payment-methods/${id}`,
+    destroy: (id: number | string) => `/payment-methods/${id}`,
+  },
+
+  receiptPrints: {
+    show: (orderId: number | string) => `/orders/${orderId}/receipt`,
+  },
+
   cashierShifts: {
     index: "/cashier-shifts",
     store: "/cashier-shifts",
@@ -90,4 +173,16 @@ export const endpoints = {
     store: "/cash-movements",
     show: (id: number | string) => `/cash-movements/${id}`,
   },
-} as const;
+
+  kitchenTickets: {
+    index: "/kitchen-tickets",
+    store: "/kitchen-tickets",
+    show: (id: number | string) => `/kitchen-tickets/${id}`,
+    print: (id: number | string) => `/kitchen-tickets/${id}/print`,
+    startPreparing: (id: number | string) => `/kitchen-tickets/${id}/start-preparing`,
+    markReady: (id: number | string) => `/kitchen-tickets/${id}/ready`,
+    serve: (id: number | string) => `/kitchen-tickets/${id}/serve`,
+    cancel: (id: number | string) => `/kitchen-tickets/${id}/cancel`,
+    destroy: (id: number | string) => `/kitchen-tickets/${id}`,
+  },
+};

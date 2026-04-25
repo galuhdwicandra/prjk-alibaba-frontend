@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-25 18:58:40_  
+_Dihasilkan otomatis: 2026-04-25 19:18:33_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -21,21 +21,28 @@ _Dihasilkan otomatis: 2026-04-25 18:58:40_
   - [src\layouts\OwnerLayout.tsx](#file-srclayoutsownerlayouttsx)
   - [src\layouts\PosLayout.tsx](#file-srclayoutsposlayouttsx)
 - [Modules (src/modules)](#modules-src-modules)
+  - [src\modules\admin\components\inventory\BomItemsEditor.tsx](#file-srcmodulesadmincomponentsinventorybomitemseditortsx)
   - [src\modules\admin\components\product-config\ProductBundleItemsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductbundleitemseditortsx)
   - [src\modules\admin\components\product-config\ProductConfigPage.tsx](#file-srcmodulesadmincomponentsproduct-configproductconfigpagetsx)
   - [src\modules\admin\components\product-config\ProductModifierGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductmodifiergroupseditortsx)
   - [src\modules\admin\components\product-config\ProductVariantGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductvariantgroupseditortsx)
+  - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
   - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
+  - [src\modules\admin\pages\ProductBomsPage.tsx](#file-srcmodulesadminpagesproductbomspagetsx)
   - [src\modules\admin\pages\ProductBundlesPage.tsx](#file-srcmodulesadminpagesproductbundlespagetsx)
   - [src\modules\admin\pages\ProductCategoriesPage.tsx](#file-srcmodulesadminpagesproductcategoriespagetsx)
   - [src\modules\admin\pages\ProductModifiersPage.tsx](#file-srcmodulesadminpagesproductmodifierspagetsx)
   - [src\modules\admin\pages\ProductsPage.tsx](#file-srcmodulesadminpagesproductspagetsx)
   - [src\modules\admin\pages\ProductVariantsPage.tsx](#file-srcmodulesadminpagesproductvariantspagetsx)
+  - [src\modules\admin\pages\RawMaterialCategoriesPage.tsx](#file-srcmodulesadminpagesrawmaterialcategoriespagetsx)
+  - [src\modules\admin\pages\RawMaterialsPage.tsx](#file-srcmodulesadminpagesrawmaterialspagetsx)
   - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
+  - [src\modules\admin\pages\UnitsPage.tsx](#file-srcmodulesadminpagesunitspagetsx)
   - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
   - [src\modules\admin\services\catalog.service.ts](#file-srcmodulesadminservicescatalogservicets)
+  - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
   - [src\modules\auth\pages\LoginPage.tsx](#file-srcmodulesauthpagesloginpagetsx)
@@ -109,6 +116,7 @@ _Dihasilkan otomatis: 2026-04-25 18:58:40_
   - [src\types\auth.ts](#file-srctypesauthts)
   - [src\types\cashier-shift.ts](#file-srctypescashier-shiftts)
   - [src\types\customer.ts](#file-srctypescustomerts)
+  - [src\types\inventory.ts](#file-srctypesinventoryts)
   - [src\types\kitchen.ts](#file-srctypeskitchents)
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
@@ -299,13 +307,11 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `cea557627642`  
-- Ukuran: 4 KB
+- SHA: `ca42853e2ca3`  
+- Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-// src/router/index.tsx
-
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -328,6 +334,11 @@ import ProductsPage from "@/modules/admin/pages/ProductsPage";
 import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
 import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
+import UnitsPage from "@/modules/admin/pages/UnitsPage";
+import RawMaterialCategoriesPage from "@/modules/admin/pages/RawMaterialCategoriesPage";
+import RawMaterialsPage from "@/modules/admin/pages/RawMaterialsPage";
+import OutletMaterialStocksPage from "@/modules/admin/pages/OutletMaterialStocksPage";
+import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -369,6 +380,11 @@ export const router = createBrowserRouter([
           { path: "product-variants", element: <ProductVariantsPage /> },
           { path: "product-modifiers", element: <ProductModifiersPage /> },
           { path: "product-bundles", element: <ProductBundlesPage /> },
+          { path: "units", element: <UnitsPage /> },
+          { path: "raw-material-categories", element: <RawMaterialCategoriesPage /> },
+          { path: "raw-materials", element: <RawMaterialsPage /> },
+          { path: "outlet-material-stocks", element: <OutletMaterialStocksPage /> },
+          { path: "product-boms", element: <ProductBomsPage /> },
         ],
       },
       {
@@ -500,6 +516,173 @@ export function PosLayout() {
 
 
 ## Modules (src/modules)
+
+<a id="file-srcmodulesadmincomponentsinventorybomitemseditortsx"></a>
+### src\modules\admin\components\inventory\BomItemsEditor.tsx
+- SHA: `702b89248cb3`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Input } from "@/components/ui";
+import type { ProductBomItemPayload } from "@/modules/admin/services/inventory.service";
+import type { RawMaterial, Unit } from "@/types/inventory";
+
+interface BomItemsEditorProps {
+  value: ProductBomItemPayload[];
+  onChange: (next: ProductBomItemPayload[]) => void;
+  rawMaterials: RawMaterial[];
+  units: Unit[];
+}
+
+const createEmptyBomItem = (): ProductBomItemPayload => ({
+  raw_material_id: 0,
+  unit_id: 0,
+  qty: 1,
+  waste_percent: 0,
+});
+
+export function BomItemsEditor({
+  value,
+  onChange,
+  rawMaterials,
+  units,
+}: BomItemsEditorProps) {
+  const updateItems = (
+    updater: (prev: ProductBomItemPayload[]) => ProductBomItemPayload[]
+  ) => {
+    onChange(updater(value));
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((item, index) => (
+        <Card key={index} title={`BOM Item #${index + 1}`}>
+          <div className="grid gap-4 md:grid-cols-5">
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Bahan Baku
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.raw_material_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    const rawMaterialId = Number(event.target.value || 0);
+                    const rawMaterial = rawMaterials.find((row) => row.id === rawMaterialId);
+
+                    next[index] = {
+                      ...next[index],
+                      raw_material_id: rawMaterialId,
+                      unit_id: rawMaterial?.unit_id ?? next[index].unit_id,
+                    };
+
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih bahan baku</option>
+                {rawMaterials.map((rawMaterial) => (
+                  <option key={rawMaterial.id} value={rawMaterial.id}>
+                    {rawMaterial.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Satuan
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.unit_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      unit_id: Number(event.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Qty"
+              type="number"
+              value={String(item.qty ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    qty: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <Input
+              label="Waste %"
+              type="number"
+              value={String(item.waste_percent ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    waste_percent: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-5">
+              <Button
+                variant="danger"
+                onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
+              >
+                Hapus Item
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ))}
+
+      <Button
+        variant="outline"
+        onClick={() => onChange([...(value ?? []), createEmptyBomItem()])}
+      >
+        Tambah BOM Item
+      </Button>
+    </div>
+  );
+}
+
+export function sanitizeBomItems(value: ProductBomItemPayload[]): ProductBomItemPayload[] {
+  return (value ?? []).filter(
+    (item) => item.raw_material_id > 0 && item.unit_id > 0 && Number(item.qty) > 0
+  );
+}
+
+export function createInitialBomItems(): ProductBomItemPayload[] {
+  return [createEmptyBomItem()];
+}
+```
+</details>
 
 <a id="file-srcmodulesadmincomponentsproduct-configproductbundleitemseditortsx"></a>
 ### src\modules\admin\components\product-config\ProductBundleItemsEditor.tsx
@@ -1446,6 +1629,326 @@ export function sanitizeVariantGroups(value: ProductVariantGroupPayload[]): Prod
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesoutletmaterialstockspagetsx"></a>
+### src\modules\admin\pages\OutletMaterialStocksPage.tsx
+- SHA: `8632fd757ac1`  
+- Ukuran: 11 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  inventoryService,
+  type OutletMaterialStockPayload,
+} from "@/modules/admin/services/inventory.service";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { OutletMaterialStock } from "@/types/inventory";
+
+const initialForm: OutletMaterialStockPayload = {
+  outlet_id: 0,
+  raw_material_id: 0,
+  qty_on_hand: 0,
+  qty_reserved: 0,
+  last_movement_at: null,
+};
+
+export default function OutletMaterialStocksPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [outletFilter, setOutletFilter] = useState<number | "">("");
+  const [rawMaterialFilter, setRawMaterialFilter] = useState<number | "">("");
+  const [openModal, setOpenModal] = useState(false);
+  const [editingStock, setEditingStock] = useState<OutletMaterialStock | null>(null);
+  const [form, setForm] = useState<OutletMaterialStockPayload>(initialForm);
+
+  const stocksQuery = useQuery({
+    queryKey: ["inventory-outlet-material-stocks", search, outletFilter, rawMaterialFilter],
+    queryFn: () =>
+      inventoryService.getOutletMaterialStocks({
+        per_page: 100,
+        search,
+        outlet_id: outletFilter,
+        raw_material_id: rawMaterialFilter,
+      }),
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["inventory-stock-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+  });
+
+  const rawMaterialsQuery = useQuery({
+    queryKey: ["inventory-stock-raw-materials"],
+    queryFn: () => inventoryService.getRawMaterials({ per_page: 100 }),
+  });
+
+  const stocks = stocksQuery.data?.items ?? [];
+  const outlets = outletsQuery.data?.items ?? [];
+  const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: OutletMaterialStockPayload) =>
+      inventoryService.upsertOutletMaterialStock(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenModal(false);
+      setEditingStock(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({
+        queryKey: ["inventory-outlet-material-stocks"],
+      });
+    },
+    onError: (error) => toast.error("Gagal menyimpan stok outlet", parseApiError(error)),
+  });
+
+  const openCreate = () => {
+    setEditingStock(null);
+    setForm(initialForm);
+    setOpenModal(true);
+  };
+
+  const openEdit = (stock: OutletMaterialStock) => {
+    setEditingStock(stock);
+    setForm({
+      outlet_id: stock.outlet_id,
+      raw_material_id: stock.raw_material_id,
+      qty_on_hand: Number(stock.qty_on_hand ?? 0),
+      qty_reserved: Number(stock.qty_reserved ?? 0),
+      last_movement_at: stock.last_movement_at ?? null,
+    });
+    setOpenModal(true);
+  };
+
+  const getRawMaterial = (stock: OutletMaterialStock) => {
+    return stock.raw_material ?? stock.rawMaterial ?? null;
+  };
+
+  const getStockVariant = (stock: OutletMaterialStock) => {
+    const rawMaterial = getRawMaterial(stock);
+    const minimumStock = Number(rawMaterial?.minimum_stock ?? 0);
+    const qtyOnHand = Number(stock.qty_on_hand ?? 0);
+
+    if (qtyOnHand <= minimumStock) {
+      return "danger";
+    }
+
+    return "success";
+  };
+
+  return (
+    <PermissionWrapper permission="outlet_material_stocks.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Stok Bahan Per Outlet"
+          description="Pantau dan update saldo stok bahan baku per outlet."
+          actions={<Button onClick={openCreate}>Update Stok</Button>}
+        />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              placeholder="Cari bahan atau outlet..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={outletFilter}
+              onChange={(event) =>
+                setOutletFilter(event.target.value ? Number(event.target.value) : "")
+              }
+            >
+              <option value="">Semua outlet</option>
+              {outlets.map((outlet) => (
+                <option key={outlet.id} value={outlet.id}>
+                  {outlet.name} ({outlet.code})
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={rawMaterialFilter}
+              onChange={(event) =>
+                setRawMaterialFilter(event.target.value ? Number(event.target.value) : "")
+              }
+            >
+              <option value="">Semua bahan</option>
+              {rawMaterials.map((rawMaterial) => (
+                <option key={rawMaterial.id} value={rawMaterial.id}>
+                  {rawMaterial.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
+
+        {stocksQuery.isLoading ? (
+          <Card>Memuat stok bahan per outlet...</Card>
+        ) : stocksQuery.isError ? (
+          <PageErrorState onRetry={() => void stocksQuery.refetch()} />
+        ) : !stocks.length ? (
+          <PageEmptyState title="Belum ada data stok outlet" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {stocks.map((stock) => {
+              const rawMaterial = getRawMaterial(stock);
+
+              return (
+                <Card
+                  key={stock.id}
+                  title={rawMaterial?.name ?? "-"}
+                  description={stock.outlet?.name ?? "-"}
+                  actions={
+                    <Badge variant={getStockVariant(stock)}>
+                      {getStockVariant(stock) === "danger" ? "Low Stock" : "Aman"}
+                    </Badge>
+                  }
+                >
+                  <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                    <div>
+                      <div className="text-xs text-slate-500">Qty On Hand</div>
+                      <div className="text-lg font-semibold text-slate-900">
+                        {Number(stock.qty_on_hand ?? 0).toLocaleString("id-ID")}{" "}
+                        {rawMaterial?.unit?.code ?? ""}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-slate-500">Qty Reserved</div>
+                      <div className="text-lg font-semibold text-slate-900">
+                        {Number(stock.qty_reserved ?? 0).toLocaleString("id-ID")}{" "}
+                        {rawMaterial?.unit?.code ?? ""}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-slate-500">Minimum Stok</div>
+                      <div>{Number(rawMaterial?.minimum_stock ?? 0).toLocaleString("id-ID")}</div>
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-slate-500">Last Movement</div>
+                      <div>{stock.last_movement_at ?? "-"}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Button variant="outline" onClick={() => openEdit(stock)}>
+                      Edit Stok
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        <Modal
+          open={openModal}
+          title={editingStock ? "Edit Stok Outlet" : "Update Stok Outlet"}
+          onClose={() => setOpenModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenModal(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Outlet
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.outlet_id || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    outlet_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih outlet</option>
+                {outlets.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name} ({outlet.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Bahan Baku
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.raw_material_id || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    raw_material_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih bahan baku</option>
+                {rawMaterials.map((rawMaterial) => (
+                  <option key={rawMaterial.id} value={rawMaterial.id}>
+                    {rawMaterial.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Qty On Hand"
+              type="number"
+              value={String(form.qty_on_hand ?? 0)}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  qty_on_hand: Number(event.target.value || 0),
+                }))
+              }
+            />
+
+            <Input
+              label="Qty Reserved"
+              type="number"
+              value={String(form.qty_reserved ?? 0)}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  qty_reserved: Number(event.target.value || 0),
+                }))
+              }
+            />
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagesoutletspagetsx"></a>
 ### src\modules\admin\pages\OutletsPage.tsx
 - SHA: `253f15245bde`  
@@ -2000,6 +2503,328 @@ export default function PermissionsPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="contoh: users.view"
           />
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesproductbomspagetsx"></a>
+### src\modules\admin\pages\ProductBomsPage.tsx
+- SHA: `9e1b0f83ac42`  
+- Ukuran: 10 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { catalogService } from "@/modules/admin/services/catalog.service";
+import {
+  inventoryService,
+  type ProductBomItemPayload,
+  type ProductBomPayload,
+} from "@/modules/admin/services/inventory.service";
+import {
+  BomItemsEditor,
+  createInitialBomItems,
+  sanitizeBomItems,
+} from "@/modules/admin/components/inventory/BomItemsEditor";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { ProductBom } from "@/types/inventory";
+
+interface BomFormState {
+  product_id: number;
+  version: number;
+  is_active: boolean;
+  notes: string;
+  items: ProductBomItemPayload[];
+}
+
+const initialForm: BomFormState = {
+  product_id: 0,
+  version: 1,
+  is_active: true,
+  notes: "",
+  items: createInitialBomItems(),
+};
+
+export default function ProductBomsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [productFilter, setProductFilter] = useState<number | "">("");
+  const [openModal, setOpenModal] = useState(false);
+  const [editingBom, setEditingBom] = useState<ProductBom | null>(null);
+  const [form, setForm] = useState<BomFormState>(initialForm);
+
+  const bomsQuery = useQuery({
+    queryKey: ["inventory-product-boms", search, productFilter],
+    queryFn: () =>
+      inventoryService.getProductBoms({
+        per_page: 100,
+        search,
+        product_id: productFilter,
+      }),
+  });
+
+  const productsQuery = useQuery({
+    queryKey: ["inventory-bom-products"],
+    queryFn: () => catalogService.getProducts({ per_page: 100 }),
+  });
+
+  const rawMaterialsQuery = useQuery({
+    queryKey: ["inventory-bom-raw-materials"],
+    queryFn: () => inventoryService.getRawMaterials({ per_page: 100, is_active: true }),
+  });
+
+  const unitsQuery = useQuery({
+    queryKey: ["inventory-bom-units"],
+    queryFn: () => inventoryService.getUnits({ per_page: 100 }),
+  });
+
+  const boms = bomsQuery.data?.items ?? [];
+  const products = productsQuery.data?.items ?? [];
+  const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+  const units = unitsQuery.data?.items ?? [];
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: ProductBomPayload) =>
+      editingBom
+        ? inventoryService.updateProductBom(editingBom.id, payload)
+        : inventoryService.createProductBom(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenModal(false);
+      setEditingBom(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-product-boms"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan BOM produk", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => inventoryService.deleteProductBom(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-product-boms"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus BOM produk", parseApiError(error)),
+  });
+
+  const openCreate = () => {
+    setEditingBom(null);
+    setForm(initialForm);
+    setOpenModal(true);
+  };
+
+  const openEdit = (bom: ProductBom) => {
+    setEditingBom(bom);
+    setForm({
+      product_id: bom.product_id,
+      version: Number(bom.version ?? 1),
+      is_active: bom.is_active,
+      notes: bom.notes ?? "",
+      items: bom.items?.length
+        ? bom.items.map((item) => ({
+            raw_material_id: item.raw_material_id,
+            unit_id: item.unit_id,
+            qty: Number(item.qty ?? 0),
+            waste_percent: Number(item.waste_percent ?? 0),
+          }))
+        : createInitialBomItems(),
+    });
+    setOpenModal(true);
+  };
+
+  const submitForm = () => {
+    const payload: ProductBomPayload = {
+      product_id: form.product_id,
+      version: form.version,
+      is_active: form.is_active,
+      notes: form.notes || null,
+      items: sanitizeBomItems(form.items),
+    };
+
+    saveMutation.mutate(payload);
+  };
+
+  return (
+    <PermissionWrapper permission="product_boms.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="BOM / Resep Produk"
+          description="Kelola komposisi bahan baku untuk setiap produk."
+          actions={<Button onClick={openCreate}>Tambah BOM</Button>}
+        />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              placeholder="Cari BOM..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={productFilter}
+              onChange={(event) =>
+                setProductFilter(event.target.value ? Number(event.target.value) : "")
+              }
+            >
+              <option value="">Semua produk</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
+
+        {bomsQuery.isLoading ? (
+          <Card>Memuat BOM produk...</Card>
+        ) : bomsQuery.isError ? (
+          <PageErrorState onRetry={() => void bomsQuery.refetch()} />
+        ) : !boms.length ? (
+          <PageEmptyState title="Belum ada BOM produk" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {boms.map((bom) => (
+              <Card
+                key={bom.id}
+                title={bom.product?.name ?? "-"}
+                description={`Versi ${bom.version}`}
+                actions={
+                  <Badge variant={bom.is_active ? "success" : "default"}>
+                    {bom.is_active ? "Aktif" : "Nonaktif"}
+                  </Badge>
+                }
+              >
+                <div className="space-y-2 text-sm text-slate-600">
+                  <div>Catatan: {bom.notes ?? "-"}</div>
+                  <div>Jumlah Item: {bom.items?.length ?? 0}</div>
+                  <div className="space-y-1">
+                    {(bom.items ?? []).slice(0, 5).map((item) => (
+                      <div key={item.id}>
+                        {item.raw_material?.name ?? item.rawMaterial?.name ?? "-"} —{" "}
+                        {Number(item.qty ?? 0).toLocaleString("id-ID")}{" "}
+                        {item.unit?.code ?? ""}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => openEdit(bom)}>
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(bom.id)}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Modal
+          open={openModal}
+          title={editingBom ? "Edit BOM Produk" : "Tambah BOM Produk"}
+          onClose={() => setOpenModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenModal(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={submitForm}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Produk
+                </label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.product_id || ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      product_id: Number(event.target.value || 0),
+                    }))
+                  }
+                >
+                  <option value="">Pilih produk</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                label="Versi"
+                type="number"
+                value={String(form.version)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    version: Number(event.target.value || 1),
+                  }))
+                }
+              />
+
+              <Input
+                label="Catatan"
+                value={form.notes}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    notes: event.target.value,
+                  }))
+                }
+              />
+
+              <div className="flex items-end">
+                <Checkbox
+                  label="BOM aktif"
+                  checked={form.is_active}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      is_active: event.target.checked,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <BomItemsEditor
+              value={form.items}
+              onChange={(items) => setForm((prev) => ({ ...prev, items }))}
+              rawMaterials={rawMaterials}
+              units={units}
+            />
+          </div>
         </Modal>
       </div>
     </PermissionWrapper>
@@ -3753,6 +4578,622 @@ export default function ProductVariantsPage() {
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesrawmaterialcategoriespagetsx"></a>
+### src\modules\admin\pages\RawMaterialCategoriesPage.tsx
+- SHA: `890bbc3fd3df`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  inventoryService,
+  type RawMaterialCategoryPayload,
+} from "@/modules/admin/services/inventory.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Button, Card, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { RawMaterialCategory } from "@/types/inventory";
+
+const initialForm: RawMaterialCategoryPayload = {
+  name: "",
+};
+
+export default function RawMaterialCategoriesPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<RawMaterialCategory | null>(null);
+  const [form, setForm] = useState<RawMaterialCategoryPayload>(initialForm);
+
+  const categoriesQuery = useQuery({
+    queryKey: ["inventory-raw-material-categories", search],
+    queryFn: () => inventoryService.getRawMaterialCategories({ per_page: 100, search }),
+  });
+
+  const categories = categoriesQuery.data?.items ?? [];
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: RawMaterialCategoryPayload) =>
+      editingCategory
+        ? inventoryService.updateRawMaterialCategory(editingCategory.id, payload)
+        : inventoryService.createRawMaterialCategory(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenModal(false);
+      setEditingCategory(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({
+        queryKey: ["inventory-raw-material-categories"],
+      });
+    },
+    onError: (error) => toast.error("Gagal menyimpan kategori bahan baku", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => inventoryService.deleteRawMaterialCategory(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({
+        queryKey: ["inventory-raw-material-categories"],
+      });
+    },
+    onError: (error) => toast.error("Gagal menghapus kategori bahan baku", parseApiError(error)),
+  });
+
+  const openCreate = () => {
+    setEditingCategory(null);
+    setForm(initialForm);
+    setOpenModal(true);
+  };
+
+  const openEdit = (category: RawMaterialCategory) => {
+    setEditingCategory(category);
+    setForm({ name: category.name });
+    setOpenModal(true);
+  };
+
+  return (
+    <PermissionWrapper permission="raw_material_categories.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Kategori Bahan Baku"
+          description="Kelola kategori bahan baku untuk inventory."
+          actions={<Button onClick={openCreate}>Tambah Kategori</Button>}
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari kategori bahan baku..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Card>
+
+        {categoriesQuery.isLoading ? (
+          <Card>Memuat kategori bahan baku...</Card>
+        ) : categoriesQuery.isError ? (
+          <PageErrorState onRetry={() => void categoriesQuery.refetch()} />
+        ) : !categories.length ? (
+          <PageEmptyState title="Belum ada kategori bahan baku" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {categories.map((category) => (
+              <Card key={category.id} title={category.name}>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => openEdit(category)}>
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(category.id)}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Modal
+          open={openModal}
+          title={editingCategory ? "Edit Kategori Bahan Baku" : "Tambah Kategori Bahan Baku"}
+          onClose={() => setOpenModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenModal(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <Input
+            label="Nama Kategori"
+            value={form.name}
+            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+          />
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesrawmaterialspagetsx"></a>
+### src\modules\admin\pages\RawMaterialsPage.tsx
+- SHA: `d861c3190858`  
+- Ukuran: 16 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  inventoryService,
+  type RawMaterialPayload,
+} from "@/modules/admin/services/inventory.service";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Checkbox, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { RawMaterial } from "@/types/inventory";
+
+const initialForm: RawMaterialPayload = {
+  raw_material_category_id: 0,
+  unit_id: 0,
+  code: "",
+  name: "",
+  sku: "",
+  description: "",
+  minimum_stock: 0,
+  last_purchase_price: 0,
+  average_cost: 0,
+  is_active: true,
+  outlet_stocks: [],
+};
+
+export default function RawMaterialsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<number | "">("");
+  const [unitFilter, setUnitFilter] = useState<number | "">("");
+  const [openModal, setOpenModal] = useState(false);
+  const [editingRawMaterial, setEditingRawMaterial] = useState<RawMaterial | null>(null);
+  const [form, setForm] = useState<RawMaterialPayload>(initialForm);
+
+  const rawMaterialsQuery = useQuery({
+    queryKey: ["inventory-raw-materials", search, categoryFilter, unitFilter],
+    queryFn: () =>
+      inventoryService.getRawMaterials({
+        per_page: 100,
+        search,
+        raw_material_category_id: categoryFilter,
+        unit_id: unitFilter,
+      }),
+  });
+
+  const categoriesQuery = useQuery({
+    queryKey: ["inventory-raw-material-categories-options"],
+    queryFn: () => inventoryService.getRawMaterialCategories({ per_page: 100 }),
+  });
+
+  const unitsQuery = useQuery({
+    queryKey: ["inventory-units-options"],
+    queryFn: () => inventoryService.getUnits({ per_page: 100 }),
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["inventory-outlet-options"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+  });
+
+  const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+  const categories = categoriesQuery.data?.items ?? [];
+  const units = unitsQuery.data?.items ?? [];
+  const outlets = outletsQuery.data?.items ?? [];
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: RawMaterialPayload) =>
+      editingRawMaterial
+        ? inventoryService.updateRawMaterial(editingRawMaterial.id, payload)
+        : inventoryService.createRawMaterial(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenModal(false);
+      setEditingRawMaterial(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-raw-materials"] });
+      void queryClient.invalidateQueries({ queryKey: ["inventory-outlet-material-stocks"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan bahan baku", parseApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => inventoryService.deleteRawMaterial(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-raw-materials"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus bahan baku", parseApiError(error)),
+  });
+
+  const openCreate = () => {
+    setEditingRawMaterial(null);
+    setForm({
+      ...initialForm,
+      outlet_stocks: outlets.map((outlet) => ({
+        outlet_id: outlet.id,
+        qty_on_hand: 0,
+        qty_reserved: 0,
+        last_movement_at: null,
+      })),
+    });
+    setOpenModal(true);
+  };
+
+  const openEdit = (rawMaterial: RawMaterial) => {
+    const stocks = rawMaterial.outlet_stocks ?? rawMaterial.outletStocks ?? [];
+
+    setEditingRawMaterial(rawMaterial);
+    setForm({
+      raw_material_category_id: rawMaterial.raw_material_category_id,
+      unit_id: rawMaterial.unit_id,
+      code: rawMaterial.code ?? "",
+      name: rawMaterial.name,
+      sku: rawMaterial.sku ?? "",
+      description: rawMaterial.description ?? "",
+      minimum_stock: Number(rawMaterial.minimum_stock ?? 0),
+      last_purchase_price: Number(rawMaterial.last_purchase_price ?? 0),
+      average_cost: Number(rawMaterial.average_cost ?? 0),
+      is_active: rawMaterial.is_active,
+      outlet_stocks: outlets.map((outlet) => {
+        const stock = stocks.find((item) => item.outlet_id === outlet.id);
+
+        return {
+          outlet_id: outlet.id,
+          qty_on_hand: Number(stock?.qty_on_hand ?? 0),
+          qty_reserved: Number(stock?.qty_reserved ?? 0),
+          last_movement_at: stock?.last_movement_at ?? null,
+        };
+      }),
+    });
+    setOpenModal(true);
+  };
+
+  const updateStock = (
+    outletId: number,
+    field: "qty_on_hand" | "qty_reserved",
+    value: number
+  ) => {
+    setForm((prev) => {
+      const currentStocks = prev.outlet_stocks ?? [];
+      const exists = currentStocks.some((item) => item.outlet_id === outletId);
+
+      const nextStocks = exists
+        ? currentStocks.map((item) =>
+            item.outlet_id === outletId ? { ...item, [field]: value } : item
+          )
+        : [
+            ...currentStocks,
+            {
+              outlet_id: outletId,
+              qty_on_hand: field === "qty_on_hand" ? value : 0,
+              qty_reserved: field === "qty_reserved" ? value : 0,
+              last_movement_at: null,
+            },
+          ];
+
+      return {
+        ...prev,
+        outlet_stocks: nextStocks,
+      };
+    });
+  };
+
+  const getStockValue = (outletId: number, field: "qty_on_hand" | "qty_reserved") => {
+    const stock = form.outlet_stocks?.find((item) => item.outlet_id === outletId);
+    return String(stock?.[field] ?? 0);
+  };
+
+  return (
+    <PermissionWrapper permission="raw_materials.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Bahan Baku"
+          description="Kelola bahan baku, minimum stok, harga, dan saldo awal per outlet."
+          actions={<Button onClick={openCreate}>Tambah Bahan Baku</Button>}
+        />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              placeholder="Cari nama, kode, atau SKU..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={categoryFilter}
+              onChange={(event) =>
+                setCategoryFilter(event.target.value ? Number(event.target.value) : "")
+              }
+            >
+              <option value="">Semua kategori</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={unitFilter}
+              onChange={(event) =>
+                setUnitFilter(event.target.value ? Number(event.target.value) : "")
+              }
+            >
+              <option value="">Semua satuan</option>
+              {units.map((unit) => (
+                <option key={unit.id} value={unit.id}>
+                  {unit.name} ({unit.code})
+                </option>
+              ))}
+            </select>
+          </div>
+        </Card>
+
+        {rawMaterialsQuery.isLoading ? (
+          <Card>Memuat bahan baku...</Card>
+        ) : rawMaterialsQuery.isError ? (
+          <PageErrorState onRetry={() => void rawMaterialsQuery.refetch()} />
+        ) : !rawMaterials.length ? (
+          <PageEmptyState title="Belum ada bahan baku" />
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {rawMaterials.map((rawMaterial) => (
+              <Card
+                key={rawMaterial.id}
+                title={rawMaterial.name}
+                description={`${rawMaterial.code ?? "-"} / ${rawMaterial.sku ?? "-"}`}
+                actions={
+                  <Badge variant={rawMaterial.is_active ? "success" : "danger"}>
+                    {rawMaterial.is_active ? "Aktif" : "Nonaktif"}
+                  </Badge>
+                }
+              >
+                <div className="space-y-2 text-sm text-slate-600">
+                  <div>Kategori: {rawMaterial.category?.name ?? "-"}</div>
+                  <div>Satuan: {rawMaterial.unit?.code ?? "-"}</div>
+                  <div>
+                    Minimum Stok:{" "}
+                    {Number(rawMaterial.minimum_stock ?? 0).toLocaleString("id-ID")}
+                  </div>
+                  <div>
+                    Harga Beli Terakhir: Rp{" "}
+                    {Number(rawMaterial.last_purchase_price ?? 0).toLocaleString("id-ID")}
+                  </div>
+                  <div>
+                    Average Cost: Rp{" "}
+                    {Number(rawMaterial.average_cost ?? 0).toLocaleString("id-ID")}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={() => openEdit(rawMaterial)}>
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    loading={deleteMutation.isPending}
+                    onClick={() => deleteMutation.mutate(rawMaterial.id)}
+                  >
+                    Hapus
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Modal
+          open={openModal}
+          title={editingRawMaterial ? "Edit Bahan Baku" : "Tambah Bahan Baku"}
+          onClose={() => setOpenModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenModal(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Kategori
+                </label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.raw_material_category_id || ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      raw_material_category_id: Number(event.target.value || 0),
+                    }))
+                  }
+                >
+                  <option value="">Pilih kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Satuan
+                </label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={form.unit_id || ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      unit_id: Number(event.target.value || 0),
+                    }))
+                  }
+                >
+                  <option value="">Pilih satuan</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name} ({unit.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                label="Kode"
+                value={form.code ?? ""}
+                onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+              />
+
+              <Input
+                label="SKU"
+                value={form.sku ?? ""}
+                onChange={(event) => setForm((prev) => ({ ...prev, sku: event.target.value }))}
+              />
+
+              <Input
+                label="Nama Bahan Baku"
+                value={form.name}
+                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+              />
+
+              <Input
+                label="Minimum Stok"
+                type="number"
+                value={String(form.minimum_stock ?? 0)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    minimum_stock: Number(event.target.value || 0),
+                  }))
+                }
+              />
+
+              <Input
+                label="Harga Beli Terakhir"
+                type="number"
+                value={String(form.last_purchase_price ?? 0)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    last_purchase_price: Number(event.target.value || 0),
+                  }))
+                }
+              />
+
+              <Input
+                label="Average Cost"
+                type="number"
+                value={String(form.average_cost ?? 0)}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    average_cost: Number(event.target.value || 0),
+                  }))
+                }
+              />
+
+              <Input
+                label="Deskripsi"
+                value={form.description ?? ""}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, description: event.target.value }))
+                }
+              />
+
+              <div className="flex items-end">
+                <Checkbox
+                  label="Bahan baku aktif"
+                  checked={Boolean(form.is_active)}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                  }
+                />
+              </div>
+            </div>
+
+            <Card title="Saldo Awal Per Outlet">
+              <div className="space-y-3">
+                {outlets.map((outlet) => (
+                  <div
+                    key={outlet.id}
+                    className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-3"
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">{outlet.name}</div>
+                      <div className="text-xs text-slate-500">{outlet.code}</div>
+                    </div>
+
+                    <Input
+                      label="Qty On Hand"
+                      type="number"
+                      value={getStockValue(outlet.id, "qty_on_hand")}
+                      onChange={(event) =>
+                        updateStock(outlet.id, "qty_on_hand", Number(event.target.value || 0))
+                      }
+                    />
+
+                    <Input
+                      label="Qty Reserved"
+                      type="number"
+                      value={getStockValue(outlet.id, "qty_reserved")}
+                      onChange={(event) =>
+                        updateStock(outlet.id, "qty_reserved", Number(event.target.value || 0))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagesrolespagetsx"></a>
 ### src\modules\admin\pages\RolesPage.tsx
 - SHA: `d371390e27ee`  
@@ -4064,6 +5505,370 @@ export default function SystemSettingsPage() {
             ))}
           </div>
         )}
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesunitspagetsx"></a>
+### src\modules\admin\pages\UnitsPage.tsx
+- SHA: `c1037c038622`  
+- Ukuran: 12 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  inventoryService,
+  type UnitConversionPayload,
+  type UnitPayload,
+} from "@/modules/admin/services/inventory.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Button, Card, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Unit, UnitConversion } from "@/types/inventory";
+
+const initialUnitForm: UnitPayload = {
+  name: "",
+  code: "",
+};
+
+const initialConversionForm: UnitConversionPayload = {
+  from_unit_id: 0,
+  to_unit_id: 0,
+  multiplier: 1,
+};
+
+export default function UnitsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [openUnitModal, setOpenUnitModal] = useState(false);
+  const [openConversionModal, setOpenConversionModal] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+  const [editingConversion, setEditingConversion] = useState<UnitConversion | null>(null);
+  const [unitForm, setUnitForm] = useState<UnitPayload>(initialUnitForm);
+  const [conversionForm, setConversionForm] =
+    useState<UnitConversionPayload>(initialConversionForm);
+
+  const unitsQuery = useQuery({
+    queryKey: ["inventory-units", search],
+    queryFn: () => inventoryService.getUnits({ per_page: 100, search }),
+  });
+
+  const conversionsQuery = useQuery({
+    queryKey: ["inventory-unit-conversions"],
+    queryFn: () => inventoryService.getUnitConversions({ per_page: 100 }),
+  });
+
+  const units = unitsQuery.data?.items ?? [];
+  const conversions = conversionsQuery.data?.items ?? [];
+
+  const saveUnitMutation = useMutation({
+    mutationFn: (payload: UnitPayload) =>
+      editingUnit
+        ? inventoryService.updateUnit(editingUnit.id, payload)
+        : inventoryService.createUnit(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenUnitModal(false);
+      setEditingUnit(null);
+      setUnitForm(initialUnitForm);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-units"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan satuan", parseApiError(error)),
+  });
+
+  const deleteUnitMutation = useMutation({
+    mutationFn: (id: number) => inventoryService.deleteUnit(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-units"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus satuan", parseApiError(error)),
+  });
+
+  const saveConversionMutation = useMutation({
+    mutationFn: (payload: UnitConversionPayload) =>
+      editingConversion
+        ? inventoryService.updateUnitConversion(editingConversion.id, payload)
+        : inventoryService.createUnitConversion(payload),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenConversionModal(false);
+      setEditingConversion(null);
+      setConversionForm(initialConversionForm);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-unit-conversions"] });
+    },
+    onError: (error) => toast.error("Gagal menyimpan konversi satuan", parseApiError(error)),
+  });
+
+  const deleteConversionMutation = useMutation({
+    mutationFn: (id: number) => inventoryService.deleteUnitConversion(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["inventory-unit-conversions"] });
+    },
+    onError: (error) => toast.error("Gagal menghapus konversi satuan", parseApiError(error)),
+  });
+
+  const openCreateUnit = () => {
+    setEditingUnit(null);
+    setUnitForm(initialUnitForm);
+    setOpenUnitModal(true);
+  };
+
+  const openEditUnit = (unit: Unit) => {
+    setEditingUnit(unit);
+    setUnitForm({
+      name: unit.name,
+      code: unit.code,
+    });
+    setOpenUnitModal(true);
+  };
+
+  const openCreateConversion = () => {
+    setEditingConversion(null);
+    setConversionForm(initialConversionForm);
+    setOpenConversionModal(true);
+  };
+
+  const openEditConversion = (conversion: UnitConversion) => {
+    setEditingConversion(conversion);
+    setConversionForm({
+      from_unit_id: conversion.from_unit_id,
+      to_unit_id: conversion.to_unit_id,
+      multiplier: Number(conversion.multiplier),
+    });
+    setOpenConversionModal(true);
+  };
+
+  const getUnitName = (id: number) => {
+    const unit = units.find((item) => item.id === id);
+    return unit ? `${unit.name} (${unit.code})` : "-";
+  };
+
+  return (
+    <PermissionWrapper permission="units.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Satuan & Konversi"
+          description="Kelola satuan bahan baku dan konversi antar satuan."
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={openCreateUnit}>Tambah Satuan</Button>
+              <Button variant="outline" onClick={openCreateConversion}>
+                Tambah Konversi
+              </Button>
+            </div>
+          }
+        />
+
+        <Card>
+          <Input
+            placeholder="Cari satuan..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Card>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card title="Daftar Satuan">
+            {unitsQuery.isLoading ? (
+              <div className="text-sm text-slate-500">Memuat satuan...</div>
+            ) : unitsQuery.isError ? (
+              <PageErrorState onRetry={() => void unitsQuery.refetch()} />
+            ) : !units.length ? (
+              <PageEmptyState title="Belum ada satuan" />
+            ) : (
+              <div className="space-y-3">
+                {units.map((unit) => (
+                  <div
+                    key={unit.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div>
+                      <div className="font-medium text-slate-900">{unit.name}</div>
+                      <div className="text-sm text-slate-500">{unit.code}</div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={() => openEditUnit(unit)}>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        loading={deleteUnitMutation.isPending}
+                        onClick={() => deleteUnitMutation.mutate(unit.id)}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card title="Konversi Satuan">
+            {conversionsQuery.isLoading ? (
+              <div className="text-sm text-slate-500">Memuat konversi...</div>
+            ) : conversionsQuery.isError ? (
+              <PageErrorState onRetry={() => void conversionsQuery.refetch()} />
+            ) : !conversions.length ? (
+              <PageEmptyState title="Belum ada konversi satuan" />
+            ) : (
+              <div className="space-y-3">
+                {conversions.map((conversion) => (
+                  <div
+                    key={conversion.id}
+                    className="rounded-2xl border border-slate-200 p-4"
+                  >
+                    <div className="font-medium text-slate-900">
+                      1 {getUnitName(conversion.from_unit_id)} ={" "}
+                      {Number(conversion.multiplier).toLocaleString("id-ID")}{" "}
+                      {getUnitName(conversion.to_unit_id)}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button variant="outline" onClick={() => openEditConversion(conversion)}>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        loading={deleteConversionMutation.isPending}
+                        onClick={() => deleteConversionMutation.mutate(conversion.id)}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <Modal
+          open={openUnitModal}
+          title={editingUnit ? "Edit Satuan" : "Tambah Satuan"}
+          onClose={() => setOpenUnitModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenUnitModal(false)}>
+                Batal
+              </Button>
+              <Button
+                loading={saveUnitMutation.isPending}
+                onClick={() => saveUnitMutation.mutate(unitForm)}
+              >
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <Input
+              label="Nama"
+              value={unitForm.name}
+              onChange={(event) =>
+                setUnitForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+            />
+            <Input
+              label="Kode"
+              value={unitForm.code}
+              onChange={(event) =>
+                setUnitForm((prev) => ({ ...prev, code: event.target.value }))
+              }
+            />
+          </div>
+        </Modal>
+
+        <Modal
+          open={openConversionModal}
+          title={editingConversion ? "Edit Konversi Satuan" : "Tambah Konversi Satuan"}
+          onClose={() => setOpenConversionModal(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenConversionModal(false)}>
+                Batal
+              </Button>
+              <Button
+                loading={saveConversionMutation.isPending}
+                onClick={() => saveConversionMutation.mutate(conversionForm)}
+              >
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Dari Satuan
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={conversionForm.from_unit_id || ""}
+                onChange={(event) =>
+                  setConversionForm((prev) => ({
+                    ...prev,
+                    from_unit_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Ke Satuan
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={conversionForm.to_unit_id || ""}
+                onChange={(event) =>
+                  setConversionForm((prev) => ({
+                    ...prev,
+                    to_unit_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Multiplier"
+              type="number"
+              value={String(conversionForm.multiplier)}
+              onChange={(event) =>
+                setConversionForm((prev) => ({
+                  ...prev,
+                  multiplier: Number(event.target.value || 0),
+                }))
+              }
+            />
+          </div>
+        </Modal>
       </div>
     </PermissionWrapper>
   );
@@ -4675,6 +6480,299 @@ export type {
   ProductOutletStatus,
   ProductPrice,
   ProductVariantGroup,
+};
+```
+</details>
+
+<a id="file-srcmodulesadminservicesinventoryservicets"></a>
+### src\modules\admin\services\inventory.service.ts
+- SHA: `c1b010b6ce81`  
+- Ukuran: 7 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type {
+  OutletMaterialStock,
+  ProductBom,
+  RawMaterial,
+  RawMaterialCategory,
+  Unit,
+  UnitConversion,
+} from "@/types/inventory";
+
+export interface InventoryPaginationQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_active?: boolean | "";
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+export interface UnitPayload {
+  name: string;
+  code: string;
+}
+
+export interface UnitConversionPayload {
+  from_unit_id: number;
+  to_unit_id: number;
+  multiplier: number;
+}
+
+export interface RawMaterialCategoryPayload {
+  name: string;
+}
+
+export interface OutletStockPayload {
+  outlet_id: number;
+  qty_on_hand?: number;
+  qty_reserved?: number;
+  last_movement_at?: string | null;
+}
+
+export interface RawMaterialPayload {
+  raw_material_category_id: number;
+  unit_id: number;
+  code?: string | null;
+  name: string;
+  sku?: string | null;
+  description?: string | null;
+  minimum_stock?: number;
+  last_purchase_price?: number;
+  average_cost?: number;
+  is_active?: boolean;
+  outlet_stocks?: OutletStockPayload[];
+}
+
+export interface OutletMaterialStockPayload {
+  outlet_id: number;
+  raw_material_id: number;
+  qty_on_hand?: number;
+  qty_reserved?: number;
+  last_movement_at?: string | null;
+}
+
+export interface ProductBomItemPayload {
+  raw_material_id: number;
+  unit_id: number;
+  qty: number;
+  waste_percent?: number;
+}
+
+export interface ProductBomPayload {
+  product_id: number;
+  version?: number;
+  is_active?: boolean;
+  notes?: string | null;
+  items: ProductBomItemPayload[];
+}
+
+export interface RawMaterialQuery extends InventoryPaginationQuery {
+  raw_material_category_id?: number | "";
+  unit_id?: number | "";
+}
+
+export interface OutletMaterialStockQuery extends InventoryPaginationQuery {
+  outlet_id?: number | "";
+  raw_material_id?: number | "";
+}
+
+export interface ProductBomQuery extends InventoryPaginationQuery {
+  product_id?: number | "";
+  is_active?: boolean | "";
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const inventoryService = {
+  async getUnits(params: InventoryPaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Unit[]>>(endpoints.units.index, { params });
+    return unwrapPaginated(response.data);
+  },
+
+  async createUnit(payload: UnitPayload) {
+    const response = await apiClient.post<ApiResponse<Unit>>(endpoints.units.store, payload);
+    return response.data;
+  },
+
+  async updateUnit(id: number, payload: UnitPayload) {
+    const response = await apiClient.put<ApiResponse<Unit>>(endpoints.units.update(id), payload);
+    return response.data;
+  },
+
+  async deleteUnit(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.units.destroy(id));
+    return response.data;
+  },
+
+  async getUnitConversions(params: InventoryPaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<UnitConversion[]>>(
+      endpoints.unitConversions.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createUnitConversion(payload: UnitConversionPayload) {
+    const response = await apiClient.post<ApiResponse<UnitConversion>>(
+      endpoints.unitConversions.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateUnitConversion(id: number, payload: UnitConversionPayload) {
+    const response = await apiClient.put<ApiResponse<UnitConversion>>(
+      endpoints.unitConversions.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteUnitConversion(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.unitConversions.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getRawMaterialCategories(params: InventoryPaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<RawMaterialCategory[]>>(
+      endpoints.rawMaterialCategories.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createRawMaterialCategory(payload: RawMaterialCategoryPayload) {
+    const response = await apiClient.post<ApiResponse<RawMaterialCategory>>(
+      endpoints.rawMaterialCategories.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateRawMaterialCategory(id: number, payload: RawMaterialCategoryPayload) {
+    const response = await apiClient.put<ApiResponse<RawMaterialCategory>>(
+      endpoints.rawMaterialCategories.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteRawMaterialCategory(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.rawMaterialCategories.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getRawMaterials(params: RawMaterialQuery = {}) {
+    const response = await apiClient.get<ApiResponse<RawMaterial[]>>(
+      endpoints.rawMaterials.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createRawMaterial(payload: RawMaterialPayload) {
+    const response = await apiClient.post<ApiResponse<RawMaterial>>(
+      endpoints.rawMaterials.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateRawMaterial(id: number, payload: RawMaterialPayload) {
+    const response = await apiClient.put<ApiResponse<RawMaterial>>(
+      endpoints.rawMaterials.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteRawMaterial(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.rawMaterials.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getOutletMaterialStocks(params: OutletMaterialStockQuery = {}) {
+    const response = await apiClient.get<ApiResponse<OutletMaterialStock[]>>(
+      endpoints.outletMaterialStocks.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async upsertOutletMaterialStock(payload: OutletMaterialStockPayload) {
+    const response = await apiClient.post<ApiResponse<OutletMaterialStock>>(
+      endpoints.outletMaterialStocks.upsert,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async getProductBoms(params: ProductBomQuery = {}) {
+    const response = await apiClient.get<ApiResponse<ProductBom[]>>(endpoints.productBoms.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createProductBom(payload: ProductBomPayload) {
+    const response = await apiClient.post<ApiResponse<ProductBom>>(
+      endpoints.productBoms.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateProductBom(id: number, payload: ProductBomPayload) {
+    const response = await apiClient.put<ApiResponse<ProductBom>>(
+      endpoints.productBoms.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteProductBom(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.productBoms.destroy(id)
+    );
+
+    return response.data;
+  },
 };
 ```
 </details>
@@ -10267,8 +12365,8 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `cd25b1c1bcf5`  
-- Ukuran: 2 KB
+- SHA: `4bcfe1e9d98f`  
+- Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -10309,6 +12407,31 @@ export const adminNavigation: NavigationItem[] = [
     label: "Product Bundles",
     to: "/admin/product-bundles",
     permission: "products.view",
+  },
+  {
+    label: "Units",
+    to: "/admin/units",
+    permission: "units.view",
+  },
+  {
+    label: "Raw Material Categories",
+    to: "/admin/raw-material-categories",
+    permission: "raw_material_categories.view",
+  },
+  {
+    label: "Raw Materials",
+    to: "/admin/raw-materials",
+    permission: "raw_materials.view",
+  },
+  {
+    label: "Outlet Material Stocks",
+    to: "/admin/outlet-material-stocks",
+    permission: "outlet_material_stocks.view",
+  },
+  {
+    label: "Product BOM",
+    to: "/admin/product-boms",
+    permission: "product_boms.view",
   },
   {
     label: "POS",
@@ -11476,12 +13599,11 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `a9fcb8bd110b`  
-- Ukuran: 3 KB
+- SHA: `edbba282acb7`  
+- Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-// src/services/api/endpoints.ts
 export const endpoints = {
   auth: {
     login: "/auth/login",
@@ -11560,6 +13682,90 @@ export const endpoints = {
     destroy: (id: number | string) => `/vouchers/${id}`,
   },
 
+  promotions: {
+    index: "/promotions",
+    store: "/promotions",
+    show: (id: number | string) => `/promotions/${id}`,
+    update: (id: number | string) => `/promotions/${id}`,
+    destroy: (id: number | string) => `/promotions/${id}`,
+  },
+
+  units: {
+    index: "/units",
+    store: "/units",
+    show: (id: number | string) => `/units/${id}`,
+    update: (id: number | string) => `/units/${id}`,
+    destroy: (id: number | string) => `/units/${id}`,
+  },
+
+  unitConversions: {
+    index: "/unit-conversions",
+    store: "/unit-conversions",
+    show: (id: number | string) => `/unit-conversions/${id}`,
+    update: (id: number | string) => `/unit-conversions/${id}`,
+    destroy: (id: number | string) => `/unit-conversions/${id}`,
+  },
+
+  rawMaterialCategories: {
+    index: "/raw-material-categories",
+    store: "/raw-material-categories",
+    show: (id: number | string) => `/raw-material-categories/${id}`,
+    update: (id: number | string) => `/raw-material-categories/${id}`,
+    destroy: (id: number | string) => `/raw-material-categories/${id}`,
+  },
+
+  rawMaterials: {
+    index: "/raw-materials",
+    store: "/raw-materials",
+    show: (id: number | string) => `/raw-materials/${id}`,
+    update: (id: number | string) => `/raw-materials/${id}`,
+    destroy: (id: number | string) => `/raw-materials/${id}`,
+  },
+
+  outletMaterialStocks: {
+    index: "/outlet-material-stocks",
+    upsert: "/outlet-material-stocks/upsert",
+    show: (id: number | string) => `/outlet-material-stocks/${id}`,
+  },
+
+  productBoms: {
+    index: "/product-boms",
+    store: "/product-boms",
+    show: (id: number | string) => `/product-boms/${id}`,
+    update: (id: number | string) => `/product-boms/${id}`,
+    destroy: (id: number | string) => `/product-boms/${id}`,
+  },
+
+  orders: {
+    index: "/orders",
+    store: "/orders",
+    show: (id: number | string) => `/orders/${id}`,
+    update: (id: number | string) => `/orders/${id}`,
+    destroy: (id: number | string) => `/orders/${id}`,
+    confirm: (id: number | string) => `/orders/${id}/confirm`,
+    complete: (id: number | string) => `/orders/${id}/complete`,
+    cancel: (id: number | string) => `/orders/${id}/cancel`,
+  },
+
+  payments: {
+    index: "/payments",
+    store: "/payments",
+    show: (id: number | string) => `/payments/${id}`,
+    cancel: (id: number | string) => `/payments/${id}/cancel`,
+  },
+
+  paymentMethods: {
+    index: "/payment-methods",
+    store: "/payment-methods",
+    show: (id: number | string) => `/payment-methods/${id}`,
+    update: (id: number | string) => `/payment-methods/${id}`,
+    destroy: (id: number | string) => `/payment-methods/${id}`,
+  },
+
+  receiptPrints: {
+    show: (orderId: number | string) => `/orders/${orderId}/receipt`,
+  },
+
   cashierShifts: {
     index: "/cashier-shifts",
     store: "/cashier-shifts",
@@ -11573,7 +13779,19 @@ export const endpoints = {
     store: "/cash-movements",
     show: (id: number | string) => `/cash-movements/${id}`,
   },
-} as const;
+
+  kitchenTickets: {
+    index: "/kitchen-tickets",
+    store: "/kitchen-tickets",
+    show: (id: number | string) => `/kitchen-tickets/${id}`,
+    print: (id: number | string) => `/kitchen-tickets/${id}/print`,
+    startPreparing: (id: number | string) => `/kitchen-tickets/${id}/start-preparing`,
+    markReady: (id: number | string) => `/kitchen-tickets/${id}/ready`,
+    serve: (id: number | string) => `/kitchen-tickets/${id}/serve`,
+    cancel: (id: number | string) => `/kitchen-tickets/${id}/cancel`,
+    destroy: (id: number | string) => `/kitchen-tickets/${id}`,
+  },
+};
 ```
 </details>
 
@@ -11956,6 +14174,104 @@ export interface Customer {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+}
+```
+</details>
+
+<a id="file-srctypesinventoryts"></a>
+### src\types\inventory.ts
+- SHA: `c36df19df4cd`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { Outlet } from "@/types/outlet";
+import type { Product } from "@/types/product";
+
+export interface Unit {
+  id: number;
+  name: string;
+  code: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface UnitConversion {
+  id: number;
+  from_unit_id: number;
+  to_unit_id: number;
+  multiplier: number;
+  from_unit?: Unit | null;
+  to_unit?: Unit | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface RawMaterialCategory {
+  id: number;
+  name: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface OutletMaterialStock {
+  id: number;
+  outlet_id: number;
+  raw_material_id: number;
+  qty_on_hand: number;
+  qty_reserved: number;
+  last_movement_at?: string | null;
+  outlet?: Outlet | null;
+  raw_material?: RawMaterial | null;
+  rawMaterial?: RawMaterial | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface RawMaterial {
+  id: number;
+  raw_material_category_id: number;
+  unit_id: number;
+  code?: string | null;
+  name: string;
+  sku?: string | null;
+  description?: string | null;
+  minimum_stock: number;
+  last_purchase_price: number;
+  average_cost: number;
+  is_active: boolean;
+  category?: RawMaterialCategory | null;
+  unit?: Unit | null;
+  outlet_stocks?: OutletMaterialStock[];
+  outletStocks?: OutletMaterialStock[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ProductBomItem {
+  id: number;
+  product_bom_id: number;
+  raw_material_id: number;
+  unit_id: number;
+  qty: number;
+  waste_percent: number;
+  raw_material?: RawMaterial | null;
+  rawMaterial?: RawMaterial | null;
+  unit?: Unit | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ProductBom {
+  id: number;
+  product_id: number;
+  version: number;
+  is_active: boolean;
+  notes?: string | null;
+  product?: Product | null;
+  items?: ProductBomItem[];
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 ```
 </details>

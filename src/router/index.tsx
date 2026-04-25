@@ -1,5 +1,3 @@
-// src/router/index.tsx
-
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -22,6 +20,11 @@ import ProductsPage from "@/modules/admin/pages/ProductsPage";
 import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
 import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
+import UnitsPage from "@/modules/admin/pages/UnitsPage";
+import RawMaterialCategoriesPage from "@/modules/admin/pages/RawMaterialCategoriesPage";
+import RawMaterialsPage from "@/modules/admin/pages/RawMaterialsPage";
+import OutletMaterialStocksPage from "@/modules/admin/pages/OutletMaterialStocksPage";
+import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -63,6 +66,11 @@ export const router = createBrowserRouter([
           { path: "product-variants", element: <ProductVariantsPage /> },
           { path: "product-modifiers", element: <ProductModifiersPage /> },
           { path: "product-bundles", element: <ProductBundlesPage /> },
+          { path: "units", element: <UnitsPage /> },
+          { path: "raw-material-categories", element: <RawMaterialCategoriesPage /> },
+          { path: "raw-materials", element: <RawMaterialsPage /> },
+          { path: "outlet-material-stocks", element: <OutletMaterialStocksPage /> },
+          { path: "product-boms", element: <ProductBomsPage /> },
         ],
       },
       {

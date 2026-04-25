@@ -37,6 +37,31 @@ export const adminNavigation: NavigationItem[] = [
     permission: "products.view",
   },
   {
+    label: "Units",
+    to: "/admin/units",
+    permission: "units.view",
+  },
+  {
+    label: "Raw Material Categories",
+    to: "/admin/raw-material-categories",
+    permission: "raw_material_categories.view",
+  },
+  {
+    label: "Raw Materials",
+    to: "/admin/raw-materials",
+    permission: "raw_materials.view",
+  },
+  {
+    label: "Outlet Material Stocks",
+    to: "/admin/outlet-material-stocks",
+    permission: "outlet_material_stocks.view",
+  },
+  {
+    label: "Product BOM",
+    to: "/admin/product-boms",
+    permission: "product_boms.view",
+  },
+  {
     label: "POS",
     to: "/pos/orders",
     permission: "products.view",
