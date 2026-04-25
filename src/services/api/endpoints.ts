@@ -1,3 +1,4 @@
+// src/services/api/endpoints.ts
 export const endpoints = {
   auth: {
     login: "/auth/login",
@@ -41,7 +42,7 @@ export const endpoints = {
 
   systemSettings: {
     index: "/system-settings",
-    upsert: "/system-settings",
+    upsert: "/system-settings/upsert",
   },
 
   productCategories: {
@@ -74,5 +75,19 @@ export const endpoints = {
     show: (id: number | string) => `/vouchers/${id}`,
     update: (id: number | string) => `/vouchers/${id}`,
     destroy: (id: number | string) => `/vouchers/${id}`,
+  },
+
+  cashierShifts: {
+    index: "/cashier-shifts",
+    store: "/cashier-shifts",
+    show: (id: number | string) => `/cashier-shifts/${id}`,
+    update: (id: number | string) => `/cashier-shifts/${id}`,
+    close: (id: number | string) => `/cashier-shifts/${id}/close`,
+  },
+
+  cashMovements: {
+    index: "/cash-movements",
+    store: "/cash-movements",
+    show: (id: number | string) => `/cash-movements/${id}`,
   },
 } as const;

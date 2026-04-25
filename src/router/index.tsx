@@ -1,3 +1,5 @@
+// src/router/index.tsx
+
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -21,6 +23,7 @@ import ProductVariantsPage from "@/modules/admin/pages/ProductVariantsPage";
 import ProductModifiersPage from "@/modules/admin/pages/ProductModifiersPage";
 import ProductBundlesPage from "@/modules/admin/pages/ProductBundlesPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
+import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 
 export const router = createBrowserRouter([
   {
@@ -66,7 +69,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <RoutePlaceholder title="POS Home" /> },
           { path: "orders", element: <PosOrdersPage /> },
-          { path: "shifts", element: <RoutePlaceholder title="Shift" /> },
+          { path: "shifts", element: <PosShiftsPage /> },
         ],
       },
       {
