@@ -34,6 +34,7 @@ import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
+import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +80,9 @@ export const router = createBrowserRouter([
           { path: "suppliers", element: <SuppliersPage /> },
           { path: "purchase-orders", element: <PurchaseOrdersPage /> },
           { path: "goods-receipts", element: <GoodsReceiptsPage /> },
+          {
+            path: "stock-movements", element: <StockMovementsPage />,
+          },
         ],
       },
       {

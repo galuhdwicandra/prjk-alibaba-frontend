@@ -79,21 +79,16 @@ export const adminNavigation: NavigationItem[] = [
     permission: "goods_receipts.view",
   },
   {
-    label: "POS",
-    to: "/pos/orders",
-    permission: "products.view",
-  },
-  {
-    label: "Kitchen",
-    to: "/kitchen/tickets",
-    permission: "kitchen_tickets.view",
+    label: "Stock Movement",
+    to: "/admin/stock-movements",
+    permission: "stock_movements.view",
   },
 ];
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders", permission: "orders.create" },
-  { label: "Shift", to: "/pos/shifts", permission: "cashier_shifts.view" },
+  { label: "Orders", to: "/pos/orders", permission: "orders.create" },
+  { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
 export const kitchenNavigation: NavigationItem[] = [

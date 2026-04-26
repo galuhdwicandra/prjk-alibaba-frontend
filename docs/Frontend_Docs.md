@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-26 11:05:07_  
+_Dihasilkan otomatis: 2026-04-26 11:31:24_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -28,6 +28,7 @@ _Dihasilkan otomatis: 2026-04-26 11:05:07_
   - [src\modules\admin\components\product-config\ProductVariantGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductvariantgroupseditortsx)
   - [src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx)
   - [src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx)
+  - [src\modules\admin\components\stock\StockFlowItemsEditor.tsx](#file-srcmodulesadmincomponentsstockstockflowitemseditortsx)
   - [src\modules\admin\pages\GoodsReceiptsPage.tsx](#file-srcmodulesadminpagesgoodsreceiptspagetsx)
   - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
@@ -42,6 +43,7 @@ _Dihasilkan otomatis: 2026-04-26 11:05:07_
   - [src\modules\admin\pages\RawMaterialCategoriesPage.tsx](#file-srcmodulesadminpagesrawmaterialcategoriespagetsx)
   - [src\modules\admin\pages\RawMaterialsPage.tsx](#file-srcmodulesadminpagesrawmaterialspagetsx)
   - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
+  - [src\modules\admin\pages\StockMovementsPage.tsx](#file-srcmodulesadminpagesstockmovementspagetsx)
   - [src\modules\admin\pages\SuppliersPage.tsx](#file-srcmodulesadminpagessupplierspagetsx)
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
   - [src\modules\admin\pages\UnitsPage.tsx](#file-srcmodulesadminpagesunitspagetsx)
@@ -50,6 +52,7 @@ _Dihasilkan otomatis: 2026-04-26 11:05:07_
   - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\admin\services\purchasing.service.ts](#file-srcmodulesadminservicespurchasingservicets)
+  - [src\modules\admin\services\stock-movement.service.ts](#file-srcmodulesadminservicesstock-movementservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
   - [src\modules\auth\pages\LoginPage.tsx](#file-srcmodulesauthpagesloginpagetsx)
   - [src\modules\auth\pages\NotFoundPage.tsx](#file-srcmodulesauthpagesnotfoundpagetsx)
@@ -130,6 +133,7 @@ _Dihasilkan otomatis: 2026-04-26 11:05:07_
   - [src\types\purchasing.ts](#file-srctypespurchasingts)
   - [src\types\role.ts](#file-srctypesrolets)
   - [src\types\settings.ts](#file-srctypessettingsts)
+  - [src\types\stock-movement.ts](#file-srctypesstock-movementts)
   - [src\types\user.ts](#file-srctypesuserts)
 - [Utils (src/utils)](#utils-src-utils)
   - [src\utils\redirect-by-role.ts](#file-srcutilsredirect-by-rolets)
@@ -314,7 +318,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `c2ae02e5c0f4`  
+- SHA: `31631034c956`  
 - Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -355,6 +359,7 @@ import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
+import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -400,6 +405,9 @@ export const router = createBrowserRouter([
           { path: "suppliers", element: <SuppliersPage /> },
           { path: "purchase-orders", element: <PurchaseOrdersPage /> },
           { path: "goods-receipts", element: <GoodsReceiptsPage /> },
+          {
+            path: "stock-movements", element: <StockMovementsPage />,
+          },
         ],
       },
       {
@@ -2105,6 +2113,335 @@ export function sanitizePurchaseOrderItems(
       Number(item.unit_id) > 0 &&
       Number(item.qty_ordered) > 0 &&
       Number(item.unit_price) >= 0
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentsstockstockflowitemseditortsx"></a>
+### src\modules\admin\components\stock\StockFlowItemsEditor.tsx
+- SHA: `0cd3f298d478`  
+- Ukuran: 10 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Input } from "@/components/ui";
+import type {
+  StockAdjustmentItemPayload,
+  StockOpnameItemPayload,
+  StockTransferItemPayload,
+} from "@/modules/admin/services/stock-movement.service";
+import type { OutletMaterialStock, RawMaterial, Unit } from "@/types/inventory";
+
+type ItemMode = "adjustment" | "transfer" | "opname";
+
+type StockItemPayload =
+  | StockAdjustmentItemPayload
+  | StockTransferItemPayload
+  | StockOpnameItemPayload;
+
+interface StockFlowItemsEditorProps<T extends StockItemPayload> {
+  mode: ItemMode;
+  value: T[];
+  onChange: (next: T[]) => void;
+  rawMaterials: RawMaterial[];
+  units: Unit[];
+  outletStocks?: OutletMaterialStock[];
+}
+
+const createEmptyItem = <T extends StockItemPayload>(mode: ItemMode): T => {
+  if (mode === "adjustment") {
+    return {
+      raw_material_id: 0,
+      qty_difference: 0,
+      unit_id: 0,
+      notes: "",
+    } as T;
+  }
+
+  if (mode === "opname") {
+    return {
+      raw_material_id: 0,
+      system_qty: 0,
+      actual_qty: 0,
+      unit_id: 0,
+      notes: "",
+    } as T;
+  }
+
+  return {
+    raw_material_id: 0,
+    qty_sent: 1,
+    qty_received: null,
+    unit_id: 0,
+    notes: "",
+  } as T;
+};
+
+export function StockFlowItemsEditor<T extends StockItemPayload>({
+  mode,
+  value,
+  onChange,
+  rawMaterials,
+  units,
+  outletStocks = [],
+}: StockFlowItemsEditorProps<T>) {
+  const updateItems = (updater: (prev: T[]) => T[]) => {
+    onChange(updater(value));
+  };
+
+  const getRawMaterial = (id: number) => rawMaterials.find((item) => Number(item.id) === Number(id));
+
+  const getSystemQty = (rawMaterialId: number) => {
+    const stock = outletStocks.find((item) => Number(item.raw_material_id) === Number(rawMaterialId));
+    return Number(stock?.qty_on_hand ?? 0);
+  };
+
+  const getTitle = () => {
+    if (mode === "adjustment") {
+      return "Item Adjustment";
+    }
+
+    if (mode === "opname") {
+      return "Item Opname";
+    }
+
+    return "Item Transfer";
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((item, index) => {
+        const rawMaterial = getRawMaterial(item.raw_material_id);
+        const unitId = item.unit_id || rawMaterial?.unit_id || 0;
+
+        return (
+          <Card key={index} title={`${getTitle()} #${index + 1}`}>
+            <div className="grid gap-4 md:grid-cols-6">
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Bahan Baku
+                </label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={item.raw_material_id || ""}
+                  onChange={(event) =>
+                    updateItems((prev) => {
+                      const next = [...prev];
+                      const rawMaterialId = Number(event.target.value || 0);
+                      const selected = getRawMaterial(rawMaterialId);
+                      const systemQty = getSystemQty(rawMaterialId);
+
+                      next[index] = {
+                        ...next[index],
+                        raw_material_id: rawMaterialId,
+                        unit_id: selected?.unit_id ?? next[index].unit_id,
+                        ...(mode === "opname" ? { system_qty: systemQty } : {}),
+                      };
+
+                      return next;
+                    })
+                  }
+                >
+                  <option value="">Pilih bahan baku</option>
+                  {rawMaterials.map((rawMaterialOption) => (
+                    <option key={rawMaterialOption.id} value={rawMaterialOption.id}>
+                      {rawMaterialOption.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {mode === "adjustment" ? (
+                <Input
+                  label="Selisih Qty"
+                  type="number"
+                  value={String((item as StockAdjustmentItemPayload).qty_difference ?? 0)}
+                  onChange={(event) =>
+                    updateItems((prev) => {
+                      const next = [...prev];
+
+                      next[index] = {
+                        ...next[index],
+                        qty_difference: Number(event.target.value || 0),
+                      } as T;
+
+                      return next;
+                    })
+                  }
+                />
+              ) : null}
+
+              {mode === "transfer" ? (
+                <Input
+                  label="Qty Kirim"
+                  type="number"
+                  value={String((item as StockTransferItemPayload).qty_sent ?? 0)}
+                  onChange={(event) =>
+                    updateItems((prev) => {
+                      const next = [...prev];
+
+                      next[index] = {
+                        ...next[index],
+                        qty_sent: Number(event.target.value || 0),
+                      } as T;
+
+                      return next;
+                    })
+                  }
+                />
+              ) : null}
+
+              {mode === "opname" ? (
+                <>
+                  <Input
+                    label="Qty Sistem"
+                    type="number"
+                    value={String((item as StockOpnameItemPayload).system_qty ?? 0)}
+                    onChange={(event) =>
+                      updateItems((prev) => {
+                        const next = [...prev];
+
+                        next[index] = {
+                          ...next[index],
+                          system_qty: Number(event.target.value || 0),
+                        } as T;
+
+                        return next;
+                      })
+                    }
+                  />
+
+                  <Input
+                    label="Qty Fisik"
+                    type="number"
+                    value={String((item as StockOpnameItemPayload).actual_qty ?? 0)}
+                    onChange={(event) =>
+                      updateItems((prev) => {
+                        const next = [...prev];
+
+                        next[index] = {
+                          ...next[index],
+                          actual_qty: Number(event.target.value || 0),
+                        } as T;
+
+                        return next;
+                      })
+                    }
+                  />
+                </>
+              ) : null}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">Satuan</label>
+                <select
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={unitId || ""}
+                  onChange={(event) =>
+                    updateItems((prev) => {
+                      const next = [...prev];
+
+                      next[index] = {
+                        ...next[index],
+                        unit_id: Number(event.target.value || 0),
+                      };
+
+                      return next;
+                    })
+                  }
+                >
+                  <option value="">Pilih satuan</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name} ({unit.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {mode === "opname" ? (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Selisih</label>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
+                    {(
+                      Number((item as StockOpnameItemPayload).actual_qty ?? 0) -
+                      Number((item as StockOpnameItemPayload).system_qty ?? 0)
+                    ).toLocaleString("id-ID")}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className={mode === "opname" ? "md:col-span-4" : "md:col-span-3"}>
+                <Input
+                  label="Catatan Item"
+                  value={item.notes ?? ""}
+                  onChange={(event) =>
+                    updateItems((prev) => {
+                      const next = [...prev];
+
+                      next[index] = {
+                        ...next[index],
+                        notes: event.target.value,
+                      };
+
+                      return next;
+                    })
+                  }
+                />
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  variant="danger"
+                  onClick={() => updateItems((prev) => prev.filter((_, itemIndex) => itemIndex !== index))}
+                >
+                  Hapus
+                </Button>
+              </div>
+            </div>
+          </Card>
+        );
+      })}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem<T>(mode)])}>
+        Tambah Item
+      </Button>
+    </div>
+  );
+}
+
+export function createInitialStockItems<T extends StockItemPayload>(mode: ItemMode): T[] {
+  return [createEmptyItem<T>(mode)];
+}
+
+export function sanitizeAdjustmentItems(
+  value: StockAdjustmentItemPayload[]
+): StockAdjustmentItemPayload[] {
+  return (value ?? []).filter(
+    (item) =>
+      Number(item.raw_material_id) > 0 &&
+      Number(item.unit_id) > 0 &&
+      Number(item.qty_difference) !== 0
+  );
+}
+
+export function sanitizeTransferItems(
+  value: StockTransferItemPayload[]
+): StockTransferItemPayload[] {
+  return (value ?? []).filter(
+    (item) =>
+      Number(item.raw_material_id) > 0 &&
+      Number(item.unit_id) > 0 &&
+      Number(item.qty_sent) > 0
+  );
+}
+
+export function sanitizeOpnameItems(value: StockOpnameItemPayload[]): StockOpnameItemPayload[] {
+  return (value ?? []).filter(
+    (item) =>
+      Number(item.raw_material_id) > 0 &&
+      Number(item.unit_id) > 0 &&
+      Number(item.actual_qty) >= 0
   );
 }
 ```
@@ -7021,6 +7358,1269 @@ export default function RolesPage() {
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesstockmovementspagetsx"></a>
+### src\modules\admin\pages\StockMovementsPage.tsx
+- SHA: `71881e1cf804`  
+- Ukuran: 58 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { inventoryService } from "@/modules/admin/services/inventory.service";
+import {
+    stockMovementService,
+    type StockAdjustmentItemPayload,
+    type StockAdjustmentPayload,
+    type StockOpnameItemPayload,
+    type StockOpnamePayload,
+    type StockTransferItemPayload,
+    type StockTransferPayload,
+} from "@/modules/admin/services/stock-movement.service";
+import {
+    StockFlowItemsEditor,
+    createInitialStockItems,
+    sanitizeAdjustmentItems,
+    sanitizeOpnameItems,
+    sanitizeTransferItems,
+} from "@/modules/admin/components/stock/StockFlowItemsEditor";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type {
+    StockAdjustment,
+    StockAdjustmentReason,
+    StockMovement,
+    StockMovementType,
+    StockOpname,
+    StockOpnameStatus,
+    StockTransfer,
+    StockTransferStatus,
+} from "@/types/stock-movement";
+
+type ActiveTab = "adjustments" | "transfers" | "opnames" | "movements";
+
+const nowLocalInput = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 16);
+};
+
+const todayInput = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 10);
+};
+
+const initialAdjustmentForm: StockAdjustmentPayload = {
+    outlet_id: 0,
+    adjustment_date: nowLocalInput(),
+    reason: "correction",
+    notes: "",
+    items: createInitialStockItems<StockAdjustmentItemPayload>("adjustment"),
+};
+
+const initialTransferForm: StockTransferPayload = {
+    source_outlet_id: 0,
+    target_outlet_id: 0,
+    transfer_date: nowLocalInput(),
+    notes: "",
+    items: createInitialStockItems<StockTransferItemPayload>("transfer"),
+};
+
+const initialOpnameForm: StockOpnamePayload = {
+    outlet_id: 0,
+    opname_date: todayInput(),
+    notes: "",
+    items: createInitialStockItems<StockOpnameItemPayload>("opname"),
+};
+
+const reasonLabel: Record<StockAdjustmentReason, string> = {
+    damaged: "Rusak",
+    expired: "Expired",
+    lost: "Hilang",
+    correction: "Koreksi",
+    waste: "Waste",
+    other: "Lainnya",
+};
+
+const adjustmentReasonOptions: StockAdjustmentReason[] = [
+    "correction",
+    "damaged",
+    "expired",
+    "lost",
+    "waste",
+    "other",
+];
+
+const transferStatusVariant: Record<StockTransferStatus, "success" | "warning" | "danger" | "info"> = {
+    draft: "warning",
+    sent: "info",
+    received: "success",
+    cancelled: "danger",
+};
+
+const opnameStatusVariant: Record<StockOpnameStatus, "success" | "warning" | "danger"> = {
+    draft: "warning",
+    posted: "success",
+    cancelled: "danger",
+};
+
+const movementTypeOptions: StockMovementType[] = [
+    "purchase",
+    "sale_consumption",
+    "adjustment",
+    "transfer_out",
+    "transfer_in",
+    "opname",
+    "waste",
+];
+
+export default function StockMovementsPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [activeTab, setActiveTab] = useState<ActiveTab>("adjustments");
+    const [search, setSearch] = useState("");
+    const [outletFilter, setOutletFilter] = useState<number | "">("");
+    const [reasonFilter, setReasonFilter] = useState<StockAdjustmentReason | "">("");
+    const [transferStatusFilter, setTransferStatusFilter] = useState<StockTransferStatus | "">("");
+    const [opnameStatusFilter, setOpnameStatusFilter] = useState<StockOpnameStatus | "">("");
+    const [movementTypeFilter, setMovementTypeFilter] = useState<StockMovementType | "">("");
+
+    const [openAdjustmentModal, setOpenAdjustmentModal] = useState(false);
+    const [openTransferModal, setOpenTransferModal] = useState(false);
+    const [openOpnameModal, setOpenOpnameModal] = useState(false);
+
+    const [editingAdjustment, setEditingAdjustment] = useState<StockAdjustment | null>(null);
+    const [editingTransfer, setEditingTransfer] = useState<StockTransfer | null>(null);
+    const [editingOpname, setEditingOpname] = useState<StockOpname | null>(null);
+
+    const [detailMovement, setDetailMovement] = useState<StockMovement | null>(null);
+    const [detailAdjustment, setDetailAdjustment] = useState<StockAdjustment | null>(null);
+    const [detailTransfer, setDetailTransfer] = useState<StockTransfer | null>(null);
+    const [detailOpname, setDetailOpname] = useState<StockOpname | null>(null);
+
+    const [deleteAdjustmentTarget, setDeleteAdjustmentTarget] = useState<StockAdjustment | null>(null);
+    const [deleteTransferTarget, setDeleteTransferTarget] = useState<StockTransfer | null>(null);
+    const [deleteOpnameTarget, setDeleteOpnameTarget] = useState<StockOpname | null>(null);
+
+    const [adjustmentForm, setAdjustmentForm] = useState<StockAdjustmentPayload>(initialAdjustmentForm);
+    const [transferForm, setTransferForm] = useState<StockTransferPayload>(initialTransferForm);
+    const [opnameForm, setOpnameForm] = useState<StockOpnamePayload>(initialOpnameForm);
+
+    const outletsQuery = useQuery({
+        queryKey: ["stock-flow-outlets"],
+        queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+    });
+
+    const rawMaterialsQuery = useQuery({
+        queryKey: ["stock-flow-raw-materials"],
+        queryFn: () => inventoryService.getRawMaterials({ per_page: 100 }),
+    });
+
+    const unitsQuery = useQuery({
+        queryKey: ["stock-flow-units"],
+        queryFn: () => inventoryService.getUnits({ per_page: 100 }),
+    });
+
+    const outletStocksQuery = useQuery({
+        queryKey: ["stock-flow-outlet-material-stocks", opnameForm.outlet_id],
+        queryFn: () =>
+            inventoryService.getOutletMaterialStocks({
+                per_page: 500,
+                outlet_id: opnameForm.outlet_id || "",
+            }),
+        enabled: opnameForm.outlet_id > 0,
+    });
+
+    const adjustmentsQuery = useQuery({
+        queryKey: ["stock-adjustments", search, outletFilter, reasonFilter],
+        queryFn: () =>
+            stockMovementService.getStockAdjustments({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                reason: reasonFilter,
+            }),
+    });
+
+    const transfersQuery = useQuery({
+        queryKey: ["stock-transfers", search, outletFilter, transferStatusFilter],
+        queryFn: () =>
+            stockMovementService.getStockTransfers({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                status: transferStatusFilter,
+            }),
+    });
+
+    const opnamesQuery = useQuery({
+        queryKey: ["stock-opnames", search, outletFilter, opnameStatusFilter],
+        queryFn: () =>
+            stockMovementService.getStockOpnames({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                status: opnameStatusFilter,
+            }),
+    });
+
+    const movementsQuery = useQuery({
+        queryKey: ["stock-movements", search, outletFilter, movementTypeFilter],
+        queryFn: () =>
+            stockMovementService.getStockMovements({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                movement_type: movementTypeFilter,
+            }),
+    });
+
+    const outlets = outletsQuery.data?.items ?? [];
+    const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+    const units = unitsQuery.data?.items ?? [];
+    const outletStocks = outletStocksQuery.data?.items ?? [];
+    const adjustments = adjustmentsQuery.data?.items ?? [];
+    const transfers = transfersQuery.data?.items ?? [];
+    const opnames = opnamesQuery.data?.items ?? [];
+    const movements = movementsQuery.data?.items ?? [];
+
+    const tabs = useMemo(
+        () => [
+            {
+                key: "adjustments",
+                label: "Adjustment",
+                content: null,
+            },
+            {
+                key: "transfers",
+                label: "Transfer",
+                content: null,
+            },
+            {
+                key: "opnames",
+                label: "Opname",
+                content: null,
+            },
+            {
+                key: "movements",
+                label: "Movement History",
+                content: null,
+            },
+        ],
+        []
+    );
+
+    const invalidateStockQueries = () => {
+        void queryClient.invalidateQueries({ queryKey: ["stock-adjustments"] });
+        void queryClient.invalidateQueries({ queryKey: ["stock-transfers"] });
+        void queryClient.invalidateQueries({ queryKey: ["stock-opnames"] });
+        void queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+        void queryClient.invalidateQueries({ queryKey: ["inventory-outlet-material-stocks"] });
+    };
+
+    const adjustmentMutation = useMutation({
+        mutationFn: (payload: StockAdjustmentPayload) => {
+            const cleanPayload = {
+                ...payload,
+                items: sanitizeAdjustmentItems(payload.items),
+            };
+
+            if (editingAdjustment) {
+                return stockMovementService.updateStockAdjustment(editingAdjustment.id, cleanPayload);
+            }
+
+            return stockMovementService.createStockAdjustment(cleanPayload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenAdjustmentModal(false);
+            setEditingAdjustment(null);
+            setAdjustmentForm(initialAdjustmentForm);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan adjustment", parseApiError(error));
+        },
+    });
+
+    const transferMutation = useMutation({
+        mutationFn: (payload: StockTransferPayload) => {
+            const cleanPayload = {
+                ...payload,
+                items: sanitizeTransferItems(payload.items),
+            };
+
+            if (editingTransfer) {
+                return stockMovementService.updateStockTransfer(editingTransfer.id, cleanPayload);
+            }
+
+            return stockMovementService.createStockTransfer(cleanPayload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenTransferModal(false);
+            setEditingTransfer(null);
+            setTransferForm(initialTransferForm);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan transfer", parseApiError(error));
+        },
+    });
+
+    const opnameMutation = useMutation({
+        mutationFn: (payload: StockOpnamePayload) => {
+            const cleanPayload = {
+                ...payload,
+                items: sanitizeOpnameItems(payload.items),
+            };
+
+            if (editingOpname) {
+                return stockMovementService.updateStockOpname(editingOpname.id, cleanPayload);
+            }
+
+            return stockMovementService.createStockOpname(cleanPayload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenOpnameModal(false);
+            setEditingOpname(null);
+            setOpnameForm(initialOpnameForm);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan opname", parseApiError(error));
+        },
+    });
+
+    const deleteAdjustmentMutation = useMutation({
+        mutationFn: (target: StockAdjustment) => stockMovementService.deleteStockAdjustment(target.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteAdjustmentTarget(null);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus adjustment", parseApiError(error));
+        },
+    });
+
+    const deleteTransferMutation = useMutation({
+        mutationFn: (target: StockTransfer) => stockMovementService.deleteStockTransfer(target.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteTransferTarget(null);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus transfer", parseApiError(error));
+        },
+    });
+
+    const deleteOpnameMutation = useMutation({
+        mutationFn: (target: StockOpname) => stockMovementService.deleteStockOpname(target.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteOpnameTarget(null);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus opname", parseApiError(error));
+        },
+    });
+
+    const transferActionMutation = useMutation({
+        mutationFn: ({ id, action }: { id: number; action: "send" | "receive" | "cancel" }) => {
+            if (action === "send") {
+                return stockMovementService.sendStockTransfer(id);
+            }
+
+            if (action === "receive") {
+                return stockMovementService.receiveStockTransfer(id, { received_at: nowLocalInput() });
+            }
+
+            return stockMovementService.cancelStockTransfer(id);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal memproses transfer", parseApiError(error));
+        },
+    });
+
+    const opnameActionMutation = useMutation({
+        mutationFn: ({ id, action }: { id: number; action: "post" | "cancel" }) => {
+            if (action === "post") {
+                return stockMovementService.postStockOpname(id, { posted_at: nowLocalInput() });
+            }
+
+            return stockMovementService.cancelStockOpname(id);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            invalidateStockQueries();
+        },
+        onError: (error) => {
+            toast.error("Gagal memproses opname", parseApiError(error));
+        },
+    });
+
+    const openCreateAdjustment = () => {
+        setEditingAdjustment(null);
+        setAdjustmentForm(initialAdjustmentForm);
+        setOpenAdjustmentModal(true);
+    };
+
+    const openEditAdjustment = (adjustment: StockAdjustment) => {
+        setEditingAdjustment(adjustment);
+        setAdjustmentForm({
+            outlet_id: adjustment.outlet_id,
+            adjustment_date: adjustment.adjustment_date?.slice(0, 16) ?? nowLocalInput(),
+            reason: adjustment.reason,
+            notes: adjustment.notes ?? "",
+            items:
+                adjustment.items?.map((item) => ({
+                    raw_material_id: item.raw_material_id,
+                    qty_difference: Number(item.qty_difference ?? 0),
+                    unit_id: item.unit_id,
+                    notes: item.notes ?? "",
+                })) ?? createInitialStockItems<StockAdjustmentItemPayload>("adjustment"),
+        });
+        setOpenAdjustmentModal(true);
+    };
+
+    const openCreateTransfer = () => {
+        setEditingTransfer(null);
+        setTransferForm(initialTransferForm);
+        setOpenTransferModal(true);
+    };
+
+    const openEditTransfer = (transfer: StockTransfer) => {
+        setEditingTransfer(transfer);
+        setTransferForm({
+            source_outlet_id: transfer.source_outlet_id,
+            target_outlet_id: transfer.target_outlet_id,
+            transfer_date: transfer.transfer_date?.slice(0, 16) ?? nowLocalInput(),
+            notes: transfer.notes ?? "",
+            items:
+                transfer.items?.map((item) => ({
+                    raw_material_id: item.raw_material_id,
+                    qty_sent: Number(item.qty_sent ?? 0),
+                    qty_received: item.qty_received === null ? null : Number(item.qty_received ?? 0),
+                    unit_id: item.unit_id,
+                    notes: item.notes ?? "",
+                })) ?? createInitialStockItems<StockTransferItemPayload>("transfer"),
+        });
+        setOpenTransferModal(true);
+    };
+
+    const openCreateOpname = () => {
+        setEditingOpname(null);
+        setOpnameForm(initialOpnameForm);
+        setOpenOpnameModal(true);
+    };
+
+    const openEditOpname = (opname: StockOpname) => {
+        setEditingOpname(opname);
+        setOpnameForm({
+            outlet_id: opname.outlet_id,
+            opname_date: opname.opname_date?.slice(0, 10) ?? todayInput(),
+            notes: opname.notes ?? "",
+            items:
+                opname.items?.map((item) => ({
+                    raw_material_id: item.raw_material_id,
+                    system_qty: Number(item.system_qty ?? 0),
+                    actual_qty: Number(item.actual_qty ?? 0),
+                    unit_id: item.unit_id,
+                    notes: item.notes ?? "",
+                })) ?? createInitialStockItems<StockOpnameItemPayload>("opname"),
+        });
+        setOpenOpnameModal(true);
+    };
+
+    return (
+        <PermissionWrapper permission="stock_movements.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Stock Movement"
+                    description="Kelola adjustment, transfer, opname, dan riwayat movement stok bahan baku."
+                />
+
+                <Card>
+                    <div className="flex flex-wrap gap-2">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => setActiveTab(tab.key as ActiveTab)}
+                                className={
+                                    activeTab === tab.key
+                                        ? "rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+                                        : "rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                }
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                </Card>
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Input
+                            placeholder="Cari nomor dokumen atau catatan..."
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={outletFilter}
+                            onChange={(event) =>
+                                setOutletFilter(event.target.value ? Number(event.target.value) : "")
+                            }
+                        >
+                            <option value="">Semua outlet</option>
+                            {outlets.map((outlet) => (
+                                <option key={outlet.id} value={outlet.id}>
+                                    {outlet.name} ({outlet.code})
+                                </option>
+                            ))}
+                        </select>
+
+                        {activeTab === "adjustments" ? (
+                            <select
+                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                value={reasonFilter}
+                                onChange={(event) => setReasonFilter(event.target.value as StockAdjustmentReason | "")}
+                            >
+                                <option value="">Semua alasan</option>
+                                {adjustmentReasonOptions.map((reason) => (
+                                    <option key={reason} value={reason}>
+                                        {reasonLabel[reason]}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : null}
+
+                        {activeTab === "transfers" ? (
+                            <select
+                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                value={transferStatusFilter}
+                                onChange={(event) => setTransferStatusFilter(event.target.value as StockTransferStatus | "")}
+                            >
+                                <option value="">Semua status</option>
+                                <option value="draft">draft</option>
+                                <option value="sent">sent</option>
+                                <option value="received">received</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        ) : null}
+
+                        {activeTab === "opnames" ? (
+                            <select
+                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                value={opnameStatusFilter}
+                                onChange={(event) => setOpnameStatusFilter(event.target.value as StockOpnameStatus | "")}
+                            >
+                                <option value="">Semua status</option>
+                                <option value="draft">draft</option>
+                                <option value="posted">posted</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        ) : null}
+
+                        {activeTab === "movements" ? (
+                            <select
+                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                value={movementTypeFilter}
+                                onChange={(event) => setMovementTypeFilter(event.target.value as StockMovementType | "")}
+                            >
+                                <option value="">Semua tipe</option>
+                                {movementTypeOptions.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : null}
+
+                        {activeTab === "adjustments" ? <Button onClick={openCreateAdjustment}>Buat Adjustment</Button> : null}
+                        {activeTab === "transfers" ? <Button onClick={openCreateTransfer}>Buat Transfer</Button> : null}
+                        {activeTab === "opnames" ? <Button onClick={openCreateOpname}>Buat Opname</Button> : null}
+                    </div>
+                </Card>
+
+                {activeTab === "adjustments" ? (
+                    adjustmentsQuery.isLoading ? (
+                        <Card>Memuat stock adjustment...</Card>
+                    ) : adjustmentsQuery.isError ? (
+                        <PageErrorState onRetry={() => void adjustmentsQuery.refetch()} />
+                    ) : !adjustments.length ? (
+                        <PageEmptyState title="Belum ada stock adjustment" />
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {adjustments.map((adjustment) => (
+                                <Card
+                                    key={adjustment.id}
+                                    title={adjustment.adjustment_number}
+                                    description={adjustment.outlet?.name ?? "-"}
+                                    actions={<Badge variant="info">{reasonLabel[adjustment.reason]}</Badge>}
+                                >
+                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Tanggal</div>
+                                            <div>{adjustment.adjustment_date}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-slate-500">Jumlah Item</div>
+                                            <div>{adjustment.items?.length ?? 0}</div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <div className="text-xs text-slate-500">Catatan</div>
+                                            <div>{adjustment.notes || "-"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Button variant="outline" onClick={() => setDetailAdjustment(adjustment)}>
+                                            Detail
+                                        </Button>
+                                        <Button variant="outline" onClick={() => openEditAdjustment(adjustment)}>
+                                            Edit
+                                        </Button>
+                                        <Button variant="danger" onClick={() => setDeleteAdjustmentTarget(adjustment)}>
+                                            Hapus
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )
+                ) : null}
+
+                {activeTab === "transfers" ? (
+                    transfersQuery.isLoading ? (
+                        <Card>Memuat stock transfer...</Card>
+                    ) : transfersQuery.isError ? (
+                        <PageErrorState onRetry={() => void transfersQuery.refetch()} />
+                    ) : !transfers.length ? (
+                        <PageEmptyState title="Belum ada stock transfer" />
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {transfers.map((transfer) => (
+                                <Card
+                                    key={transfer.id}
+                                    title={transfer.transfer_number}
+                                    description={`${transfer.source_outlet?.name ?? "-"} → ${transfer.target_outlet?.name ?? "-"
+                                        }`}
+                                    actions={
+                                        <Badge variant={transferStatusVariant[transfer.status]}>
+                                            {transfer.status}
+                                        </Badge>
+                                    }
+                                >
+                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Tanggal</div>
+                                            <div>{transfer.transfer_date}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-slate-500">Jumlah Item</div>
+                                            <div>{transfer.items?.length ?? 0}</div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <div className="text-xs text-slate-500">Catatan</div>
+                                            <div>{transfer.notes || "-"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Button variant="outline" onClick={() => setDetailTransfer(transfer)}>
+                                            Detail
+                                        </Button>
+                                        {transfer.status === "draft" ? (
+                                            <>
+                                                <Button variant="outline" onClick={() => openEditTransfer(transfer)}>
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    onClick={() =>
+                                                        transferActionMutation.mutate({ id: transfer.id, action: "send" })
+                                                    }
+                                                >
+                                                    Send
+                                                </Button>
+                                                <Button variant="danger" onClick={() => setDeleteTransferTarget(transfer)}>
+                                                    Hapus
+                                                </Button>
+                                            </>
+                                        ) : null}
+                                        {transfer.status === "sent" ? (
+                                            <>
+                                                <Button
+                                                    onClick={() =>
+                                                        transferActionMutation.mutate({ id: transfer.id, action: "receive" })
+                                                    }
+                                                >
+                                                    Receive
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    onClick={() =>
+                                                        transferActionMutation.mutate({ id: transfer.id, action: "cancel" })
+                                                    }
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </>
+                                        ) : null}
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )
+                ) : null}
+
+                {activeTab === "opnames" ? (
+                    opnamesQuery.isLoading ? (
+                        <Card>Memuat stock opname...</Card>
+                    ) : opnamesQuery.isError ? (
+                        <PageErrorState onRetry={() => void opnamesQuery.refetch()} />
+                    ) : !opnames.length ? (
+                        <PageEmptyState title="Belum ada stock opname" />
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {opnames.map((opname) => (
+                                <Card
+                                    key={opname.id}
+                                    title={opname.opname_number}
+                                    description={opname.outlet?.name ?? "-"}
+                                    actions={<Badge variant={opnameStatusVariant[opname.status]}>{opname.status}</Badge>}
+                                >
+                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Tanggal</div>
+                                            <div>{opname.opname_date}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-slate-500">Jumlah Item</div>
+                                            <div>{opname.items?.length ?? 0}</div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <div className="text-xs text-slate-500">Catatan</div>
+                                            <div>{opname.notes || "-"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Button variant="outline" onClick={() => setDetailOpname(opname)}>
+                                            Detail
+                                        </Button>
+                                        {opname.status === "draft" ? (
+                                            <>
+                                                <Button variant="outline" onClick={() => openEditOpname(opname)}>
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    onClick={() =>
+                                                        opnameActionMutation.mutate({ id: opname.id, action: "post" })
+                                                    }
+                                                >
+                                                    Post
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    onClick={() =>
+                                                        opnameActionMutation.mutate({ id: opname.id, action: "cancel" })
+                                                    }
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button variant="danger" onClick={() => setDeleteOpnameTarget(opname)}>
+                                                    Hapus
+                                                </Button>
+                                            </>
+                                        ) : null}
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )
+                ) : null}
+
+                {activeTab === "movements" ? (
+                    movementsQuery.isLoading ? (
+                        <Card>Memuat movement history...</Card>
+                    ) : movementsQuery.isError ? (
+                        <PageErrorState onRetry={() => void movementsQuery.refetch()} />
+                    ) : !movements.length ? (
+                        <PageEmptyState title="Belum ada movement history" />
+                    ) : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            {movements.map((movement) => (
+                                <Card
+                                    key={movement.id}
+                                    title={movement.movement_type}
+                                    description={movement.outlet?.name ?? "-"}
+                                    actions={<Badge variant="info">{movement.items?.length ?? 0} item</Badge>}
+                                >
+                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Tanggal</div>
+                                            <div>{movement.movement_date}</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-slate-500">Reference</div>
+                                            <div>#{movement.reference_id ?? "-"}</div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <div className="text-xs text-slate-500">Catatan</div>
+                                            <div>{movement.notes || "-"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <Button variant="outline" onClick={() => setDetailMovement(movement)}>
+                                            Detail
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )
+                ) : null}
+
+                <Modal
+                    open={openAdjustmentModal}
+                    title={editingAdjustment ? "Edit Stock Adjustment" : "Buat Stock Adjustment"}
+                    onClose={() => setOpenAdjustmentModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenAdjustmentModal(false)}>
+                                Batal
+                            </Button>
+                            <Button
+                                loading={adjustmentMutation.isPending}
+                                onClick={() => adjustmentMutation.mutate(adjustmentForm)}
+                            >
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={adjustmentForm.outlet_id || ""}
+                                    onChange={(event) =>
+                                        setAdjustmentForm((prev) => ({
+                                            ...prev,
+                                            outlet_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name} ({outlet.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Tanggal Adjustment"
+                                type="datetime-local"
+                                value={adjustmentForm.adjustment_date}
+                                onChange={(event) =>
+                                    setAdjustmentForm((prev) => ({
+                                        ...prev,
+                                        adjustment_date: event.target.value,
+                                    }))
+                                }
+                            />
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">Alasan</label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={adjustmentForm.reason}
+                                    onChange={(event) =>
+                                        setAdjustmentForm((prev) => ({
+                                            ...prev,
+                                            reason: event.target.value as StockAdjustmentReason,
+                                        }))
+                                    }
+                                >
+                                    {adjustmentReasonOptions.map((reason) => (
+                                        <option key={reason} value={reason}>
+                                            {reasonLabel[reason]}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="md:col-span-3">
+                                <Input
+                                    label="Catatan"
+                                    value={adjustmentForm.notes ?? ""}
+                                    onChange={(event) =>
+                                        setAdjustmentForm((prev) => ({
+                                            ...prev,
+                                            notes: event.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <StockFlowItemsEditor
+                            mode="adjustment"
+                            value={adjustmentForm.items}
+                            onChange={(items) => setAdjustmentForm((prev) => ({ ...prev, items }))}
+                            rawMaterials={rawMaterials}
+                            units={units}
+                        />
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={openTransferModal}
+                    title={editingTransfer ? "Edit Stock Transfer" : "Buat Stock Transfer"}
+                    onClose={() => setOpenTransferModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenTransferModal(false)}>
+                                Batal
+                            </Button>
+                            <Button
+                                loading={transferMutation.isPending}
+                                onClick={() => transferMutation.mutate(transferForm)}
+                            >
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Outlet Asal
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={transferForm.source_outlet_id || ""}
+                                    onChange={(event) =>
+                                        setTransferForm((prev) => ({
+                                            ...prev,
+                                            source_outlet_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet asal</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name} ({outlet.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Outlet Tujuan
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={transferForm.target_outlet_id || ""}
+                                    onChange={(event) =>
+                                        setTransferForm((prev) => ({
+                                            ...prev,
+                                            target_outlet_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet tujuan</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name} ({outlet.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Tanggal Transfer"
+                                type="datetime-local"
+                                value={transferForm.transfer_date}
+                                onChange={(event) =>
+                                    setTransferForm((prev) => ({
+                                        ...prev,
+                                        transfer_date: event.target.value,
+                                    }))
+                                }
+                            />
+
+                            <div className="md:col-span-3">
+                                <Input
+                                    label="Catatan"
+                                    value={transferForm.notes ?? ""}
+                                    onChange={(event) =>
+                                        setTransferForm((prev) => ({
+                                            ...prev,
+                                            notes: event.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <StockFlowItemsEditor
+                            mode="transfer"
+                            value={transferForm.items}
+                            onChange={(items) => setTransferForm((prev) => ({ ...prev, items }))}
+                            rawMaterials={rawMaterials}
+                            units={units}
+                        />
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={openOpnameModal}
+                    title={editingOpname ? "Edit Stock Opname" : "Buat Stock Opname"}
+                    onClose={() => setOpenOpnameModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenOpnameModal(false)}>
+                                Batal
+                            </Button>
+                            <Button
+                                loading={opnameMutation.isPending}
+                                onClick={() => opnameMutation.mutate(opnameForm)}
+                            >
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={opnameForm.outlet_id || ""}
+                                    onChange={(event) =>
+                                        setOpnameForm((prev) => ({
+                                            ...prev,
+                                            outlet_id: Number(event.target.value || 0),
+                                            items: createInitialStockItems<StockOpnameItemPayload>("opname"),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name} ({outlet.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Tanggal Opname"
+                                type="date"
+                                value={opnameForm.opname_date}
+                                onChange={(event) =>
+                                    setOpnameForm((prev) => ({
+                                        ...prev,
+                                        opname_date: event.target.value,
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="Catatan"
+                                value={opnameForm.notes ?? ""}
+                                onChange={(event) =>
+                                    setOpnameForm((prev) => ({
+                                        ...prev,
+                                        notes: event.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+
+                        <StockFlowItemsEditor
+                            mode="opname"
+                            value={opnameForm.items}
+                            onChange={(items) => setOpnameForm((prev) => ({ ...prev, items }))}
+                            rawMaterials={rawMaterials}
+                            units={units}
+                            outletStocks={outletStocks}
+                        />
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailAdjustment)}
+                    title={detailAdjustment?.adjustment_number ?? "Detail Adjustment"}
+                    onClose={() => setDetailAdjustment(null)}
+                >
+                    <div className="space-y-3">
+                        {detailAdjustment?.items?.map((item) => (
+                            <div key={item.id} className="rounded-2xl border border-slate-200 p-4 text-sm">
+                                <div className="font-semibold text-slate-900">{item.raw_material?.name ?? "-"}</div>
+                                <div className="text-slate-600">
+                                    Selisih: {Number(item.qty_difference ?? 0).toLocaleString("id-ID")}{" "}
+                                    {item.unit?.code ?? ""}
+                                </div>
+                                <div className="text-slate-500">{item.notes ?? "-"}</div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailTransfer)}
+                    title={detailTransfer?.transfer_number ?? "Detail Transfer"}
+                    onClose={() => setDetailTransfer(null)}
+                >
+                    <div className="space-y-3">
+                        {detailTransfer?.items?.map((item) => (
+                            <div key={item.id} className="rounded-2xl border border-slate-200 p-4 text-sm">
+                                <div className="font-semibold text-slate-900">{item.raw_material?.name ?? "-"}</div>
+                                <div className="text-slate-600">
+                                    Kirim: {Number(item.qty_sent ?? 0).toLocaleString("id-ID")} {item.unit?.code ?? ""}
+                                </div>
+                                <div className="text-slate-600">
+                                    Terima:{" "}
+                                    {item.qty_received === null
+                                        ? "-"
+                                        : Number(item.qty_received ?? 0).toLocaleString("id-ID")}{" "}
+                                    {item.unit?.code ?? ""}
+                                </div>
+                                <div className="text-slate-500">{item.notes ?? "-"}</div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailOpname)}
+                    title={detailOpname?.opname_number ?? "Detail Opname"}
+                    onClose={() => setDetailOpname(null)}
+                >
+                    <div className="space-y-3">
+                        {detailOpname?.items?.map((item) => (
+                            <div key={item.id} className="rounded-2xl border border-slate-200 p-4 text-sm">
+                                <div className="font-semibold text-slate-900">{item.raw_material?.name ?? "-"}</div>
+                                <div className="text-slate-600">
+                                    Sistem: {Number(item.system_qty ?? 0).toLocaleString("id-ID")} {item.unit?.code ?? ""}
+                                </div>
+                                <div className="text-slate-600">
+                                    Fisik: {Number(item.actual_qty ?? 0).toLocaleString("id-ID")} {item.unit?.code ?? ""}
+                                </div>
+                                <div className="font-semibold text-slate-900">
+                                    Selisih: {Number(item.difference_qty ?? 0).toLocaleString("id-ID")}{" "}
+                                    {item.unit?.code ?? ""}
+                                </div>
+                                <div className="text-slate-500">{item.notes ?? "-"}</div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailMovement)}
+                    title="Detail Movement"
+                    onClose={() => setDetailMovement(null)}
+                >
+                    <div className="space-y-3">
+                        {detailMovement?.items?.map((item) => (
+                            <div key={item.id} className="rounded-2xl border border-slate-200 p-4 text-sm">
+                                <div className="font-semibold text-slate-900">{item.raw_material?.name ?? "-"}</div>
+                                <div className="text-slate-600">
+                                    Masuk: {Number(item.qty_in ?? 0).toLocaleString("id-ID")}
+                                </div>
+                                <div className="text-slate-600">
+                                    Keluar: {Number(item.qty_out ?? 0).toLocaleString("id-ID")}
+                                </div>
+                                <div className="text-slate-600">
+                                    Unit Cost: Rp {Number(item.unit_cost ?? 0).toLocaleString("id-ID")}
+                                </div>
+                                <div className="text-slate-500">{item.notes ?? "-"}</div>
+                            </div>
+                        ))}
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleteAdjustmentTarget)}
+                    title="Hapus stock adjustment?"
+                    description={`Adjustment ${deleteAdjustmentTarget?.adjustment_number ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteAdjustmentMutation.isPending}
+                    onClose={() => setDeleteAdjustmentTarget(null)}
+                    onConfirm={() => {
+                        if (deleteAdjustmentTarget) {
+                            deleteAdjustmentMutation.mutate(deleteAdjustmentTarget);
+                        }
+                    }}
+                />
+
+                <ConfirmDialog
+                    open={Boolean(deleteTransferTarget)}
+                    title="Hapus stock transfer?"
+                    description={`Transfer ${deleteTransferTarget?.transfer_number ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteTransferMutation.isPending}
+                    onClose={() => setDeleteTransferTarget(null)}
+                    onConfirm={() => {
+                        if (deleteTransferTarget) {
+                            deleteTransferMutation.mutate(deleteTransferTarget);
+                        }
+                    }}
+                />
+
+                <ConfirmDialog
+                    open={Boolean(deleteOpnameTarget)}
+                    title="Hapus stock opname?"
+                    description={`Opname ${deleteOpnameTarget?.opname_number ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteOpnameMutation.isPending}
+                    onClose={() => setDeleteOpnameTarget(null)}
+                    onConfirm={() => {
+                        if (deleteOpnameTarget) {
+                            deleteOpnameMutation.mutate(deleteOpnameTarget);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagessupplierspagetsx"></a>
 ### src\modules\admin\pages\SuppliersPage.tsx
 - SHA: `ec860c87629e`  
@@ -9134,6 +10734,238 @@ export const purchasingService = {
   async cancelGoodsReceipt(id: number) {
     const response = await apiClient.post<ApiResponse<GoodsReceipt>>(
       endpoints.goodsReceipts.cancel(id)
+    );
+
+    return response.data;
+  },
+};
+```
+</details>
+
+<a id="file-srcmodulesadminservicesstock-movementservicets"></a>
+### src\modules\admin\services\stock-movement.service.ts
+- SHA: `26b9fc5737c0`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type {
+  StockAdjustment,
+  StockAdjustmentReason,
+  StockMovement,
+  StockMovementType,
+  StockOpname,
+  StockOpnameStatus,
+  StockTransfer,
+  StockTransferStatus,
+} from "@/types/stock-movement";
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+export interface StockMovementQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  outlet_id?: number | "";
+  movement_type?: StockMovementType | "";
+  status?: string;
+  reason?: StockAdjustmentReason | "";
+}
+
+export interface StockAdjustmentItemPayload {
+  raw_material_id: number;
+  qty_difference: number;
+  unit_id: number;
+  notes?: string | null;
+}
+
+export interface StockAdjustmentPayload {
+  outlet_id: number;
+  adjustment_date: string;
+  reason: StockAdjustmentReason;
+  notes?: string | null;
+  items: StockAdjustmentItemPayload[];
+}
+
+export interface StockTransferItemPayload {
+  raw_material_id: number;
+  qty_sent: number;
+  qty_received?: number | null;
+  unit_id: number;
+  notes?: string | null;
+}
+
+export interface StockTransferPayload {
+  source_outlet_id: number;
+  target_outlet_id: number;
+  transfer_date: string;
+  notes?: string | null;
+  items: StockTransferItemPayload[];
+}
+
+export interface ReceiveStockTransferPayload {
+  received_at?: string | null;
+  notes?: string | null;
+  items?: Array<{
+    stock_transfer_item_id: number;
+    qty_received: number;
+  }>;
+}
+
+export interface StockOpnameItemPayload {
+  raw_material_id: number;
+  system_qty?: number;
+  actual_qty: number;
+  unit_id: number;
+  notes?: string | null;
+}
+
+export interface StockOpnamePayload {
+  outlet_id: number;
+  opname_date: string;
+  notes?: string | null;
+  items: StockOpnameItemPayload[];
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const stockMovementService = {
+  async getStockMovements(params: StockMovementQuery = {}) {
+    const response = await apiClient.get<ApiResponse<StockMovement[]>>("/stock-movements", {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getStockAdjustments(params: StockMovementQuery = {}) {
+    const response = await apiClient.get<ApiResponse<StockAdjustment[]>>("/stock-adjustments", {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createStockAdjustment(payload: StockAdjustmentPayload) {
+    const response = await apiClient.post<ApiResponse<StockAdjustment>>(
+      "/stock-adjustments",
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateStockAdjustment(id: number, payload: StockAdjustmentPayload) {
+    const response = await apiClient.put<ApiResponse<StockAdjustment>>(
+      `/stock-adjustments/${id}`,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteStockAdjustment(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(`/stock-adjustments/${id}`);
+    return response.data;
+  },
+
+  async getStockTransfers(params: StockMovementQuery & { status?: StockTransferStatus | "" } = {}) {
+    const response = await apiClient.get<ApiResponse<StockTransfer[]>>("/stock-transfers", {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createStockTransfer(payload: StockTransferPayload) {
+    const response = await apiClient.post<ApiResponse<StockTransfer>>("/stock-transfers", payload);
+    return response.data;
+  },
+
+  async updateStockTransfer(id: number, payload: StockTransferPayload) {
+    const response = await apiClient.put<ApiResponse<StockTransfer>>(
+      `/stock-transfers/${id}`,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteStockTransfer(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(`/stock-transfers/${id}`);
+    return response.data;
+  },
+
+  async sendStockTransfer(id: number) {
+    const response = await apiClient.post<ApiResponse<StockTransfer>>(
+      `/stock-transfers/${id}/send`
+    );
+
+    return response.data;
+  },
+
+  async receiveStockTransfer(id: number, payload: ReceiveStockTransferPayload = {}) {
+    const response = await apiClient.post<ApiResponse<StockTransfer>>(
+      `/stock-transfers/${id}/receive`,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async cancelStockTransfer(id: number) {
+    const response = await apiClient.post<ApiResponse<StockTransfer>>(
+      `/stock-transfers/${id}/cancel`
+    );
+
+    return response.data;
+  },
+
+  async getStockOpnames(params: StockMovementQuery & { status?: StockOpnameStatus | "" } = {}) {
+    const response = await apiClient.get<ApiResponse<StockOpname[]>>("/stock-opnames", {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createStockOpname(payload: StockOpnamePayload) {
+    const response = await apiClient.post<ApiResponse<StockOpname>>("/stock-opnames", payload);
+    return response.data;
+  },
+
+  async updateStockOpname(id: number, payload: StockOpnamePayload) {
+    const response = await apiClient.put<ApiResponse<StockOpname>>(`/stock-opnames/${id}`, payload);
+    return response.data;
+  },
+
+  async deleteStockOpname(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(`/stock-opnames/${id}`);
+    return response.data;
+  },
+
+  async postStockOpname(id: number, payload: { posted_at?: string | null } = {}) {
+    const response = await apiClient.post<ApiResponse<StockOpname>>(
+      `/stock-opnames/${id}/post`,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async cancelStockOpname(id: number) {
+    const response = await apiClient.post<ApiResponse<StockOpname>>(
+      `/stock-opnames/${id}/cancel`
     );
 
     return response.data;
@@ -14519,7 +16351,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `b62362432c7b`  
+- SHA: `acc3fdfbf910`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -14605,21 +16437,16 @@ export const adminNavigation: NavigationItem[] = [
     permission: "goods_receipts.view",
   },
   {
-    label: "POS",
-    to: "/pos/orders",
-    permission: "products.view",
-  },
-  {
-    label: "Kitchen",
-    to: "/kitchen/tickets",
-    permission: "kitchen_tickets.view",
+    label: "Stock Movement",
+    to: "/admin/stock-movements",
+    permission: "stock_movements.view",
   },
 ];
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders", permission: "orders.create" },
-  { label: "Shift", to: "/pos/shifts", permission: "cashier_shifts.view" },
+  { label: "Orders", to: "/pos/orders", permission: "orders.create" },
+  { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
@@ -15768,19 +17595,17 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `897180785ed2`  
-- Ukuran: 6 KB
+- SHA: `df4acef24ee8`  
+- Ukuran: 7 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-// src/services/api/endpoints.ts
-
 export const endpoints = {
   auth: {
-    login: "/login",
-    me: "/me",
-    logout: "/logout",
-    changePassword: "/change-password",
+    login: "/auth/login",
+    logout: "/auth/logout",
+    me: "/auth/me",
+    changePassword: "/auth/change-password",
   },
 
   users: {
@@ -15813,16 +17638,12 @@ export const endpoints = {
     show: (id: number | string) => `/outlets/${id}`,
     update: (id: number | string) => `/outlets/${id}`,
     destroy: (id: number | string) => `/outlets/${id}`,
-  },
-
-  outletSettings: {
-    show: (outletId: number | string) => `/outlets/${outletId}/settings`,
-    update: (outletId: number | string) => `/outlets/${outletId}/settings`,
+    settings: (id: number | string) => `/outlets/${id}/settings`,
   },
 
   systemSettings: {
     index: "/system-settings",
-    upsert: "/system-settings",
+    upsert: "/system-settings/upsert",
   },
 
   productCategories: {
@@ -15839,6 +17660,30 @@ export const endpoints = {
     show: (id: number | string) => `/products/${id}`,
     update: (id: number | string) => `/products/${id}`,
     destroy: (id: number | string) => `/products/${id}`,
+  },
+
+  customers: {
+    index: "/customers",
+    store: "/customers",
+    show: (id: number | string) => `/customers/${id}`,
+    update: (id: number | string) => `/customers/${id}`,
+    destroy: (id: number | string) => `/customers/${id}`,
+  },
+
+  vouchers: {
+    index: "/vouchers",
+    store: "/vouchers",
+    show: (id: number | string) => `/vouchers/${id}`,
+    update: (id: number | string) => `/vouchers/${id}`,
+    destroy: (id: number | string) => `/vouchers/${id}`,
+  },
+
+  promotions: {
+    index: "/promotions",
+    store: "/promotions",
+    show: (id: number | string) => `/promotions/${id}`,
+    update: (id: number | string) => `/promotions/${id}`,
+    destroy: (id: number | string) => `/promotions/${id}`,
   },
 
   units: {
@@ -15887,6 +17732,17 @@ export const endpoints = {
     destroy: (id: number | string) => `/product-boms/${id}`,
   },
 
+  orders: {
+    index: "/orders",
+    store: "/orders",
+    show: (id: number | string) => `/orders/${id}`,
+    update: (id: number | string) => `/orders/${id}`,
+    destroy: (id: number | string) => `/orders/${id}`,
+    confirm: (id: number | string) => `/orders/${id}/confirm`,
+    complete: (id: number | string) => `/orders/${id}/complete`,
+    cancel: (id: number | string) => `/orders/${id}/cancel`,
+  },
+
   suppliers: {
     index: "/suppliers",
     store: "/suppliers",
@@ -15913,17 +17769,6 @@ export const endpoints = {
     destroy: (id: number | string) => `/goods-receipts/${id}`,
     post: (id: number | string) => `/goods-receipts/${id}/post`,
     cancel: (id: number | string) => `/goods-receipts/${id}/cancel`,
-  },
-
-  orders: {
-    index: "/orders",
-    store: "/orders",
-    show: (id: number | string) => `/orders/${id}`,
-    update: (id: number | string) => `/orders/${id}`,
-    destroy: (id: number | string) => `/orders/${id}`,
-    confirm: (id: number | string) => `/orders/${id}/confirm`,
-    complete: (id: number | string) => `/orders/${id}/complete`,
-    cancel: (id: number | string) => `/orders/${id}/cancel`,
   },
 
   payments: {
@@ -16909,6 +18754,152 @@ export interface SystemSetting {
   type: "string" | "number" | "boolean" | "json";
   created_at: string;
   updated_at: string;
+}
+```
+</details>
+
+<a id="file-srctypesstock-movementts"></a>
+### src\types\stock-movement.ts
+- SHA: `ca171cf3ebc2`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { Outlet } from "@/types/outlet";
+import type { RawMaterial, Unit } from "@/types/inventory";
+import type { User } from "@/types/user";
+
+export type StockAdjustmentReason =
+  | "damaged"
+  | "expired"
+  | "lost"
+  | "correction"
+  | "waste"
+  | "other";
+
+export type StockTransferStatus = "draft" | "sent" | "received" | "cancelled";
+
+export type StockOpnameStatus = "draft" | "posted" | "cancelled";
+
+export type StockMovementType =
+  | "purchase"
+  | "sale_consumption"
+  | "adjustment"
+  | "transfer_out"
+  | "transfer_in"
+  | "opname"
+  | "waste";
+
+export interface StockAdjustmentItem {
+  id: number;
+  stock_adjustment_id: number;
+  raw_material_id: number;
+  qty_difference: number | string;
+  unit_id: number;
+  notes?: string | null;
+  raw_material?: RawMaterial | null;
+  unit?: Unit | null;
+}
+
+export interface StockAdjustment {
+  id: number;
+  outlet_id: number;
+  adjustment_number: string;
+  adjustment_date: string;
+  reason: StockAdjustmentReason;
+  notes?: string | null;
+  created_by?: number | null;
+  approved_by?: number | null;
+  approved_at?: string | null;
+  outlet?: Outlet | null;
+  creator?: User | null;
+  approver?: User | null;
+  items?: StockAdjustmentItem[];
+}
+
+export interface StockTransferItem {
+  id: number;
+  stock_transfer_id: number;
+  raw_material_id: number;
+  qty_sent: number | string;
+  qty_received?: number | string | null;
+  unit_id: number;
+  notes?: string | null;
+  raw_material?: RawMaterial | null;
+  unit?: Unit | null;
+}
+
+export interface StockTransfer {
+  id: number;
+  source_outlet_id: number;
+  target_outlet_id: number;
+  transfer_number: string;
+  status: StockTransferStatus;
+  transfer_date: string;
+  sent_at?: string | null;
+  received_at?: string | null;
+  notes?: string | null;
+  created_by?: number | null;
+  received_by?: number | null;
+  source_outlet?: Outlet | null;
+  target_outlet?: Outlet | null;
+  creator?: User | null;
+  receiver?: User | null;
+  items?: StockTransferItem[];
+}
+
+export interface StockOpnameItem {
+  id: number;
+  stock_opname_id: number;
+  raw_material_id: number;
+  system_qty: number | string;
+  actual_qty: number | string;
+  difference_qty: number | string;
+  unit_id: number;
+  notes?: string | null;
+  raw_material?: RawMaterial | null;
+  unit?: Unit | null;
+}
+
+export interface StockOpname {
+  id: number;
+  outlet_id: number;
+  opname_number: string;
+  opname_date: string;
+  status: StockOpnameStatus;
+  notes?: string | null;
+  created_by?: number | null;
+  posted_by?: number | null;
+  posted_at?: string | null;
+  outlet?: Outlet | null;
+  creator?: User | null;
+  poster?: User | null;
+  items?: StockOpnameItem[];
+}
+
+export interface StockMovementItem {
+  id: number;
+  stock_movement_id: number;
+  raw_material_id: number;
+  qty_in: number | string;
+  qty_out: number | string;
+  unit_cost: number | string;
+  notes?: string | null;
+  raw_material?: RawMaterial | null;
+}
+
+export interface StockMovement {
+  id: number;
+  outlet_id: number;
+  movement_type: StockMovementType;
+  reference_type?: string | null;
+  reference_id?: number | null;
+  movement_date: string;
+  notes?: string | null;
+  created_by?: number | null;
+  outlet?: Outlet | null;
+  creator?: User | null;
+  items?: StockMovementItem[];
 }
 ```
 </details>
