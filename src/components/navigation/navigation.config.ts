@@ -1,3 +1,5 @@
+// src/components/navigation/navigation.config.ts
+
 export interface NavigationItem {
   label: string;
   to: string;
@@ -62,6 +64,21 @@ export const adminNavigation: NavigationItem[] = [
     permission: "product_boms.view",
   },
   {
+    label: "Suppliers",
+    to: "/admin/suppliers",
+    permission: "suppliers.view",
+  },
+  {
+    label: "Purchase Orders",
+    to: "/admin/purchase-orders",
+    permission: "purchase_orders.view",
+  },
+  {
+    label: "Goods Receipts",
+    to: "/admin/goods-receipts",
+    permission: "goods_receipts.view",
+  },
+  {
     label: "POS",
     to: "/pos/orders",
     permission: "products.view",
@@ -75,18 +92,16 @@ export const adminNavigation: NavigationItem[] = [
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders", permission: "products.view" },
-  { label: "Shift", to: "/pos/shifts" },
+  { label: "New Order", to: "/pos/orders", permission: "orders.create" },
+  { label: "Shift", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Kitchen Home", to: "/kitchen", permission: "kitchen_tickets.view" },
   { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
   { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Owner Home", to: "/owner" },
   { label: "Overview", to: "/owner/overview" },
   { label: "Reports", to: "/owner/reports" },
 ];

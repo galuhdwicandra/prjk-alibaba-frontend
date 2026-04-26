@@ -141,6 +141,34 @@ export const endpoints = {
     cancel: (id: number | string) => `/orders/${id}/cancel`,
   },
 
+  suppliers: {
+    index: "/suppliers",
+    store: "/suppliers",
+    show: (id: number | string) => `/suppliers/${id}`,
+    update: (id: number | string) => `/suppliers/${id}`,
+    destroy: (id: number | string) => `/suppliers/${id}`,
+  },
+
+  purchaseOrders: {
+    index: "/purchase-orders",
+    store: "/purchase-orders",
+    show: (id: number | string) => `/purchase-orders/${id}`,
+    update: (id: number | string) => `/purchase-orders/${id}`,
+    destroy: (id: number | string) => `/purchase-orders/${id}`,
+    approve: (id: number | string) => `/purchase-orders/${id}/approve`,
+    cancel: (id: number | string) => `/purchase-orders/${id}/cancel`,
+  },
+
+  goodsReceipts: {
+    index: "/goods-receipts",
+    store: "/goods-receipts",
+    show: (id: number | string) => `/goods-receipts/${id}`,
+    update: (id: number | string) => `/goods-receipts/${id}`,
+    destroy: (id: number | string) => `/goods-receipts/${id}`,
+    post: (id: number | string) => `/goods-receipts/${id}/post`,
+    cancel: (id: number | string) => `/goods-receipts/${id}/cancel`,
+  },
+
   payments: {
     index: "/payments",
     store: "/payments",

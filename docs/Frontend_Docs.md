@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-25 19:18:33_  
+_Dihasilkan otomatis: 2026-04-26 11:05:07_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -26,6 +26,9 @@ _Dihasilkan otomatis: 2026-04-25 19:18:33_
   - [src\modules\admin\components\product-config\ProductConfigPage.tsx](#file-srcmodulesadmincomponentsproduct-configproductconfigpagetsx)
   - [src\modules\admin\components\product-config\ProductModifierGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductmodifiergroupseditortsx)
   - [src\modules\admin\components\product-config\ProductVariantGroupsEditor.tsx](#file-srcmodulesadmincomponentsproduct-configproductvariantgroupseditortsx)
+  - [src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx)
+  - [src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx)
+  - [src\modules\admin\pages\GoodsReceiptsPage.tsx](#file-srcmodulesadminpagesgoodsreceiptspagetsx)
   - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
   - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
@@ -35,15 +38,18 @@ _Dihasilkan otomatis: 2026-04-25 19:18:33_
   - [src\modules\admin\pages\ProductModifiersPage.tsx](#file-srcmodulesadminpagesproductmodifierspagetsx)
   - [src\modules\admin\pages\ProductsPage.tsx](#file-srcmodulesadminpagesproductspagetsx)
   - [src\modules\admin\pages\ProductVariantsPage.tsx](#file-srcmodulesadminpagesproductvariantspagetsx)
+  - [src\modules\admin\pages\PurchaseOrdersPage.tsx](#file-srcmodulesadminpagespurchaseorderspagetsx)
   - [src\modules\admin\pages\RawMaterialCategoriesPage.tsx](#file-srcmodulesadminpagesrawmaterialcategoriespagetsx)
   - [src\modules\admin\pages\RawMaterialsPage.tsx](#file-srcmodulesadminpagesrawmaterialspagetsx)
   - [src\modules\admin\pages\RolesPage.tsx](#file-srcmodulesadminpagesrolespagetsx)
+  - [src\modules\admin\pages\SuppliersPage.tsx](#file-srcmodulesadminpagessupplierspagetsx)
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
   - [src\modules\admin\pages\UnitsPage.tsx](#file-srcmodulesadminpagesunitspagetsx)
   - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
   - [src\modules\admin\services\catalog.service.ts](#file-srcmodulesadminservicescatalogservicets)
   - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
+  - [src\modules\admin\services\purchasing.service.ts](#file-srcmodulesadminservicespurchasingservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
   - [src\modules\auth\pages\LoginPage.tsx](#file-srcmodulesauthpagesloginpagetsx)
   - [src\modules\auth\pages\NotFoundPage.tsx](#file-srcmodulesauthpagesnotfoundpagetsx)
@@ -121,6 +127,7 @@ _Dihasilkan otomatis: 2026-04-25 19:18:33_
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
   - [src\types\product.ts](#file-srctypesproductts)
+  - [src\types\purchasing.ts](#file-srctypespurchasingts)
   - [src\types\role.ts](#file-srctypesrolets)
   - [src\types\settings.ts](#file-srctypessettingsts)
   - [src\types\user.ts](#file-srctypesuserts)
@@ -307,11 +314,13 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `ca42853e2ca3`  
+- SHA: `c2ae02e5c0f4`  
 - Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+// src/router/index.tsx
+
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -339,6 +348,9 @@ import RawMaterialCategoriesPage from "@/modules/admin/pages/RawMaterialCategori
 import RawMaterialsPage from "@/modules/admin/pages/RawMaterialsPage";
 import OutletMaterialStocksPage from "@/modules/admin/pages/OutletMaterialStocksPage";
 import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
+import SuppliersPage from "@/modules/admin/pages/SuppliersPage";
+import PurchaseOrdersPage from "@/modules/admin/pages/PurchaseOrdersPage";
+import GoodsReceiptsPage from "@/modules/admin/pages/GoodsReceiptsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -385,6 +397,9 @@ export const router = createBrowserRouter([
           { path: "raw-materials", element: <RawMaterialsPage /> },
           { path: "outlet-material-stocks", element: <OutletMaterialStocksPage /> },
           { path: "product-boms", element: <ProductBomsPage /> },
+          { path: "suppliers", element: <SuppliersPage /> },
+          { path: "purchase-orders", element: <PurchaseOrdersPage /> },
+          { path: "goods-receipts", element: <GoodsReceiptsPage /> },
         ],
       },
       {
@@ -1626,6 +1641,1021 @@ export function sanitizeVariantGroups(value: ProductVariantGroupPayload[]): Prod
     }))
     .filter((group) => group.options.length > 0);
 }
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx"></a>
+### src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx
+- SHA: `7d8233c00ce7`  
+- Ukuran: 7 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+// src/modules/admin/components/purchasing/GoodsReceiptItemsEditor.tsx
+
+import { Button, Card, Input } from "@/components/ui";
+import type { GoodsReceiptItemPayload } from "@/modules/admin/services/purchasing.service";
+import type { PurchaseOrder } from "@/types/purchasing";
+import type { RawMaterial, Unit } from "@/types/inventory";
+
+interface GoodsReceiptItemsEditorProps {
+  value: GoodsReceiptItemPayload[];
+  onChange: (next: GoodsReceiptItemPayload[]) => void;
+  rawMaterials: RawMaterial[];
+  units: Unit[];
+  purchaseOrder: PurchaseOrder | null;
+}
+
+const createEmptyItem = (): GoodsReceiptItemPayload => ({
+  raw_material_id: 0,
+  qty_received: 1,
+  unit_id: 0,
+  unit_cost: 0,
+  expired_at: null,
+  notes: "",
+});
+
+export function GoodsReceiptItemsEditor({
+  value,
+  onChange,
+  rawMaterials,
+  units,
+  purchaseOrder,
+}: GoodsReceiptItemsEditorProps) {
+  const updateItems = (
+    updater: (prev: GoodsReceiptItemPayload[]) => GoodsReceiptItemPayload[]
+  ) => {
+    onChange(updater(value));
+  };
+
+  const getLineTotal = (item: GoodsReceiptItemPayload) => {
+    return Math.max(0, Number(item.qty_received || 0) * Number(item.unit_cost || 0));
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((item, index) => (
+        <Card key={index} title={`Item Receipt #${index + 1}`}>
+          <div className="grid gap-4 md:grid-cols-6">
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Bahan Baku
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.raw_material_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    const rawMaterialId = Number(event.target.value || 0);
+                    const rawMaterial = rawMaterials.find((row) => row.id === rawMaterialId);
+                    const poItem = purchaseOrder?.items?.find(
+                      (row) => Number(row.raw_material_id) === rawMaterialId
+                    );
+
+                    next[index] = {
+                      ...next[index],
+                      raw_material_id: rawMaterialId,
+                      unit_id: poItem?.unit_id ?? rawMaterial?.unit_id ?? next[index].unit_id,
+                      unit_cost: Number(poItem?.unit_price ?? rawMaterial?.last_purchase_price ?? 0),
+                      qty_received: Number(poItem?.qty_ordered ?? next[index].qty_received),
+                    };
+
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih bahan baku</option>
+                {rawMaterials.map((rawMaterial) => (
+                  <option key={rawMaterial.id} value={rawMaterial.id}>
+                    {rawMaterial.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Qty Diterima"
+              type="number"
+              value={String(item.qty_received ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    qty_received: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Satuan
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.unit_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      unit_id: Number(event.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Harga Terima"
+              type="number"
+              value={String(item.unit_cost ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    unit_cost: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <Input
+              label="Expired At"
+              type="date"
+              value={item.expired_at ?? ""}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    expired_at: event.target.value || null,
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-4">
+              <Input
+                label="Catatan Item"
+                value={item.notes ?? ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      notes: event.target.value,
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Subtotal
+              </label>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
+                Rp {getLineTotal(item).toLocaleString("id-ID")}
+              </div>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="danger"
+                onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ))}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem()])}>
+        Tambah Item Receipt
+      </Button>
+    </div>
+  );
+}
+
+export function mapGoodsReceiptItemsFromPurchaseOrder(
+  purchaseOrder: PurchaseOrder | null
+): GoodsReceiptItemPayload[] {
+  if (!purchaseOrder?.items?.length) {
+    return [createEmptyItem()];
+  }
+
+  return purchaseOrder.items.map((item) => ({
+    raw_material_id: item.raw_material_id,
+    qty_received: Number(item.qty_ordered ?? 0),
+    unit_id: item.unit_id,
+    unit_cost: Number(item.unit_price ?? 0),
+    expired_at: null,
+    notes: item.notes ?? "",
+  }));
+}
+
+export function sanitizeGoodsReceiptItems(
+  value: GoodsReceiptItemPayload[]
+): GoodsReceiptItemPayload[] {
+  return (value ?? []).filter(
+    (item) =>
+      Number(item.raw_material_id) > 0 &&
+      Number(item.unit_id) > 0 &&
+      Number(item.qty_received) > 0 &&
+      Number(item.unit_cost) >= 0
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx"></a>
+### src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx
+- SHA: `f3f4cfb96460`  
+- Ukuran: 7 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+// src/modules/admin/components/purchasing/PurchaseOrderItemsEditor.tsx
+
+import { Button, Card, Input } from "@/components/ui";
+import type { PurchaseOrderItemPayload } from "@/modules/admin/services/purchasing.service";
+import type { RawMaterial, Unit } from "@/types/inventory";
+
+interface PurchaseOrderItemsEditorProps {
+  value: PurchaseOrderItemPayload[];
+  onChange: (next: PurchaseOrderItemPayload[]) => void;
+  rawMaterials: RawMaterial[];
+  units: Unit[];
+}
+
+const createEmptyItem = (): PurchaseOrderItemPayload => ({
+  raw_material_id: 0,
+  qty_ordered: 1,
+  unit_id: 0,
+  unit_price: 0,
+  discount_amount: 0,
+  notes: "",
+});
+
+export function PurchaseOrderItemsEditor({
+  value,
+  onChange,
+  rawMaterials,
+  units,
+}: PurchaseOrderItemsEditorProps) {
+  const updateItems = (
+    updater: (prev: PurchaseOrderItemPayload[]) => PurchaseOrderItemPayload[]
+  ) => {
+    onChange(updater(value));
+  };
+
+  const getLineTotal = (item: PurchaseOrderItemPayload) => {
+    return Math.max(
+      0,
+      Number(item.qty_ordered || 0) * Number(item.unit_price || 0) -
+        Number(item.discount_amount || 0)
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {value.map((item, index) => (
+        <Card key={index} title={`Item PO #${index + 1}`}>
+          <div className="grid gap-4 md:grid-cols-6">
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Bahan Baku
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.raw_material_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    const rawMaterialId = Number(event.target.value || 0);
+                    const rawMaterial = rawMaterials.find((row) => row.id === rawMaterialId);
+
+                    next[index] = {
+                      ...next[index],
+                      raw_material_id: rawMaterialId,
+                      unit_id: rawMaterial?.unit_id ?? next[index].unit_id,
+                      unit_price: Number(rawMaterial?.last_purchase_price ?? next[index].unit_price),
+                    };
+
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih bahan baku</option>
+                {rawMaterials.map((rawMaterial) => (
+                  <option key={rawMaterial.id} value={rawMaterial.id}>
+                    {rawMaterial.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Qty Order"
+              type="number"
+              value={String(item.qty_ordered ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    qty_ordered: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Satuan
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={item.unit_id || ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      unit_id: Number(event.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              >
+                <option value="">Pilih satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Harga Satuan"
+              type="number"
+              value={String(item.unit_price ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    unit_price: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <Input
+              label="Diskon"
+              type="number"
+              value={String(item.discount_amount ?? 0)}
+              onChange={(event) =>
+                updateItems((prev) => {
+                  const next = [...prev];
+                  next[index] = {
+                    ...next[index],
+                    discount_amount: Number(event.target.value || 0),
+                  };
+                  return next;
+                })
+              }
+            />
+
+            <div className="md:col-span-4">
+              <Input
+                label="Catatan Item"
+                value={item.notes ?? ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      notes: event.target.value,
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Subtotal
+              </label>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
+                Rp {getLineTotal(item).toLocaleString("id-ID")}
+              </div>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                variant="danger"
+                onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ))}
+
+      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem()])}>
+        Tambah Item PO
+      </Button>
+    </div>
+  );
+}
+
+export function createInitialPurchaseOrderItems(): PurchaseOrderItemPayload[] {
+  return [createEmptyItem()];
+}
+
+export function sanitizePurchaseOrderItems(
+  value: PurchaseOrderItemPayload[]
+): PurchaseOrderItemPayload[] {
+  return (value ?? []).filter(
+    (item) =>
+      Number(item.raw_material_id) > 0 &&
+      Number(item.unit_id) > 0 &&
+      Number(item.qty_ordered) > 0 &&
+      Number(item.unit_price) >= 0
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesgoodsreceiptspagetsx"></a>
+### src\modules\admin\pages\GoodsReceiptsPage.tsx
+- SHA: `6ce93a64cb35`  
+- Ukuran: 25 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+// src/modules/admin/pages/GoodsReceiptsPage.tsx
+
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { inventoryService } from "@/modules/admin/services/inventory.service";
+import {
+    purchasingService,
+    type GoodsReceiptItemPayload,
+    type GoodsReceiptPayload,
+} from "@/modules/admin/services/purchasing.service";
+import {
+    GoodsReceiptItemsEditor,
+    mapGoodsReceiptItemsFromPurchaseOrder,
+    sanitizeGoodsReceiptItems,
+} from "@/modules/admin/components/purchasing/GoodsReceiptItemsEditor";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { GoodsReceipt, GoodsReceiptStatus } from "@/types/purchasing";
+
+const nowLocalInput = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 16);
+};
+
+const initialForm: GoodsReceiptPayload = {
+    purchase_order_id: 0,
+    outlet_id: 0,
+    received_date: nowLocalInput(),
+    notes: "",
+    items: [],
+};
+
+const statusVariant: Record<GoodsReceiptStatus, "success" | "warning" | "danger"> = {
+    draft: "warning",
+    posted: "success",
+    cancelled: "danger",
+};
+
+export default function GoodsReceiptsPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [search, setSearch] = useState("");
+    const [outletFilter, setOutletFilter] = useState<number | "">("");
+    const [purchaseOrderFilter, setPurchaseOrderFilter] = useState<number | "">("");
+    const [statusFilter, setStatusFilter] = useState<GoodsReceiptStatus | "">("");
+    const [openModal, setOpenModal] = useState(false);
+    const [detailReceipt, setDetailReceipt] = useState<GoodsReceipt | null>(null);
+    const [editingReceipt, setEditingReceipt] = useState<GoodsReceipt | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<GoodsReceipt | null>(null);
+    const [form, setForm] = useState<GoodsReceiptPayload>(initialForm);
+
+    const goodsReceiptsQuery = useQuery({
+        queryKey: ["purchasing-goods-receipts", search, outletFilter, purchaseOrderFilter, statusFilter],
+        queryFn: () =>
+            purchasingService.getGoodsReceipts({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                purchase_order_id: purchaseOrderFilter,
+                status: statusFilter,
+            }),
+    });
+
+    const outletsQuery = useQuery({
+        queryKey: ["purchasing-gr-outlets"],
+        queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+    });
+
+    const purchaseOrdersQuery = useQuery({
+        queryKey: ["purchasing-gr-purchase-orders"],
+        queryFn: () =>
+            purchasingService.getPurchaseOrders({
+                per_page: 100,
+                status: "",
+            }),
+    });
+
+    const rawMaterialsQuery = useQuery({
+        queryKey: ["purchasing-gr-raw-materials"],
+        queryFn: () => inventoryService.getRawMaterials({ per_page: 100 }),
+    });
+
+    const unitsQuery = useQuery({
+        queryKey: ["purchasing-gr-units"],
+        queryFn: () => inventoryService.getUnits({ per_page: 100 }),
+    });
+
+    const receipts = goodsReceiptsQuery.data?.items ?? [];
+    const outlets = outletsQuery.data?.items ?? [];
+    const purchaseOrders = purchaseOrdersQuery.data?.items ?? [];
+    const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+    const units = unitsQuery.data?.items ?? [];
+
+    const selectedPurchaseOrder = useMemo(() => {
+        return purchaseOrders.find((row) => Number(row.id) === Number(form.purchase_order_id)) ?? null;
+    }, [form.purchase_order_id, purchaseOrders]);
+
+    const formTotal = useMemo(() => {
+        return sanitizeGoodsReceiptItems(form.items).reduce((total, item) => {
+            return total + Math.max(0, Number(item.qty_received || 0) * Number(item.unit_cost || 0));
+        }, 0);
+    }, [form.items]);
+
+    const saveMutation = useMutation({
+        mutationFn: (payload: GoodsReceiptPayload) => {
+            const sanitizedPayload = {
+                ...payload,
+                items: sanitizeGoodsReceiptItems(payload.items),
+            };
+
+            if (editingReceipt) {
+                return purchasingService.updateGoodsReceipt(editingReceipt.id, sanitizedPayload);
+            }
+
+            return purchasingService.createGoodsReceipt(sanitizedPayload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenModal(false);
+            setEditingReceipt(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-goods-receipts"] });
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-purchase-orders"] });
+        },
+        onError: (error) => toast.error("Gagal menyimpan goods receipt", parseApiError(error)),
+    });
+
+    const postMutation = useMutation({
+        mutationFn: (receipt: GoodsReceipt) => purchasingService.postGoodsReceipt(receipt.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-goods-receipts"] });
+            void queryClient.invalidateQueries({ queryKey: ["inventory-outlet-material-stocks"] });
+        },
+        onError: (error) => toast.error("Gagal posting goods receipt", parseApiError(error)),
+    });
+
+    const cancelMutation = useMutation({
+        mutationFn: (receipt: GoodsReceipt) => purchasingService.cancelGoodsReceipt(receipt.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-goods-receipts"] });
+        },
+        onError: (error) => toast.error("Gagal membatalkan goods receipt", parseApiError(error)),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (receipt: GoodsReceipt) => purchasingService.deleteGoodsReceipt(receipt.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteTarget(null);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-goods-receipts"] });
+        },
+        onError: (error) => toast.error("Gagal menghapus goods receipt", parseApiError(error)),
+    });
+
+    const openCreate = () => {
+        setEditingReceipt(null);
+        setForm({
+            ...initialForm,
+            received_date: nowLocalInput(),
+            items: mapGoodsReceiptItemsFromPurchaseOrder(null),
+        });
+        setOpenModal(true);
+    };
+
+    const openEdit = (receipt: GoodsReceipt) => {
+        const purchaseOrder = receipt.purchase_order ?? receipt.purchaseOrder ?? null;
+
+        setEditingReceipt(receipt);
+        setForm({
+            purchase_order_id: receipt.purchase_order_id,
+            outlet_id: receipt.outlet_id,
+            received_date: receipt.received_date?.slice(0, 16) ?? nowLocalInput(),
+            notes: receipt.notes ?? "",
+            items:
+                receipt.items?.map((item) => ({
+                    raw_material_id: item.raw_material_id,
+                    qty_received: Number(item.qty_received ?? 0),
+                    unit_id: item.unit_id,
+                    unit_cost: Number(item.unit_cost ?? 0),
+                    expired_at: item.expired_at,
+                    notes: item.notes ?? "",
+                })) ?? mapGoodsReceiptItemsFromPurchaseOrder(purchaseOrder),
+        });
+        setOpenModal(true);
+    };
+
+    const handlePurchaseOrderChange = (purchaseOrderId: number) => {
+        const purchaseOrder = purchaseOrders.find((row) => Number(row.id) === Number(purchaseOrderId));
+
+        setForm((prev) => ({
+            ...prev,
+            purchase_order_id: purchaseOrderId,
+            outlet_id: purchaseOrder?.outlet_id ?? prev.outlet_id,
+            items: mapGoodsReceiptItemsFromPurchaseOrder(purchaseOrder ?? null),
+        }));
+    };
+
+    return (
+        <PermissionWrapper permission="goods_receipts.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Goods Receipt"
+                    description="Kelola penerimaan bahan baku dari purchase order."
+                    actions={<Button onClick={openCreate}>Buat Receipt</Button>}
+                />
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Input
+                            placeholder="Cari nomor receipt atau PO..."
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={outletFilter}
+                            onChange={(event) =>
+                                setOutletFilter(event.target.value ? Number(event.target.value) : "")
+                            }
+                        >
+                            <option value="">Semua outlet</option>
+                            {outlets.map((outlet) => (
+                                <option key={outlet.id} value={outlet.id}>
+                                    {outlet.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={purchaseOrderFilter}
+                            onChange={(event) =>
+                                setPurchaseOrderFilter(event.target.value ? Number(event.target.value) : "")
+                            }
+                        >
+                            <option value="">Semua PO</option>
+                            {purchaseOrders.map((order) => (
+                                <option key={order.id} value={order.id}>
+                                    {order.po_number}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={statusFilter}
+                            onChange={(event) => setStatusFilter(event.target.value as GoodsReceiptStatus | "")}
+                        >
+                            <option value="">Semua status</option>
+                            <option value="draft">draft</option>
+                            <option value="posted">posted</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {goodsReceiptsQuery.isLoading ? (
+                    <Card>Memuat goods receipt...</Card>
+                ) : goodsReceiptsQuery.isError ? (
+                    <PageErrorState onRetry={() => void goodsReceiptsQuery.refetch()} />
+                ) : !receipts.length ? (
+                    <PageEmptyState title="Belum ada goods receipt" />
+                ) : (
+                    <div className="grid gap-4 xl:grid-cols-2">
+                        {receipts.map((receipt) => {
+                            const purchaseOrder = receipt.purchase_order ?? receipt.purchaseOrder ?? null;
+
+                            return (
+                                <Card
+                                    key={receipt.id}
+                                    title={receipt.receipt_number}
+                                    description={`${receipt.outlet?.name ?? "-"} • ${purchaseOrder?.po_number ?? "-"
+                                        }`}
+                                    actions={<Badge variant={statusVariant[receipt.status]}>{receipt.status}</Badge>}
+                                >
+                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Received Date</div>
+                                            <div>{receipt.received_date}</div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-xs text-slate-500">Supplier</div>
+                                            <div>{purchaseOrder?.supplier?.name ?? "-"}</div>
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <div className="text-xs text-slate-500">Notes</div>
+                                            <div>{receipt.notes ?? "-"}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Button variant="outline" onClick={() => setDetailReceipt(receipt)}>
+                                            Detail
+                                        </Button>
+
+                                        {receipt.status === "draft" ? (
+                                            <>
+                                                <Button variant="outline" onClick={() => openEdit(receipt)}>
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    loading={postMutation.isPending}
+                                                    onClick={() => postMutation.mutate(receipt)}
+                                                >
+                                                    Post
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    loading={cancelMutation.isPending}
+                                                    onClick={() => cancelMutation.mutate(receipt)}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button variant="danger" onClick={() => setDeleteTarget(receipt)}>
+                                                    Hapus
+                                                </Button>
+                                            </>
+                                        ) : null}
+                                    </div>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                )}
+
+                <Modal
+                    open={openModal}
+                    title={editingReceipt ? "Edit Goods Receipt" : "Buat Goods Receipt"}
+                    onClose={() => setOpenModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenModal(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Purchase Order
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={form.purchase_order_id || ""}
+                                    onChange={(event) => handlePurchaseOrderChange(Number(event.target.value || 0))}
+                                >
+                                    <option value="">Pilih PO</option>
+                                    {purchaseOrders.map((order) => (
+                                        <option key={order.id} value={order.id}>
+                                            {order.po_number} - {order.supplier?.name ?? "-"}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Outlet
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={form.outlet_id || ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            outlet_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Received Date"
+                                type="datetime-local"
+                                value={form.received_date}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        received_date: event.target.value,
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="Catatan"
+                                value={form.notes ?? ""}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        notes: event.target.value,
+                                    }))
+                                }
+                            />
+                        </div>
+
+                        <GoodsReceiptItemsEditor
+                            value={form.items}
+                            onChange={(items: GoodsReceiptItemPayload[]) =>
+                                setForm((prev) => ({
+                                    ...prev,
+                                    items,
+                                }))
+                            }
+                            rawMaterials={rawMaterials}
+                            units={units}
+                            purchaseOrder={selectedPurchaseOrder}
+                        />
+
+                        <Card>
+                            <div className="text-sm">
+                                <div className="text-xs text-slate-500">Estimasi Total Receipt</div>
+                                <div className="text-lg font-bold text-slate-900">
+                                    Rp {formTotal.toLocaleString("id-ID")}
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailReceipt)}
+                    title={`Detail Receipt ${detailReceipt?.receipt_number ?? ""}`}
+                    onClose={() => setDetailReceipt(null)}
+                    footer={
+                        <Button variant="outline" onClick={() => setDetailReceipt(null)}>
+                            Tutup
+                        </Button>
+                    }
+                >
+                    <div className="space-y-4">
+                        <Card>
+                            <div className="grid gap-3 text-sm md:grid-cols-2">
+                                <div>
+                                    <div className="text-xs text-slate-500">Outlet</div>
+                                    <div>{detailReceipt?.outlet?.name ?? "-"}</div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">PO</div>
+                                    <div>
+                                        {detailReceipt?.purchase_order?.po_number ??
+                                            detailReceipt?.purchaseOrder?.po_number ??
+                                            "-"}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Status</div>
+                                    <div>{detailReceipt?.status ?? "-"}</div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Received Date</div>
+                                    <div>{detailReceipt?.received_date ?? "-"}</div>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <div className="text-xs text-slate-500">Notes</div>
+                                    <div>{detailReceipt?.notes ?? "-"}</div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        <div className="space-y-3">
+                            {detailReceipt?.items?.map((item) => (
+                                <Card
+                                    key={item.id}
+                                    title={item.raw_material?.name ?? item.rawMaterial?.name ?? "-"}
+                                    description={`${Number(item.qty_received ?? 0).toLocaleString("id-ID")} ${item.unit?.code ?? ""
+                                        }`}
+                                >
+                                    <div className="grid gap-3 text-sm md:grid-cols-3">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Unit Cost</div>
+                                            <div>Rp {Number(item.unit_cost ?? 0).toLocaleString("id-ID")}</div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-xs text-slate-500">Expired</div>
+                                            <div>{item.expired_at ?? "-"}</div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-xs text-slate-500">Line Total</div>
+                                            <div className="font-semibold text-slate-900">
+                                                Rp {Number(item.line_total ?? 0).toLocaleString("id-ID")}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleteTarget)}
+                    title="Hapus goods receipt?"
+                    description={`Receipt ${deleteTarget?.receipt_number ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={() => {
+                        if (deleteTarget) {
+                            deleteMutation.mutate(deleteTarget);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
+}
+
 ```
 </details>
 
@@ -4578,6 +5608,604 @@ export default function ProductVariantsPage() {
 ```
 </details>
 
+<a id="file-srcmodulesadminpagespurchaseorderspagetsx"></a>
+### src\modules\admin\pages\PurchaseOrdersPage.tsx
+- SHA: `6a95c54b1409`  
+- Ukuran: 27 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+// src/modules/admin/pages/PurchaseOrdersPage.tsx
+
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { inventoryService } from "@/modules/admin/services/inventory.service";
+import {
+    purchasingService,
+    type PurchaseOrderItemPayload,
+    type PurchaseOrderPayload,
+} from "@/modules/admin/services/purchasing.service";
+import {
+    PurchaseOrderItemsEditor,
+    createInitialPurchaseOrderItems,
+    sanitizePurchaseOrderItems,
+} from "@/modules/admin/components/purchasing/PurchaseOrderItemsEditor";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { PurchaseOrder, PurchaseOrderStatus } from "@/types/purchasing";
+
+const today = new Date().toISOString().slice(0, 10);
+
+const initialForm: PurchaseOrderPayload = {
+    outlet_id: 0,
+    supplier_id: 0,
+    order_date: today,
+    expected_date: null,
+    discount_amount: 0,
+    tax_amount: 0,
+    notes: "",
+    items: createInitialPurchaseOrderItems(),
+};
+
+const statusVariant: Record<PurchaseOrderStatus, "success" | "warning" | "info" | "danger"> = {
+    draft: "warning",
+    approved: "info",
+    partial_received: "warning",
+    received: "success",
+    cancelled: "danger",
+};
+
+export default function PurchaseOrdersPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [search, setSearch] = useState("");
+    const [outletFilter, setOutletFilter] = useState<number | "">("");
+    const [supplierFilter, setSupplierFilter] = useState<number | "">("");
+    const [statusFilter, setStatusFilter] = useState<PurchaseOrderStatus | "">("");
+    const [openModal, setOpenModal] = useState(false);
+    const [detailOrder, setDetailOrder] = useState<PurchaseOrder | null>(null);
+    const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<PurchaseOrder | null>(null);
+    const [form, setForm] = useState<PurchaseOrderPayload>(initialForm);
+
+    const purchaseOrdersQuery = useQuery({
+        queryKey: ["purchasing-purchase-orders", search, outletFilter, supplierFilter, statusFilter],
+        queryFn: () =>
+            purchasingService.getPurchaseOrders({
+                per_page: 100,
+                search,
+                outlet_id: outletFilter,
+                supplier_id: supplierFilter,
+                status: statusFilter,
+            }),
+    });
+
+    const outletsQuery = useQuery({
+        queryKey: ["purchasing-po-outlets"],
+        queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+    });
+
+    const suppliersQuery = useQuery({
+        queryKey: ["purchasing-po-suppliers"],
+        queryFn: () => purchasingService.getSuppliers({ per_page: 100, is_active: true }),
+    });
+
+    const rawMaterialsQuery = useQuery({
+        queryKey: ["purchasing-po-raw-materials"],
+        queryFn: () => inventoryService.getRawMaterials({ per_page: 100 }),
+    });
+
+    const unitsQuery = useQuery({
+        queryKey: ["purchasing-po-units"],
+        queryFn: () => inventoryService.getUnits({ per_page: 100 }),
+    });
+
+    const purchaseOrders = purchaseOrdersQuery.data?.items ?? [];
+    const outlets = outletsQuery.data?.items ?? [];
+    const suppliers = suppliersQuery.data?.items ?? [];
+    const rawMaterials = rawMaterialsQuery.data?.items ?? [];
+    const units = unitsQuery.data?.items ?? [];
+
+    const formSubtotal = useMemo(() => {
+        return sanitizePurchaseOrderItems(form.items).reduce((total, item) => {
+            return (
+                total +
+                Math.max(
+                    0,
+                    Number(item.qty_ordered || 0) * Number(item.unit_price || 0) -
+                    Number(item.discount_amount || 0)
+                )
+            );
+        }, 0);
+    }, [form.items]);
+
+    const formTotal = Math.max(
+        0,
+        formSubtotal - Number(form.discount_amount || 0) + Number(form.tax_amount || 0)
+    );
+
+    const saveMutation = useMutation({
+        mutationFn: (payload: PurchaseOrderPayload) => {
+            const sanitizedPayload = {
+                ...payload,
+                items: sanitizePurchaseOrderItems(payload.items),
+            };
+
+            if (editingOrder) {
+                return purchasingService.updatePurchaseOrder(editingOrder.id, sanitizedPayload);
+            }
+
+            return purchasingService.createPurchaseOrder(sanitizedPayload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenModal(false);
+            setEditingOrder(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-purchase-orders"] });
+        },
+        onError: (error) => toast.error("Gagal menyimpan purchase order", parseApiError(error)),
+    });
+
+    const approveMutation = useMutation({
+        mutationFn: (order: PurchaseOrder) => purchasingService.approvePurchaseOrder(order.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-purchase-orders"] });
+        },
+        onError: (error) => toast.error("Gagal approve purchase order", parseApiError(error)),
+    });
+
+    const cancelMutation = useMutation({
+        mutationFn: (order: PurchaseOrder) => purchasingService.cancelPurchaseOrder(order.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-purchase-orders"] });
+        },
+        onError: (error) => toast.error("Gagal membatalkan purchase order", parseApiError(error)),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (order: PurchaseOrder) => purchasingService.deletePurchaseOrder(order.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteTarget(null);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-purchase-orders"] });
+        },
+        onError: (error) => toast.error("Gagal menghapus purchase order", parseApiError(error)),
+    });
+
+    const openCreate = () => {
+        setEditingOrder(null);
+        setForm(initialForm);
+        setOpenModal(true);
+    };
+
+    const openEdit = (order: PurchaseOrder) => {
+        setEditingOrder(order);
+        setForm({
+            outlet_id: order.outlet_id,
+            supplier_id: order.supplier_id,
+            order_date: order.order_date,
+            expected_date: order.expected_date,
+            discount_amount: Number(order.discount_amount ?? 0),
+            tax_amount: Number(order.tax_amount ?? 0),
+            notes: order.notes ?? "",
+            items:
+                order.items?.map((item) => ({
+                    raw_material_id: item.raw_material_id,
+                    qty_ordered: Number(item.qty_ordered ?? 0),
+                    unit_id: item.unit_id,
+                    unit_price: Number(item.unit_price ?? 0),
+                    discount_amount: Number(item.discount_amount ?? 0),
+                    notes: item.notes ?? "",
+                })) ?? createInitialPurchaseOrderItems(),
+        });
+        setOpenModal(true);
+    };
+
+    return (
+        <PermissionWrapper permission="purchase_orders.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Purchase Order"
+                    description="Kelola draft, approval, dan riwayat pembelian bahan baku."
+                    actions={<Button onClick={openCreate}>Buat PO</Button>}
+                />
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Input
+                            placeholder="Cari nomor PO atau supplier..."
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={outletFilter}
+                            onChange={(event) =>
+                                setOutletFilter(event.target.value ? Number(event.target.value) : "")
+                            }
+                        >
+                            <option value="">Semua outlet</option>
+                            {outlets.map((outlet) => (
+                                <option key={outlet.id} value={outlet.id}>
+                                    {outlet.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={supplierFilter}
+                            onChange={(event) =>
+                                setSupplierFilter(event.target.value ? Number(event.target.value) : "")
+                            }
+                        >
+                            <option value="">Semua supplier</option>
+                            {suppliers.map((supplier) => (
+                                <option key={supplier.id} value={supplier.id}>
+                                    {supplier.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={statusFilter}
+                            onChange={(event) => setStatusFilter(event.target.value as PurchaseOrderStatus | "")}
+                        >
+                            <option value="">Semua status</option>
+                            <option value="draft">draft</option>
+                            <option value="approved">approved</option>
+                            <option value="partial_received">partial_received</option>
+                            <option value="received">received</option>
+                            <option value="cancelled">cancelled</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {purchaseOrdersQuery.isLoading ? (
+                    <Card>Memuat purchase order...</Card>
+                ) : purchaseOrdersQuery.isError ? (
+                    <PageErrorState onRetry={() => void purchaseOrdersQuery.refetch()} />
+                ) : !purchaseOrders.length ? (
+                    <PageEmptyState title="Belum ada purchase order" />
+                ) : (
+                    <div className="grid gap-4 xl:grid-cols-2">
+                        {purchaseOrders.map((order) => (
+                            <Card
+                                key={order.id}
+                                title={order.po_number}
+                                description={`${order.outlet?.name ?? "-"} • ${order.supplier?.name ?? "-"}`}
+                                actions={<Badge variant={statusVariant[order.status]}>{order.status}</Badge>}
+                            >
+                                <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                    <div>
+                                        <div className="text-xs text-slate-500">Tanggal Order</div>
+                                        <div>{order.order_date}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Expected Date</div>
+                                        <div>{order.expected_date ?? "-"}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Subtotal</div>
+                                        <div>Rp {Number(order.subtotal ?? 0).toLocaleString("id-ID")}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Total</div>
+                                        <div className="font-semibold text-slate-900">
+                                            Rp {Number(order.total_amount ?? 0).toLocaleString("id-ID")}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <Button variant="outline" onClick={() => setDetailOrder(order)}>
+                                        Detail
+                                    </Button>
+
+                                    {order.status === "draft" ? (
+                                        <>
+                                            <Button variant="outline" onClick={() => openEdit(order)}>
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                loading={approveMutation.isPending}
+                                                onClick={() => approveMutation.mutate(order)}
+                                            >
+                                                Approve
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                loading={cancelMutation.isPending}
+                                                onClick={() => cancelMutation.mutate(order)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button variant="danger" onClick={() => setDeleteTarget(order)}>
+                                                Hapus
+                                            </Button>
+                                        </>
+                                    ) : null}
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+
+                <Modal
+                    open={openModal}
+                    title={editingOrder ? "Edit Purchase Order" : "Buat Purchase Order"}
+                    onClose={() => setOpenModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenModal(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Outlet
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={form.outlet_id || ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            outlet_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih outlet</option>
+                                    {outlets.map((outlet) => (
+                                        <option key={outlet.id} value={outlet.id}>
+                                            {outlet.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Supplier
+                                </label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                                    value={form.supplier_id || ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            supplier_id: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                >
+                                    <option value="">Pilih supplier</option>
+                                    {suppliers.map((supplier) => (
+                                        <option key={supplier.id} value={supplier.id}>
+                                            {supplier.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Order Date"
+                                type="date"
+                                value={form.order_date}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        order_date: event.target.value,
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="Expected Date"
+                                type="date"
+                                value={form.expected_date ?? ""}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        expected_date: event.target.value || null,
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="Diskon Header"
+                                type="number"
+                                value={String(form.discount_amount ?? 0)}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        discount_amount: Number(event.target.value || 0),
+                                    }))
+                                }
+                            />
+
+                            <Input
+                                label="Pajak"
+                                type="number"
+                                value={String(form.tax_amount ?? 0)}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        tax_amount: Number(event.target.value || 0),
+                                    }))
+                                }
+                            />
+
+                            <div className="md:col-span-2">
+                                <Input
+                                    label="Catatan"
+                                    value={form.notes ?? ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            notes: event.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <PurchaseOrderItemsEditor
+                            value={form.items}
+                            onChange={(items: PurchaseOrderItemPayload[]) =>
+                                setForm((prev) => ({
+                                    ...prev,
+                                    items,
+                                }))
+                            }
+                            rawMaterials={rawMaterials}
+                            units={units}
+                        />
+
+                        <Card>
+                            <div className="grid gap-3 text-sm md:grid-cols-3">
+                                <div>
+                                    <div className="text-xs text-slate-500">Subtotal Item</div>
+                                    <div className="font-semibold text-slate-900">
+                                        Rp {formSubtotal.toLocaleString("id-ID")}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Diskon + Pajak</div>
+                                    <div className="font-semibold text-slate-900">
+                                        Rp{" "}
+                                        {(
+                                            Number(form.tax_amount || 0) - Number(form.discount_amount || 0)
+                                        ).toLocaleString("id-ID")}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Estimasi Total</div>
+                                    <div className="text-lg font-bold text-slate-900">
+                                        Rp {formTotal.toLocaleString("id-ID")}
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detailOrder)}
+                    title={`Detail PO ${detailOrder?.po_number ?? ""}`}
+                    onClose={() => setDetailOrder(null)}
+                    footer={
+                        <Button variant="outline" onClick={() => setDetailOrder(null)}>
+                            Tutup
+                        </Button>
+                    }
+                >
+                    <div className="space-y-4">
+                        <Card>
+                            <div className="grid gap-3 text-sm md:grid-cols-2">
+                                <div>
+                                    <div className="text-xs text-slate-500">Outlet</div>
+                                    <div>{detailOrder?.outlet?.name ?? "-"}</div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Supplier</div>
+                                    <div>{detailOrder?.supplier?.name ?? "-"}</div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Status</div>
+                                    <div>{detailOrder?.status ?? "-"}</div>
+                                </div>
+
+                                <div>
+                                    <div className="text-xs text-slate-500">Approved At</div>
+                                    <div>{detailOrder?.approved_at ?? "-"}</div>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <div className="text-xs text-slate-500">Notes</div>
+                                    <div>{detailOrder?.notes ?? "-"}</div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        <div className="space-y-3">
+                            {detailOrder?.items?.map((item) => (
+                                <Card
+                                    key={item.id}
+                                    title={item.raw_material?.name ?? item.rawMaterial?.name ?? "-"}
+                                    description={`${Number(item.qty_ordered ?? 0).toLocaleString("id-ID")} ${item.unit?.code ?? ""
+                                        }`}
+                                >
+                                    <div className="grid gap-3 text-sm md:grid-cols-3">
+                                        <div>
+                                            <div className="text-xs text-slate-500">Unit Price</div>
+                                            <div>Rp {Number(item.unit_price ?? 0).toLocaleString("id-ID")}</div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-xs text-slate-500">Diskon</div>
+                                            <div>Rp {Number(item.discount_amount ?? 0).toLocaleString("id-ID")}</div>
+                                        </div>
+
+                                        <div>
+                                            <div className="text-xs text-slate-500">Line Total</div>
+                                            <div className="font-semibold text-slate-900">
+                                                Rp {Number(item.line_total ?? 0).toLocaleString("id-ID")}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleteTarget)}
+                    title="Hapus purchase order?"
+                    description={`PO ${deleteTarget?.po_number ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={() => {
+                        if (deleteTarget) {
+                            deleteMutation.mutate(deleteTarget);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagesrawmaterialcategoriespagetsx"></a>
 ### src\modules\admin\pages\RawMaterialCategoriesPage.tsx
 - SHA: `890bbc3fd3df`  
@@ -5389,6 +7017,300 @@ export default function RolesPage() {
       </div>
     </PermissionWrapper>
   );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagessupplierspagetsx"></a>
+### src\modules\admin\pages\SuppliersPage.tsx
+- SHA: `ec860c87629e`  
+- Ukuran: 12 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+// src/modules/admin/pages/SuppliersPage.tsx
+
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+    purchasingService,
+    type SupplierPayload,
+} from "@/modules/admin/services/purchasing.service";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Switch } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { Supplier } from "@/types/purchasing";
+
+const initialForm: SupplierPayload = {
+    code: "",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    contact_person: "",
+    is_active: true,
+};
+
+export default function SuppliersPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [search, setSearch] = useState("");
+    const [activeFilter, setActiveFilter] = useState<boolean | "">("");
+    const [openModal, setOpenModal] = useState(false);
+    const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+    const [form, setForm] = useState<SupplierPayload>(initialForm);
+
+    const suppliersQuery = useQuery({
+        queryKey: ["purchasing-suppliers", search, activeFilter],
+        queryFn: () =>
+            purchasingService.getSuppliers({
+                per_page: 100,
+                search,
+                is_active: activeFilter,
+            }),
+    });
+
+    const suppliers = suppliersQuery.data?.items ?? [];
+
+    const saveMutation = useMutation({
+        mutationFn: (payload: SupplierPayload) => {
+            if (editingSupplier) {
+                return purchasingService.updateSupplier(editingSupplier.id, payload);
+            }
+
+            return purchasingService.createSupplier(payload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpenModal(false);
+            setEditingSupplier(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-suppliers"] });
+        },
+        onError: (error) => toast.error("Gagal menyimpan supplier", parseApiError(error)),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (supplier: Supplier) => purchasingService.deleteSupplier(supplier.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleteTarget(null);
+            void queryClient.invalidateQueries({ queryKey: ["purchasing-suppliers"] });
+        },
+        onError: (error) => toast.error("Gagal menghapus supplier", parseApiError(error)),
+    });
+
+    const openCreate = () => {
+        setEditingSupplier(null);
+        setForm(initialForm);
+        setOpenModal(true);
+    };
+
+    const openEdit = (supplier: Supplier) => {
+        setEditingSupplier(supplier);
+        setForm({
+            code: supplier.code ?? "",
+            name: supplier.name,
+            phone: supplier.phone ?? "",
+            email: supplier.email ?? "",
+            address: supplier.address ?? "",
+            city: supplier.city ?? "",
+            contact_person: supplier.contact_person ?? "",
+            is_active: supplier.is_active,
+        });
+        setOpenModal(true);
+    };
+
+    return (
+        <PermissionWrapper permission="suppliers.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Supplier"
+                    description="Kelola data supplier bahan baku dan vendor pembelian."
+                    actions={<Button onClick={openCreate}>Tambah Supplier</Button>}
+                />
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Input
+                            placeholder="Cari kode, nama, telepon, email, kota..."
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                            value={activeFilter === "" ? "" : String(activeFilter)}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setActiveFilter(value === "" ? "" : value === "true");
+                            }}
+                        >
+                            <option value="">Semua status</option>
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {suppliersQuery.isLoading ? (
+                    <Card>Memuat data supplier...</Card>
+                ) : suppliersQuery.isError ? (
+                    <PageErrorState onRetry={() => void suppliersQuery.refetch()} />
+                ) : !suppliers.length ? (
+                    <PageEmptyState title="Belum ada supplier" />
+                ) : (
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        {suppliers.map((supplier) => (
+                            <Card
+                                key={supplier.id}
+                                title={supplier.name}
+                                description={supplier.code ?? "Tanpa kode"}
+                                actions={
+                                    <Badge variant={supplier.is_active ? "success" : "danger"}>
+                                        {supplier.is_active ? "Aktif" : "Nonaktif"}
+                                    </Badge>
+                                }
+                            >
+                                <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                    <div>
+                                        <div className="text-xs text-slate-500">Kontak</div>
+                                        <div>{supplier.contact_person ?? "-"}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Telepon</div>
+                                        <div>{supplier.phone ?? "-"}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Email</div>
+                                        <div>{supplier.email ?? "-"}</div>
+                                    </div>
+
+                                    <div>
+                                        <div className="text-xs text-slate-500">Kota</div>
+                                        <div>{supplier.city ?? "-"}</div>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <div className="text-xs text-slate-500">Alamat</div>
+                                        <div>{supplier.address ?? "-"}</div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <Button variant="outline" onClick={() => openEdit(supplier)}>
+                                        Edit
+                                    </Button>
+                                    <Button variant="danger" onClick={() => setDeleteTarget(supplier)}>
+                                        Hapus
+                                    </Button>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+
+                <Modal
+                    open={openModal}
+                    title={editingSupplier ? "Edit Supplier" : "Tambah Supplier"}
+                    onClose={() => setOpenModal(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpenModal(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate(form)}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Input
+                            label="Kode"
+                            value={form.code ?? ""}
+                            onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Nama Supplier"
+                            value={form.name}
+                            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Telepon"
+                            value={form.phone ?? ""}
+                            onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Email"
+                            type="email"
+                            value={form.email ?? ""}
+                            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Kota"
+                            value={form.city ?? ""}
+                            onChange={(event) => setForm((prev) => ({ ...prev, city: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Contact Person"
+                            value={form.contact_person ?? ""}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, contact_person: event.target.value }))
+                            }
+                        />
+
+                        <div className="md:col-span-2">
+                            <Input
+                                label="Alamat"
+                                value={form.address ?? ""}
+                                onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <Switch
+                                label="Supplier aktif"
+                                checked={Boolean(form.is_active)}
+                                onChange={(checked) =>
+                                    setForm((prev) => ({ ...prev, is_active: checked }))
+                                }
+                            />
+                        </div>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleteTarget)}
+                    title="Hapus supplier?"
+                    description={`Supplier ${deleteTarget?.name ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleteTarget(null)}
+                    onConfirm={() => {
+                        if (deleteTarget) {
+                            deleteMutation.mutate(deleteTarget);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
 }
 ```
 </details>
@@ -6982,6 +8904,238 @@ export const masterDataService = {
     const response = await apiClient.put<ApiResponse<SystemSetting[]>>(endpoints.systemSettings.upsert, {
       settings,
     });
+    return response.data;
+  },
+};
+```
+</details>
+
+<a id="file-srcmodulesadminservicespurchasingservicets"></a>
+### src\modules\admin\services\purchasing.service.ts
+- SHA: `d4aab07bb46a`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+// src/modules/admin/services/purchasing.service.ts
+
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type {
+  GoodsReceipt,
+  GoodsReceiptStatus,
+  PurchaseOrder,
+  PurchaseOrderStatus,
+  Supplier,
+} from "@/types/purchasing";
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+export interface PurchasingPaginationQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+}
+
+export interface SupplierQuery extends PurchasingPaginationQuery {
+  is_active?: boolean | "";
+}
+
+export interface PurchaseOrderQuery extends PurchasingPaginationQuery {
+  outlet_id?: number | "";
+  supplier_id?: number | "";
+  status?: PurchaseOrderStatus | "";
+}
+
+export interface GoodsReceiptQuery extends PurchasingPaginationQuery {
+  purchase_order_id?: number | "";
+  outlet_id?: number | "";
+  status?: GoodsReceiptStatus | "";
+}
+
+export interface SupplierPayload {
+  code?: string | null;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  city?: string | null;
+  contact_person?: string | null;
+  is_active?: boolean;
+}
+
+export interface PurchaseOrderItemPayload {
+  raw_material_id: number;
+  qty_ordered: number;
+  unit_id: number;
+  unit_price: number;
+  discount_amount?: number;
+  notes?: string | null;
+}
+
+export interface PurchaseOrderPayload {
+  outlet_id: number;
+  supplier_id: number;
+  order_date: string;
+  expected_date?: string | null;
+  discount_amount?: number;
+  tax_amount?: number;
+  notes?: string | null;
+  items: PurchaseOrderItemPayload[];
+}
+
+export interface GoodsReceiptItemPayload {
+  raw_material_id: number;
+  qty_received: number;
+  unit_id: number;
+  unit_cost: number;
+  expired_at?: string | null;
+  notes?: string | null;
+}
+
+export interface GoodsReceiptPayload {
+  purchase_order_id: number;
+  outlet_id: number;
+  received_date: string;
+  notes?: string | null;
+  items: GoodsReceiptItemPayload[];
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const purchasingService = {
+  async getSuppliers(params: SupplierQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Supplier[]>>(endpoints.suppliers.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createSupplier(payload: SupplierPayload) {
+    const response = await apiClient.post<ApiResponse<Supplier>>(endpoints.suppliers.store, payload);
+    return response.data;
+  },
+
+  async updateSupplier(id: number, payload: SupplierPayload) {
+    const response = await apiClient.put<ApiResponse<Supplier>>(
+      endpoints.suppliers.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteSupplier(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.suppliers.destroy(id));
+    return response.data;
+  },
+
+  async getPurchaseOrders(params: PurchaseOrderQuery = {}) {
+    const response = await apiClient.get<ApiResponse<PurchaseOrder[]>>(
+      endpoints.purchaseOrders.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createPurchaseOrder(payload: PurchaseOrderPayload) {
+    const response = await apiClient.post<ApiResponse<PurchaseOrder>>(
+      endpoints.purchaseOrders.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updatePurchaseOrder(id: number, payload: PurchaseOrderPayload) {
+    const response = await apiClient.put<ApiResponse<PurchaseOrder>>(
+      endpoints.purchaseOrders.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deletePurchaseOrder(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.purchaseOrders.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async approvePurchaseOrder(id: number) {
+    const response = await apiClient.post<ApiResponse<PurchaseOrder>>(
+      endpoints.purchaseOrders.approve(id)
+    );
+
+    return response.data;
+  },
+
+  async cancelPurchaseOrder(id: number) {
+    const response = await apiClient.post<ApiResponse<PurchaseOrder>>(
+      endpoints.purchaseOrders.cancel(id)
+    );
+
+    return response.data;
+  },
+
+  async getGoodsReceipts(params: GoodsReceiptQuery = {}) {
+    const response = await apiClient.get<ApiResponse<GoodsReceipt[]>>(
+      endpoints.goodsReceipts.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createGoodsReceipt(payload: GoodsReceiptPayload) {
+    const response = await apiClient.post<ApiResponse<GoodsReceipt>>(
+      endpoints.goodsReceipts.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateGoodsReceipt(id: number, payload: GoodsReceiptPayload) {
+    const response = await apiClient.put<ApiResponse<GoodsReceipt>>(
+      endpoints.goodsReceipts.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteGoodsReceipt(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.goodsReceipts.destroy(id));
+    return response.data;
+  },
+
+  async postGoodsReceipt(id: number) {
+    const response = await apiClient.post<ApiResponse<GoodsReceipt>>(
+      endpoints.goodsReceipts.post(id)
+    );
+
+    return response.data;
+  },
+
+  async cancelGoodsReceipt(id: number) {
+    const response = await apiClient.post<ApiResponse<GoodsReceipt>>(
+      endpoints.goodsReceipts.cancel(id)
+    );
+
     return response.data;
   },
 };
@@ -12365,11 +14519,13 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `4bcfe1e9d98f`  
+- SHA: `b62362432c7b`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
+// src/components/navigation/navigation.config.ts
+
 export interface NavigationItem {
   label: string;
   to: string;
@@ -12434,6 +14590,21 @@ export const adminNavigation: NavigationItem[] = [
     permission: "product_boms.view",
   },
   {
+    label: "Suppliers",
+    to: "/admin/suppliers",
+    permission: "suppliers.view",
+  },
+  {
+    label: "Purchase Orders",
+    to: "/admin/purchase-orders",
+    permission: "purchase_orders.view",
+  },
+  {
+    label: "Goods Receipts",
+    to: "/admin/goods-receipts",
+    permission: "goods_receipts.view",
+  },
+  {
     label: "POS",
     to: "/pos/orders",
     permission: "products.view",
@@ -12447,18 +14618,16 @@ export const adminNavigation: NavigationItem[] = [
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "New Order", to: "/pos/orders", permission: "products.view" },
-  { label: "Shift", to: "/pos/shifts" },
+  { label: "New Order", to: "/pos/orders", permission: "orders.create" },
+  { label: "Shift", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Kitchen Home", to: "/kitchen", permission: "kitchen_tickets.view" },
   { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
   { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Owner Home", to: "/owner" },
   { label: "Overview", to: "/owner/overview" },
   { label: "Reports", to: "/owner/reports" },
 ];
@@ -13599,17 +15768,19 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `edbba282acb7`  
+- SHA: `897180785ed2`  
 - Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
+// src/services/api/endpoints.ts
+
 export const endpoints = {
   auth: {
-    login: "/auth/login",
-    logout: "/auth/logout",
-    me: "/auth/me",
-    changePassword: "/auth/change-password",
+    login: "/login",
+    me: "/me",
+    logout: "/logout",
+    changePassword: "/change-password",
   },
 
   users: {
@@ -13642,12 +15813,16 @@ export const endpoints = {
     show: (id: number | string) => `/outlets/${id}`,
     update: (id: number | string) => `/outlets/${id}`,
     destroy: (id: number | string) => `/outlets/${id}`,
-    settings: (id: number | string) => `/outlets/${id}/settings`,
+  },
+
+  outletSettings: {
+    show: (outletId: number | string) => `/outlets/${outletId}/settings`,
+    update: (outletId: number | string) => `/outlets/${outletId}/settings`,
   },
 
   systemSettings: {
     index: "/system-settings",
-    upsert: "/system-settings/upsert",
+    upsert: "/system-settings",
   },
 
   productCategories: {
@@ -13664,30 +15839,6 @@ export const endpoints = {
     show: (id: number | string) => `/products/${id}`,
     update: (id: number | string) => `/products/${id}`,
     destroy: (id: number | string) => `/products/${id}`,
-  },
-
-  customers: {
-    index: "/customers",
-    store: "/customers",
-    show: (id: number | string) => `/customers/${id}`,
-    update: (id: number | string) => `/customers/${id}`,
-    destroy: (id: number | string) => `/customers/${id}`,
-  },
-
-  vouchers: {
-    index: "/vouchers",
-    store: "/vouchers",
-    show: (id: number | string) => `/vouchers/${id}`,
-    update: (id: number | string) => `/vouchers/${id}`,
-    destroy: (id: number | string) => `/vouchers/${id}`,
-  },
-
-  promotions: {
-    index: "/promotions",
-    store: "/promotions",
-    show: (id: number | string) => `/promotions/${id}`,
-    update: (id: number | string) => `/promotions/${id}`,
-    destroy: (id: number | string) => `/promotions/${id}`,
   },
 
   units: {
@@ -13734,6 +15885,34 @@ export const endpoints = {
     show: (id: number | string) => `/product-boms/${id}`,
     update: (id: number | string) => `/product-boms/${id}`,
     destroy: (id: number | string) => `/product-boms/${id}`,
+  },
+
+  suppliers: {
+    index: "/suppliers",
+    store: "/suppliers",
+    show: (id: number | string) => `/suppliers/${id}`,
+    update: (id: number | string) => `/suppliers/${id}`,
+    destroy: (id: number | string) => `/suppliers/${id}`,
+  },
+
+  purchaseOrders: {
+    index: "/purchase-orders",
+    store: "/purchase-orders",
+    show: (id: number | string) => `/purchase-orders/${id}`,
+    update: (id: number | string) => `/purchase-orders/${id}`,
+    destroy: (id: number | string) => `/purchase-orders/${id}`,
+    approve: (id: number | string) => `/purchase-orders/${id}/approve`,
+    cancel: (id: number | string) => `/purchase-orders/${id}/cancel`,
+  },
+
+  goodsReceipts: {
+    index: "/goods-receipts",
+    store: "/goods-receipts",
+    show: (id: number | string) => `/goods-receipts/${id}`,
+    update: (id: number | string) => `/goods-receipts/${id}`,
+    destroy: (id: number | string) => `/goods-receipts/${id}`,
+    post: (id: number | string) => `/goods-receipts/${id}/post`,
+    cancel: (id: number | string) => `/goods-receipts/${id}/cancel`,
   },
 
   orders: {
@@ -14574,6 +16753,126 @@ export interface Product {
   bundle_items?: ProductBundleItem[];
   created_at?: string;
   updated_at?: string;
+}
+```
+</details>
+
+<a id="file-srctypespurchasingts"></a>
+### src\types\purchasing.ts
+- SHA: `b11fca67cef8`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+// src/types/purchasing.ts
+
+import type { Outlet } from "@/types/outlet";
+import type { RawMaterial, Unit } from "@/types/inventory";
+import type { User } from "@/types/user";
+
+export type PurchaseOrderStatus =
+  | "draft"
+  | "approved"
+  | "partial_received"
+  | "received"
+  | "cancelled";
+
+export type GoodsReceiptStatus = "draft" | "posted" | "cancelled";
+
+export interface Supplier {
+  id: number;
+  code: string | null;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  city: string | null;
+  contact_person: string | null;
+  is_active: boolean;
+  purchase_orders_count?: number;
+  purchaseOrders_count?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+  deleted_at?: string | null;
+}
+
+export interface PurchaseOrderItem {
+  id: number;
+  purchase_order_id: number;
+  raw_material_id: number;
+  unit_id: number;
+  qty_ordered: number;
+  unit_price: number;
+  discount_amount: number;
+  line_total: number;
+  notes: string | null;
+  raw_material?: RawMaterial | null;
+  rawMaterial?: RawMaterial | null;
+  unit?: Unit | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  outlet_id: number;
+  supplier_id: number;
+  po_number: string;
+  status: PurchaseOrderStatus;
+  order_date: string;
+  expected_date: string | null;
+  subtotal: number;
+  discount_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  notes: string | null;
+  approved_by: number | null;
+  approved_at: string | null;
+  created_by: number | null;
+  outlet?: Outlet | null;
+  supplier?: Supplier | null;
+  approver?: User | null;
+  creator?: User | null;
+  items?: PurchaseOrderItem[];
+  goods_receipts?: GoodsReceipt[];
+  goodsReceipts?: GoodsReceipt[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface GoodsReceiptItem {
+  id: number;
+  goods_receipt_id: number;
+  raw_material_id: number;
+  unit_id: number;
+  qty_received: number;
+  unit_cost: number;
+  line_total: number;
+  expired_at: string | null;
+  notes: string | null;
+  raw_material?: RawMaterial | null;
+  rawMaterial?: RawMaterial | null;
+  unit?: Unit | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface GoodsReceipt {
+  id: number;
+  purchase_order_id: number;
+  outlet_id: number;
+  receipt_number: string;
+  received_date: string;
+  status: GoodsReceiptStatus;
+  notes: string | null;
+  received_by: number | null;
+  purchase_order?: PurchaseOrder | null;
+  purchaseOrder?: PurchaseOrder | null;
+  outlet?: Outlet | null;
+  receiver?: User | null;
+  items?: GoodsReceiptItem[];
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 ```
 </details>

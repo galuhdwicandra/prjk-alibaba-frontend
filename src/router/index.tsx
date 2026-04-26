@@ -1,3 +1,5 @@
+// src/router/index.tsx
+
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -25,6 +27,9 @@ import RawMaterialCategoriesPage from "@/modules/admin/pages/RawMaterialCategori
 import RawMaterialsPage from "@/modules/admin/pages/RawMaterialsPage";
 import OutletMaterialStocksPage from "@/modules/admin/pages/OutletMaterialStocksPage";
 import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
+import SuppliersPage from "@/modules/admin/pages/SuppliersPage";
+import PurchaseOrdersPage from "@/modules/admin/pages/PurchaseOrdersPage";
+import GoodsReceiptsPage from "@/modules/admin/pages/GoodsReceiptsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -71,6 +76,9 @@ export const router = createBrowserRouter([
           { path: "raw-materials", element: <RawMaterialsPage /> },
           { path: "outlet-material-stocks", element: <OutletMaterialStocksPage /> },
           { path: "product-boms", element: <ProductBomsPage /> },
+          { path: "suppliers", element: <SuppliersPage /> },
+          { path: "purchase-orders", element: <PurchaseOrdersPage /> },
+          { path: "goods-receipts", element: <GoodsReceiptsPage /> },
         ],
       },
       {
