@@ -35,6 +35,9 @@ import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
 import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
+import NotificationsPage from "@/modules/admin/pages/NotificationsPage";
+import ActivityLogsPage from "@/modules/admin/pages/ActivityLogsPage";
+import CriticalAlertsPage from "@/modules/admin/pages/CriticalAlertsPage";
 import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
 import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
 import ReportsPage from "@/modules/reporting/pages/ReportsPage";
@@ -94,6 +97,9 @@ export const router = createBrowserRouter([
           { path: "expense-categories", element: <ExpenseCategoriesPage /> },
           { path: "expenses", element: <ExpensesPage /> },
           { path: "cash-movements", element: <CashMovementsPage /> },
+          { path: "notifications", element: <NotificationsPage /> },
+          { path: "critical-alerts", element: <CriticalAlertsPage /> },
+          { path: "activity-logs", element: <ActivityLogsPage /> },
           { path: "reports", element: <ReportsPage /> },
         ],
       },

@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 13:07:51_  
+_Dihasilkan otomatis: 2026-04-27 13:24:29_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -29,11 +29,14 @@ _Dihasilkan otomatis: 2026-04-27 13:07:51_
   - [src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx)
   - [src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx)
   - [src\modules\admin\components\stock\StockFlowItemsEditor.tsx](#file-srcmodulesadmincomponentsstockstockflowitemseditortsx)
+  - [src\modules\admin\pages\ActivityLogsPage.tsx](#file-srcmodulesadminpagesactivitylogspagetsx)
   - [src\modules\admin\pages\CashMovementsPage.tsx](#file-srcmodulesadminpagescashmovementspagetsx)
+  - [src\modules\admin\pages\CriticalAlertsPage.tsx](#file-srcmodulesadminpagescriticalalertspagetsx)
   - [src\modules\admin\pages\CustomersPage.tsx](#file-srcmodulesadminpagescustomerspagetsx)
   - [src\modules\admin\pages\ExpenseCategoriesPage.tsx](#file-srcmodulesadminpagesexpensecategoriespagetsx)
   - [src\modules\admin\pages\ExpensesPage.tsx](#file-srcmodulesadminpagesexpensespagetsx)
   - [src\modules\admin\pages\GoodsReceiptsPage.tsx](#file-srcmodulesadminpagesgoodsreceiptspagetsx)
+  - [src\modules\admin\pages\NotificationsPage.tsx](#file-srcmodulesadminpagesnotificationspagetsx)
   - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
   - [src\modules\admin\pages\PermissionsPage.tsx](#file-srcmodulesadminpagespermissionspagetsx)
@@ -59,6 +62,7 @@ _Dihasilkan otomatis: 2026-04-27 13:07:51_
   - [src\modules\admin\services\expense.service.ts](#file-srcmodulesadminservicesexpenseservicets)
   - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
+  - [src\modules\admin\services\notification.service.ts](#file-srcmodulesadminservicesnotificationservicets)
   - [src\modules\admin\services\purchasing.service.ts](#file-srcmodulesadminservicespurchasingservicets)
   - [src\modules\admin\services\stock-movement.service.ts](#file-srcmodulesadminservicesstock-movementservicets)
   - [src\modules\auth\hooks\useCurrentUser.ts](#file-srcmodulesauthhooksusecurrentuserts)
@@ -148,6 +152,7 @@ _Dihasilkan otomatis: 2026-04-27 13:07:51_
   - [src\types\expense.ts](#file-srctypesexpensets)
   - [src\types\inventory.ts](#file-srctypesinventoryts)
   - [src\types\kitchen.ts](#file-srctypeskitchents)
+  - [src\types\notification.ts](#file-srctypesnotificationts)
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
   - [src\types\product.ts](#file-srctypesproductts)
@@ -341,8 +346,8 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `3fd924a86f3f`  
-- Ukuran: 6 KB
+- SHA: `b1a357b8ecf1`  
+- Ukuran: 7 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -383,6 +388,9 @@ import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
 import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
+import NotificationsPage from "@/modules/admin/pages/NotificationsPage";
+import ActivityLogsPage from "@/modules/admin/pages/ActivityLogsPage";
+import CriticalAlertsPage from "@/modules/admin/pages/CriticalAlertsPage";
 import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
 import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
 import ReportsPage from "@/modules/reporting/pages/ReportsPage";
@@ -442,6 +450,9 @@ export const router = createBrowserRouter([
           { path: "expense-categories", element: <ExpenseCategoriesPage /> },
           { path: "expenses", element: <ExpensesPage /> },
           { path: "cash-movements", element: <CashMovementsPage /> },
+          { path: "notifications", element: <NotificationsPage /> },
+          { path: "critical-alerts", element: <CriticalAlertsPage /> },
+          { path: "activity-logs", element: <ActivityLogsPage /> },
           { path: "reports", element: <ReportsPage /> },
         ],
       },
@@ -2482,6 +2493,326 @@ export function sanitizeOpnameItems(value: StockOpnameItemPayload[]): StockOpnam
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesactivitylogspagetsx"></a>
+### src\modules\admin\pages\ActivityLogsPage.tsx
+- SHA: `d4d334175004`  
+- Ukuran: 11 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, Input, Modal, Pagination } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { notificationService } from "@/modules/admin/services/notification.service";
+import type { ActivityLog, ActivityLogQuery } from "@/types/notification";
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+const shortReference = (value: string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  const parts = value.split("\\");
+  return parts[parts.length - 1] ?? value;
+};
+
+export default function ActivityLogsPage() {
+  const [filters, setFilters] = useState<ActivityLogQuery>({
+    page: 1,
+    per_page: 10,
+    search: "",
+    outlet_id: "",
+    action: "",
+    module: "",
+    created_from: "",
+    created_until: "",
+  });
+  const [selected, setSelected] = useState<ActivityLog | null>(null);
+
+  const queryParams = useMemo(
+    () => ({
+      ...filters,
+      search: filters.search || undefined,
+      outlet_id: filters.outlet_id || undefined,
+      action: filters.action || undefined,
+      module: filters.module || undefined,
+      created_from: filters.created_from || undefined,
+      created_until: filters.created_until || undefined,
+    }),
+    [filters]
+  );
+
+  const outletsQuery = useQuery({
+    queryKey: ["activity-log-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, is_active: true }),
+  });
+
+  const logsQuery = useQuery({
+    queryKey: ["activity-logs", queryParams],
+    queryFn: () => notificationService.getActivityLogs(queryParams),
+  });
+
+  const detailQuery = useQuery({
+    queryKey: ["activity-log-detail", selected?.id],
+    queryFn: () => notificationService.getActivityLog(Number(selected?.id)),
+    enabled: Boolean(selected?.id),
+  });
+
+  const rows = logsQuery.data?.items ?? [];
+  const outlets = outletsQuery.data?.items ?? [];
+  const detail = detailQuery.data?.data ?? selected;
+
+  return (
+    <PermissionWrapper permission="activity_logs.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Activity Logs"
+          description="Histori aktivitas user, request API, modul, outlet, dan metadata teknis sistem."
+        />
+
+        <Card>
+          <div className="grid gap-4 lg:grid-cols-6">
+            <Input
+              label="Search"
+              placeholder="Cari action, module, user, outlet..."
+              value={filters.search ?? ""}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: 1,
+                  search: event.target.value,
+                }))
+              }
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.outlet_id ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    outlet_id: event.target.value ? Number(event.target.value) : "",
+                  }))
+                }
+              >
+                <option value="">Semua outlet</option>
+                {outlets.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Action"
+              placeholder="create, update, login..."
+              value={filters.action ?? ""}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: 1,
+                  action: event.target.value,
+                }))
+              }
+            />
+
+            <Input
+              label="Module"
+              placeholder="auth, reports, v1..."
+              value={filters.module ?? ""}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: 1,
+                  module: event.target.value,
+                }))
+              }
+            />
+
+            <Input
+              label="Dari"
+              type="date"
+              value={filters.created_from ?? ""}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: 1,
+                  created_from: event.target.value,
+                }))
+              }
+            />
+
+            <Input
+              label="Sampai"
+              type="date"
+              value={filters.created_until ?? ""}
+              onChange={(event) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: 1,
+                  created_until: event.target.value,
+                }))
+              }
+            />
+
+            <div className="flex items-end">
+              <Button loading={logsQuery.isFetching} onClick={() => void logsQuery.refetch()}>
+                Terapkan Filter
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {logsQuery.isLoading ? (
+          <Card>Memuat activity log...</Card>
+        ) : logsQuery.isError ? (
+          <PageErrorState onRetry={() => void logsQuery.refetch()} />
+        ) : !rows.length ? (
+          <PageEmptyState title="Belum ada activity log" />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead>
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-3 py-3">Waktu</th>
+                    <th className="px-3 py-3">User</th>
+                    <th className="px-3 py-3">Outlet</th>
+                    <th className="px-3 py-3">Action</th>
+                    <th className="px-3 py-3">Module</th>
+                    <th className="px-3 py-3">Reference</th>
+                    <th className="px-3 py-3">Description</th>
+                    <th className="px-3 py-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((row) => (
+                    <tr key={row.id} className="align-top">
+                      <td className="whitespace-nowrap px-3 py-3 text-slate-700">
+                        {formatDateTime(row.created_at)}
+                      </td>
+                      <td className="px-3 py-3 text-slate-700">{row.user?.name ?? "-"}</td>
+                      <td className="px-3 py-3 text-slate-700">{row.outlet?.name ?? "-"}</td>
+                      <td className="px-3 py-3">
+                        <Badge variant="info">{row.action}</Badge>
+                      </td>
+                      <td className="px-3 py-3 text-slate-700">{row.module}</td>
+                      <td className="px-3 py-3 text-slate-700">
+                        {shortReference(row.reference_type)} #{row.reference_id ?? "-"}
+                      </td>
+                      <td className="px-3 py-3 text-slate-700">{row.description ?? "-"}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end">
+                          <Button variant="outline" onClick={() => setSelected(row)}>
+                            Detail
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        <Pagination
+          meta={logsQuery.data?.meta}
+          onPageChange={(nextPage) => setFilters((prev) => ({ ...prev, page: nextPage }))}
+        />
+
+        <Modal
+          open={Boolean(selected)}
+          title="Detail Activity Log"
+          onClose={() => setSelected(null)}
+          footer={
+            <Button variant="outline" onClick={() => setSelected(null)}>
+              Tutup
+            </Button>
+          }
+        >
+          {detailQuery.isLoading ? (
+            <div className="text-sm text-slate-500">Memuat detail...</div>
+          ) : detail ? (
+            <div className="space-y-4 text-sm">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">User</div>
+                  <div className="font-medium text-slate-900">{detail.user?.name ?? "-"}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Outlet</div>
+                  <div className="font-medium text-slate-900">{detail.outlet?.name ?? "-"}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Action</div>
+                  <div className="font-medium text-slate-900">{detail.action}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Module</div>
+                  <div className="font-medium text-slate-900">{detail.module}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">IP Address</div>
+                  <div className="font-medium text-slate-900">{detail.ip_address ?? "-"}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Reference</div>
+                  <div className="font-medium text-slate-900">
+                    {shortReference(detail.reference_type)} #{detail.reference_id ?? "-"}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 font-semibold text-slate-900">Description</div>
+                <div className="rounded-xl border border-slate-200 p-3 text-slate-700">
+                  {detail.description ?? "-"}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 font-semibold text-slate-900">User Agent</div>
+                <div className="rounded-xl border border-slate-200 p-3 text-xs text-slate-700">
+                  {detail.user_agent ?? "-"}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 font-semibold text-slate-900">Metadata</div>
+                <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-slate-50">
+                  {JSON.stringify(detail.metadata ?? {}, null, 2)}
+                </pre>
+              </div>
+            </div>
+          ) : null}
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagescashmovementspagetsx"></a>
 ### src\modules\admin\pages\CashMovementsPage.tsx
 - SHA: `09923f5d1dde`  
@@ -2762,6 +3093,269 @@ export default function CashMovementsPage() {
             />
           </div>
         </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagescriticalalertspagetsx"></a>
+### src\modules\admin\pages\CriticalAlertsPage.tsx
+- SHA: `19698caea20a`  
+- Ukuran: 9 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, Input, Pagination } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { notificationService } from "@/modules/admin/services/notification.service";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { NotificationQuery, NotificationType } from "@/types/notification";
+
+const criticalTypes: Array<NotificationType | ""> = [
+  "",
+  "low_stock",
+  "order_overdue",
+  "shift_not_closed",
+  "promo_expiring",
+];
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+const typeLabel = (type: NotificationType) => {
+  const labels: Record<NotificationType, string> = {
+    low_stock: "Low Stock",
+    shift_not_closed: "Shift Belum Ditutup",
+    promo_expiring: "Promo Hampir Habis",
+    order_overdue: "Order Terlambat",
+  };
+
+  return labels[type];
+};
+
+export default function CriticalAlertsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [filters, setFilters] = useState<NotificationQuery>({
+    page: 1,
+    per_page: 10,
+    outlet_id: "",
+    type: "",
+    severity: "danger",
+    status: "unread",
+  });
+
+  const queryParams = useMemo(
+    () => ({
+      ...filters,
+      outlet_id: filters.outlet_id || undefined,
+      type: filters.type || undefined,
+      severity: "danger" as const,
+      status: filters.status || undefined,
+    }),
+    [filters]
+  );
+
+  const outletsQuery = useQuery({
+    queryKey: ["critical-alert-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, is_active: true }),
+  });
+
+  const alertsQuery = useQuery({
+    queryKey: ["critical-alerts", queryParams],
+    queryFn: () => notificationService.getNotifications(queryParams),
+  });
+
+  const scanMutation = useMutation({
+    mutationFn: () =>
+      notificationService.scanAlerts({
+        outlet_id: filters.outlet_id ? Number(filters.outlet_id) : null,
+        alert_type: filters.type || null,
+      }),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["critical-alerts"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menjalankan scan critical alert", parseApiError(error));
+    },
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: (id: number) => notificationService.resolveNotification(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["critical-alerts"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal resolve critical alert", parseApiError(error));
+    },
+  });
+
+  const rows = alertsQuery.data?.items ?? [];
+  const outlets = outletsQuery.data?.items ?? [];
+
+  return (
+    <PermissionWrapper permission="notifications.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Critical Alerts"
+          description="Daftar alert prioritas tinggi yang perlu ditindaklanjuti lebih cepat."
+        />
+
+        <Card>
+          <div className="grid gap-4 lg:grid-cols-5">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.outlet_id ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    outlet_id: event.target.value ? Number(event.target.value) : "",
+                  }))
+                }
+              >
+                <option value="">Semua outlet</option>
+                {outlets.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Tipe Alert</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.type ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    type: event.target.value as NotificationType | "",
+                  }))
+                }
+              >
+                {criticalTypes.map((type) => (
+                  <option key={type || "all"} value={type}>
+                    {type ? typeLabel(type) : "Semua tipe critical"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input label="Severity" value="danger" disabled />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Status</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.status ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    status: event.target.value as NotificationQuery["status"],
+                  }))
+                }
+              >
+                <option value="">Semua status</option>
+                <option value="unread">unread</option>
+                <option value="read">read</option>
+                <option value="resolved">resolved</option>
+              </select>
+            </div>
+
+            <div className="flex items-end gap-2">
+              <Button loading={alertsQuery.isFetching} onClick={() => void alertsQuery.refetch()}>
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                loading={scanMutation.isPending}
+                onClick={() => scanMutation.mutate()}
+              >
+                Scan
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {alertsQuery.isLoading ? (
+          <Card>Memuat critical alert...</Card>
+        ) : alertsQuery.isError ? (
+          <PageErrorState onRetry={() => void alertsQuery.refetch()} />
+        ) : !rows.length ? (
+          <PageEmptyState title="Tidak ada critical alert" />
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-2">
+            {rows.map((row) => (
+              <Card
+                key={row.id}
+                title={row.title}
+                description={row.outlet?.name ?? "Semua outlet"}
+                actions={<Badge variant="danger">{row.status}</Badge>}
+              >
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-600">{row.message}</p>
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <div className="text-xs text-slate-500">Tipe</div>
+                      <div className="font-medium text-slate-900">{typeLabel(row.type)}</div>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <div className="text-xs text-slate-500">Source</div>
+                      <div className="font-medium text-slate-900">#{row.source_id ?? "-"}</div>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-50 p-3">
+                      <div className="text-xs text-slate-500">Waktu</div>
+                      <div className="font-medium text-slate-900">{formatDateTime(row.created_at)}</div>
+                    </div>
+                  </div>
+
+                  {row.status !== "resolved" ? (
+                    <Button
+                      loading={resolveMutation.isPending}
+                      onClick={() => resolveMutation.mutate(row.id)}
+                    >
+                      Resolve Alert
+                    </Button>
+                  ) : null}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Pagination
+          meta={alertsQuery.data?.meta}
+          onPageChange={(nextPage) => setFilters((prev) => ({ ...prev, page: nextPage }))}
+        />
       </div>
     </PermissionWrapper>
   );
@@ -4608,6 +5202,490 @@ export default function GoodsReceiptsPage() {
     );
 }
 
+```
+</details>
+
+<a id="file-srcmodulesadminpagesnotificationspagetsx"></a>
+### src\modules\admin\pages\NotificationsPage.tsx
+- SHA: `af1eaf1b05a0`  
+- Ukuran: 17 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { notificationService } from "@/modules/admin/services/notification.service";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type {
+  Notification,
+  NotificationQuery,
+  NotificationSeverity,
+  NotificationStatus,
+  NotificationType,
+} from "@/types/notification";
+
+const notificationTypes: Array<NotificationType | ""> = [
+  "",
+  "low_stock",
+  "shift_not_closed",
+  "promo_expiring",
+  "order_overdue",
+];
+
+const severityOptions: Array<NotificationSeverity | ""> = ["", "info", "warning", "danger"];
+
+const statusOptions: Array<NotificationStatus | ""> = ["", "unread", "read", "resolved"];
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+const severityBadge = (severity: NotificationSeverity) => {
+  if (severity === "danger") {
+    return "danger";
+  }
+
+  if (severity === "warning") {
+    return "warning";
+  }
+
+  return "info";
+};
+
+const statusBadge = (status: NotificationStatus) => {
+  if (status === "resolved") {
+    return "success";
+  }
+
+  if (status === "read") {
+    return "info";
+  }
+
+  return "warning";
+};
+
+const typeLabel = (type: NotificationType) => {
+  const labels: Record<NotificationType, string> = {
+    low_stock: "Low Stock",
+    shift_not_closed: "Shift Belum Ditutup",
+    promo_expiring: "Promo Hampir Habis",
+    order_overdue: "Order Terlambat",
+  };
+
+  return labels[type];
+};
+
+export default function NotificationsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [filters, setFilters] = useState<NotificationQuery>({
+    page: 1,
+    per_page: 10,
+    outlet_id: "",
+    type: "",
+    severity: "",
+    status: "",
+  });
+  const [selected, setSelected] = useState<Notification | null>(null);
+  const [deleting, setDeleting] = useState<Notification | null>(null);
+
+  const queryParams = useMemo(
+    () => ({
+      ...filters,
+      outlet_id: filters.outlet_id || undefined,
+      type: filters.type || undefined,
+      severity: filters.severity || undefined,
+      status: filters.status || undefined,
+    }),
+    [filters]
+  );
+
+  const outletsQuery = useQuery({
+    queryKey: ["notification-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, is_active: true }),
+  });
+
+  const notificationsQuery = useQuery({
+    queryKey: ["notifications", queryParams],
+    queryFn: () => notificationService.getNotifications(queryParams),
+  });
+
+  const detailQuery = useQuery({
+    queryKey: ["notification-detail", selected?.id],
+    queryFn: () => notificationService.getNotification(Number(selected?.id)),
+    enabled: Boolean(selected?.id),
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id: number) => notificationService.markNotificationAsRead(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      void queryClient.invalidateQueries({ queryKey: ["notification-detail"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menandai notification", parseApiError(error));
+    },
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: () => notificationService.markAllNotificationsAsRead(filters.outlet_id),
+    onSuccess: (response) => {
+      toast.success(response.message, `${response.data.updated_count} notification diperbarui.`);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menandai semua notification", parseApiError(error));
+    },
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: (id: number) => notificationService.resolveNotification(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      void queryClient.invalidateQueries({ queryKey: ["notification-detail"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal resolve notification", parseApiError(error));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => notificationService.deleteNotification(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setDeleting(null);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menghapus notification", parseApiError(error));
+    },
+  });
+
+  const scanMutation = useMutation({
+    mutationFn: () =>
+      notificationService.scanAlerts({
+        outlet_id: filters.outlet_id ? Number(filters.outlet_id) : null,
+        alert_type: filters.type || null,
+      }),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menjalankan scan alert", parseApiError(error));
+    },
+  });
+
+  const rows = notificationsQuery.data?.items ?? [];
+  const outlets = outletsQuery.data?.items ?? [];
+  const detail = detailQuery.data?.data ?? selected;
+
+  return (
+    <PermissionWrapper permission="notifications.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Notification Center"
+          description="Pantau alert operasional seperti stok rendah, order terlambat, promo hampir habis, dan shift yang belum ditutup."
+        />
+
+        <Card>
+          <div className="grid gap-4 lg:grid-cols-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.outlet_id ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    outlet_id: event.target.value ? Number(event.target.value) : "",
+                  }))
+                }
+              >
+                <option value="">Semua outlet</option>
+                {outlets.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Tipe</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.type ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    type: event.target.value as NotificationType | "",
+                  }))
+                }
+              >
+                {notificationTypes.map((type) => (
+                  <option key={type || "all"} value={type}>
+                    {type ? typeLabel(type) : "Semua tipe"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Severity</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.severity ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    severity: event.target.value as NotificationSeverity | "",
+                  }))
+                }
+              >
+                {severityOptions.map((severity) => (
+                  <option key={severity || "all"} value={severity}>
+                    {severity || "Semua severity"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Status</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={filters.status ?? ""}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    page: 1,
+                    status: event.target.value as NotificationStatus | "",
+                  }))
+                }
+              >
+                {statusOptions.map((status) => (
+                  <option key={status || "all"} value={status}>
+                    {status || "Semua status"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                loading={notificationsQuery.isFetching}
+                onClick={() => void notificationsQuery.refetch()}
+              >
+                Refresh
+              </Button>
+            </div>
+
+            <div className="flex items-end gap-2">
+              <Button
+                variant="outline"
+                loading={scanMutation.isPending}
+                onClick={() => scanMutation.mutate()}
+              >
+                Scan Alert
+              </Button>
+
+              <Button
+                variant="outline"
+                loading={markAllReadMutation.isPending}
+                onClick={() => markAllReadMutation.mutate()}
+              >
+                Mark All Read
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {notificationsQuery.isLoading ? (
+          <Card>Memuat notification...</Card>
+        ) : notificationsQuery.isError ? (
+          <PageErrorState onRetry={() => void notificationsQuery.refetch()} />
+        ) : !rows.length ? (
+          <PageEmptyState title="Belum ada notification" />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead>
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-3 py-3">Notification</th>
+                    <th className="px-3 py-3">Outlet</th>
+                    <th className="px-3 py-3">Tipe</th>
+                    <th className="px-3 py-3">Severity</th>
+                    <th className="px-3 py-3">Status</th>
+                    <th className="px-3 py-3">Waktu</th>
+                    <th className="px-3 py-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rows.map((row) => (
+                    <tr key={row.id} className="align-top">
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-slate-900">{row.title}</div>
+                        <div className="mt-1 max-w-xl text-xs text-slate-500">{row.message}</div>
+                      </td>
+                      <td className="px-3 py-3 text-slate-700">{row.outlet?.name ?? "-"}</td>
+                      <td className="px-3 py-3 text-slate-700">{typeLabel(row.type)}</td>
+                      <td className="px-3 py-3">
+                        <Badge variant={severityBadge(row.severity)}>{row.severity}</Badge>
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge variant={statusBadge(row.status)}>{row.status}</Badge>
+                      </td>
+                      <td className="px-3 py-3 text-slate-700">{formatDateTime(row.created_at)}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={() => setSelected(row)}>
+                            Detail
+                          </Button>
+                          {row.status === "unread" ? (
+                            <Button
+                              variant="outline"
+                              loading={markReadMutation.isPending}
+                              onClick={() => markReadMutation.mutate(row.id)}
+                            >
+                              Read
+                            </Button>
+                          ) : null}
+                          {row.status !== "resolved" ? (
+                            <Button
+                              variant="outline"
+                              loading={resolveMutation.isPending}
+                              onClick={() => resolveMutation.mutate(row.id)}
+                            >
+                              Resolve
+                            </Button>
+                          ) : null}
+                          <Button variant="danger" onClick={() => setDeleting(row)}>
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        <Pagination
+          meta={notificationsQuery.data?.meta}
+          onPageChange={(nextPage) => setFilters((prev) => ({ ...prev, page: nextPage }))}
+        />
+
+        <Modal
+          open={Boolean(selected)}
+          title="Detail Notification"
+          onClose={() => setSelected(null)}
+          footer={
+            <Button variant="outline" onClick={() => setSelected(null)}>
+              Tutup
+            </Button>
+          }
+        >
+          {detailQuery.isLoading ? (
+            <div className="text-sm text-slate-500">Memuat detail...</div>
+          ) : detail ? (
+            <div className="space-y-4 text-sm">
+              <div>
+                <div className="font-semibold text-slate-900">{detail.title}</div>
+                <div className="mt-1 text-slate-600">{detail.message}</div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Outlet</div>
+                  <div className="font-medium text-slate-900">{detail.outlet?.name ?? "-"}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Source</div>
+                  <div className="font-medium text-slate-900">
+                    {detail.source_type ?? "-"} #{detail.source_id ?? "-"}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Read At</div>
+                  <div className="font-medium text-slate-900">{formatDateTime(detail.read_at)}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3">
+                  <div className="text-xs text-slate-500">Resolved At</div>
+                  <div className="font-medium text-slate-900">
+                    {formatDateTime(detail.resolved_at)}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 font-semibold text-slate-900">Data</div>
+                <pre className="max-h-56 overflow-auto rounded-xl bg-slate-950 p-3 text-xs text-slate-50">
+                  {JSON.stringify(detail.data ?? {}, null, 2)}
+                </pre>
+              </div>
+
+              <div>
+                <div className="mb-2 font-semibold text-slate-900">Log</div>
+                <div className="space-y-2">
+                  {(detail.logs ?? []).map((log) => (
+                    <div key={log.id} className="rounded-xl border border-slate-200 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="font-medium text-slate-900">{log.action}</div>
+                        <Badge variant={log.status === "success" ? "success" : "warning"}>
+                          {log.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-1 text-xs text-slate-500">{formatDateTime(log.logged_at)}</div>
+                      <div className="mt-2 text-slate-600">{log.message ?? "-"}</div>
+                    </div>
+                  ))}
+                  {!detail.logs?.length ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-4 text-slate-500">
+                      Belum ada log untuk notification ini.
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </Modal>
+
+        <ConfirmDialog
+          open={Boolean(deleting)}
+          title="Hapus notification"
+          description={`Notification "${deleting?.title ?? ""}" akan dihapus.`}
+          loading={deleteMutation.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+        />
+      </div>
+    </PermissionWrapper>
+  );
+}
 ```
 </details>
 
@@ -13349,6 +14427,182 @@ export const masterDataService = {
 ```
 </details>
 
+<a id="file-srcmodulesadminservicesnotificationservicets"></a>
+### src\modules\admin\services\notification.service.ts
+- SHA: `d7bea35034bf`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type {
+  ActivityLog,
+  ActivityLogQuery,
+  AlertRule,
+  AlertRulePayload,
+  AlertRuleQuery,
+  Notification,
+  NotificationQuery,
+  ScanAlertPayload,
+  ScanAlertResult,
+} from "@/types/notification";
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+const notificationEndpoints = {
+  notifications: {
+    index: "/notifications",
+    show: (id: number | string) => `/notifications/${id}`,
+    scan: "/notifications/scan",
+    markAllRead: "/notifications/mark-all-read",
+    markAsRead: (id: number | string) => `/notifications/${id}/read`,
+    resolve: (id: number | string) => `/notifications/${id}/resolve`,
+    destroy: (id: number | string) => `/notifications/${id}`,
+  },
+  alertRules: {
+    index: "/alert-rules",
+    store: "/alert-rules",
+    show: (id: number | string) => `/alert-rules/${id}`,
+    update: (id: number | string) => `/alert-rules/${id}`,
+    destroy: (id: number | string) => `/alert-rules/${id}`,
+  },
+  activityLogs: {
+    index: "/activity-logs",
+    show: (id: number | string) => `/activity-logs/${id}`,
+  },
+};
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const notificationService = {
+  async getNotifications(params: NotificationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Notification[]>>(
+      notificationEndpoints.notifications.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getNotification(id: number) {
+    const response = await apiClient.get<ApiResponse<Notification>>(
+      notificationEndpoints.notifications.show(id)
+    );
+
+    return response.data;
+  },
+
+  async scanAlerts(payload: ScanAlertPayload = {}) {
+    const response = await apiClient.post<ApiResponse<ScanAlertResult>>(
+      notificationEndpoints.notifications.scan,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async markAllNotificationsAsRead(outletId?: number | "") {
+    const response = await apiClient.post<ApiResponse<{ updated_count: number }>>(
+      notificationEndpoints.notifications.markAllRead,
+      {},
+      {
+        params: {
+          outlet_id: outletId || undefined,
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  async markNotificationAsRead(id: number) {
+    const response = await apiClient.post<ApiResponse<Notification>>(
+      notificationEndpoints.notifications.markAsRead(id)
+    );
+
+    return response.data;
+  },
+
+  async resolveNotification(id: number) {
+    const response = await apiClient.post<ApiResponse<Notification>>(
+      notificationEndpoints.notifications.resolve(id)
+    );
+
+    return response.data;
+  },
+
+  async deleteNotification(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      notificationEndpoints.notifications.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getAlertRules(params: AlertRuleQuery = {}) {
+    const response = await apiClient.get<ApiResponse<AlertRule[]>>(
+      notificationEndpoints.alertRules.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async createAlertRule(payload: AlertRulePayload) {
+    const response = await apiClient.post<ApiResponse<AlertRule>>(
+      notificationEndpoints.alertRules.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateAlertRule(id: number, payload: AlertRulePayload) {
+    const response = await apiClient.put<ApiResponse<AlertRule>>(
+      notificationEndpoints.alertRules.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteAlertRule(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      notificationEndpoints.alertRules.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getActivityLogs(params: ActivityLogQuery = {}) {
+    const response = await apiClient.get<ApiResponse<ActivityLog[]>>(
+      notificationEndpoints.activityLogs.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getActivityLog(id: number) {
+    const response = await apiClient.get<ApiResponse<ActivityLog>>(
+      notificationEndpoints.activityLogs.show(id)
+    );
+
+    return response.data;
+  },
+};
+```
+</details>
+
 <a id="file-srcmodulesadminservicespurchasingservicets"></a>
 ### src\modules\admin\services\purchasing.service.ts
 - SHA: `d4aab07bb46a`  
@@ -20779,7 +22033,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `8cd5b53ee6f6`  
+- SHA: `4312143fa3c7`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -20817,6 +22071,9 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
   { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
   { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
+  { label: "Notifications", to: "/admin/notifications", permission: "notifications.view" },
+  { label: "Critical Alerts", to: "/admin/critical-alerts", permission: "notifications.view" },
+  { label: "Activity Logs", to: "/admin/activity-logs", permission: "activity_logs.view" },
   { label: "Reports", to: "/admin/reports", permission: "reports.view" },
 ];
 
@@ -20827,12 +22084,12 @@ export const posNavigation: NavigationItem[] = [
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
+  { label: "Kitchen Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
   { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview" },
+  { label: "Overview", to: "/owner/overview", permission: "reports.view" },
   { label: "Reports", to: "/owner/reports", permission: "reports.view" },
 ];
 ```
@@ -23118,6 +24375,199 @@ export interface KitchenPaginatedResult<T> {
   items: T[];
   meta: ApiMeta | null;
   message: string;
+}
+```
+</details>
+
+<a id="file-srctypesnotificationts"></a>
+### src\types\notification.ts
+- SHA: `741664023f26`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { Outlet } from "@/types/outlet";
+import type { User } from "@/types/user";
+
+export type NotificationType =
+  | "low_stock"
+  | "shift_not_closed"
+  | "promo_expiring"
+  | "order_overdue";
+
+export type NotificationSeverity = "info" | "warning" | "danger";
+
+export type NotificationStatus = "unread" | "read" | "resolved";
+
+export type NotificationLogAction =
+  | "generated"
+  | "skipped"
+  | "read"
+  | "resolved"
+  | "deleted";
+
+export type NotificationLogStatus = "success" | "failed" | "skipped";
+
+export type AlertRuleSeverity = "low" | "medium" | "high" | "critical";
+
+export type AlertRuleThresholdUnit = "qty" | "minutes" | "days";
+
+export interface NotificationData {
+  alert_rule_id?: number;
+  raw_material_id?: number;
+  raw_material_name?: string;
+  qty_on_hand?: number | string;
+  threshold?: number | string;
+  unit?: string;
+  order_number?: string;
+  queue_number?: string | null;
+  order_status?: string;
+  ordered_at?: string;
+  threshold_minutes?: number;
+  voucher_code?: string;
+  voucher_name?: string;
+  ends_at?: string;
+  [key: string]: unknown;
+}
+
+export interface NotificationLog {
+  id: number;
+  notification_id?: number | null;
+  alert_rule_id?: number | null;
+  outlet_id?: number | null;
+  user_id?: number | null;
+  action: NotificationLogAction;
+  status: NotificationLogStatus;
+  channel?: string | null;
+  message?: string | null;
+  payload?: Record<string, unknown> | null;
+  logged_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  alert_rule?: AlertRule | null;
+  outlet?: Outlet | null;
+  user?: User | null;
+}
+
+export interface Notification {
+  id: number;
+  outlet_id?: number | null;
+  user_id?: number | null;
+  type: NotificationType;
+  severity: NotificationSeverity;
+  status: NotificationStatus;
+  title: string;
+  message: string;
+  source_type?: string | null;
+  source_id?: number | null;
+  data?: NotificationData | null;
+  read_at?: string | null;
+  resolved_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  logs_count?: number;
+  outlet?: Outlet | null;
+  user?: User | null;
+  logs?: NotificationLog[];
+}
+
+export interface NotificationQuery {
+  page?: number;
+  per_page?: number;
+  outlet_id?: number | "";
+  user_id?: number | "";
+  type?: NotificationType | "";
+  severity?: NotificationSeverity | "";
+  status?: NotificationStatus | "";
+}
+
+export interface ScanAlertPayload {
+  outlet_id?: number | null;
+  alert_type?: NotificationType | null;
+}
+
+export interface ScanAlertResult {
+  generated_count?: number;
+  skipped_count?: number;
+  failed_count?: number;
+  notifications?: Notification[];
+  logs?: NotificationLog[];
+  [key: string]: unknown;
+}
+
+export interface AlertRule {
+  id: number;
+  outlet_id?: number | null;
+  name: string;
+  alert_type: NotificationType;
+  severity: AlertRuleSeverity;
+  threshold_minutes?: number | null;
+  days_before?: number | null;
+  threshold_value?: number | string | null;
+  threshold_unit?: AlertRuleThresholdUnit | null;
+  recipient_roles?: string[] | null;
+  channels?: string[] | null;
+  metadata?: Record<string, unknown> | null;
+  is_active: boolean;
+  created_at?: string | null;
+  updated_at?: string | null;
+  outlet?: Outlet | null;
+}
+
+export interface AlertRuleQuery {
+  page?: number;
+  per_page?: number;
+  outlet_id?: number | "";
+  alert_type?: NotificationType | "";
+  severity?: AlertRuleSeverity | "";
+  is_active?: boolean | "";
+}
+
+export interface AlertRulePayload {
+  outlet_id?: number | null;
+  name: string;
+  alert_type: NotificationType;
+  severity: AlertRuleSeverity;
+  threshold_minutes?: number | null;
+  days_before?: number | null;
+  threshold_value?: number | null;
+  threshold_unit?: AlertRuleThresholdUnit | null;
+  recipient_roles?: string[];
+  channels?: string[];
+  metadata?: Record<string, unknown> | null;
+  is_active?: boolean;
+}
+
+export interface ActivityLog {
+  id: number;
+  user_id?: number | null;
+  outlet_id?: number | null;
+  action: string;
+  module: string;
+  reference_type?: string | null;
+  reference_id?: number | null;
+  description?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  metadata?: Record<string, unknown> | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  user?: User | null;
+  outlet?: Outlet | null;
+}
+
+export interface ActivityLogQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  user_id?: number | "";
+  outlet_id?: number | "";
+  action?: string;
+  module?: string;
+  reference_type?: string;
+  reference_id?: number | "";
+  created_from?: string;
+  created_until?: string;
 }
 ```
 </details>

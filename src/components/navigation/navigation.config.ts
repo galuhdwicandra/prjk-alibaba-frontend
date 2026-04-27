@@ -31,6 +31,9 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
   { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
   { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
+  { label: "Notifications", to: "/admin/notifications", permission: "notifications.view" },
+  { label: "Critical Alerts", to: "/admin/critical-alerts", permission: "notifications.view" },
+  { label: "Activity Logs", to: "/admin/activity-logs", permission: "activity_logs.view" },
   { label: "Reports", to: "/admin/reports", permission: "reports.view" },
 ];
 
@@ -41,11 +44,11 @@ export const posNavigation: NavigationItem[] = [
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
+  { label: "Kitchen Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
   { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview" },
+  { label: "Overview", to: "/owner/overview", permission: "reports.view" },
   { label: "Reports", to: "/owner/reports", permission: "reports.view" },
 ];
