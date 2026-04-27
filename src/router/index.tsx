@@ -35,6 +35,8 @@ import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
 import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
+import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
+import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -65,7 +67,7 @@ export const router = createBrowserRouter([
         path: "/admin",
         element: <AdminLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
+          { index: true, element: <AdminDashboardPage /> },
           { path: "users", element: <UsersPage /> },
           { path: "roles", element: <RolesPage /> },
           { path: "permissions", element: <PermissionsPage /> },
@@ -115,8 +117,8 @@ export const router = createBrowserRouter([
         path: "/owner",
         element: <OwnerLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Owner Home" /> },
-          { path: "overview", element: <RoutePlaceholder title="Overview" /> },
+          { index: true, element: <OwnerDashboardPage /> },
+          { path: "overview", element: <OwnerDashboardPage /> },
           { path: "reports", element: <RoutePlaceholder title="Reports" /> },
         ],
       },

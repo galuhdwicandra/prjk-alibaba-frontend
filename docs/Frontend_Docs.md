@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 11:18:22_  
+_Dihasilkan otomatis: 2026-04-27 11:34:38_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -68,6 +68,13 @@ _Dihasilkan otomatis: 2026-04-27 11:18:22_
   - [src\modules\auth\schemas\login.schema.ts](#file-srcmodulesauthschemasloginschemats)
   - [src\modules\auth\services\auth.service.ts](#file-srcmodulesauthservicesauthservicets)
   - [src\modules\auth\store\auth.store.ts](#file-srcmodulesauthstoreauthstorets)
+  - [src\modules\dashboard\components\DashboardBarList.tsx](#file-srcmodulesdashboardcomponentsdashboardbarlisttsx)
+  - [src\modules\dashboard\components\DashboardFilters.tsx](#file-srcmodulesdashboardcomponentsdashboardfilterstsx)
+  - [src\modules\dashboard\components\DashboardMetricCard.tsx](#file-srcmodulesdashboardcomponentsdashboardmetriccardtsx)
+  - [src\modules\dashboard\components\DashboardQuickTable.tsx](#file-srcmodulesdashboardcomponentsdashboardquicktabletsx)
+  - [src\modules\dashboard\pages\AdminDashboardPage.tsx](#file-srcmodulesdashboardpagesadmindashboardpagetsx)
+  - [src\modules\dashboard\pages\OwnerDashboardPage.tsx](#file-srcmodulesdashboardpagesownerdashboardpagetsx)
+  - [src\modules\dashboard\services\dashboard.service.ts](#file-srcmodulesdashboardservicesdashboardservicets)
   - [src\modules\kitchen\components\KitchenTicketCard.tsx](#file-srcmoduleskitchencomponentskitchenticketcardtsx)
   - [src\modules\kitchen\components\KitchenTicketDetailModal.tsx](#file-srcmoduleskitchencomponentskitchenticketdetailmodaltsx)
   - [src\modules\kitchen\pages\KitchenTicketsPage.tsx](#file-srcmoduleskitchenpageskitchenticketspagetsx)
@@ -133,6 +140,7 @@ _Dihasilkan otomatis: 2026-04-27 11:18:22_
   - [src\types\auth.ts](#file-srctypesauthts)
   - [src\types\cashier-shift.ts](#file-srctypescashier-shiftts)
   - [src\types\customer.ts](#file-srctypescustomerts)
+  - [src\types\dashboard.ts](#file-srctypesdashboardts)
   - [src\types\expense.ts](#file-srctypesexpensets)
   - [src\types\inventory.ts](#file-srctypesinventoryts)
   - [src\types\kitchen.ts](#file-srctypeskitchents)
@@ -328,7 +336,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `67290a554df2`  
+- SHA: `39684c0fbdaf`  
 - Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -370,6 +378,8 @@ import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
 import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
+import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
+import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -400,7 +410,7 @@ export const router = createBrowserRouter([
         path: "/admin",
         element: <AdminLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Admin Dashboard" /> },
+          { index: true, element: <AdminDashboardPage /> },
           { path: "users", element: <UsersPage /> },
           { path: "roles", element: <RolesPage /> },
           { path: "permissions", element: <PermissionsPage /> },
@@ -450,8 +460,8 @@ export const router = createBrowserRouter([
         path: "/owner",
         element: <OwnerLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="Owner Home" /> },
-          { path: "overview", element: <RoutePlaceholder title="Overview" /> },
+          { index: true, element: <OwnerDashboardPage /> },
+          { path: "overview", element: <OwnerDashboardPage /> },
           { path: "reports", element: <RoutePlaceholder title="Reports" /> },
         ],
       },
@@ -14146,6 +14156,915 @@ export const useAuthStore = create<AuthState>((set) => ({
 ```
 </details>
 
+<a id="file-srcmodulesdashboardcomponentsdashboardbarlisttsx"></a>
+### src\modules\dashboard\components\DashboardBarList.tsx
+- SHA: `48d2b6509698`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Card } from "@/components/ui";
+
+interface DashboardBarListItem {
+  label: string;
+  value: number;
+  suffix?: string;
+}
+
+interface DashboardBarListProps {
+  title: string;
+  description?: string;
+  items: DashboardBarListItem[];
+  emptyText: string;
+  valueFormatter?: (value: number) => string;
+}
+
+export function DashboardBarList({
+  title,
+  description,
+  items,
+  emptyText,
+  valueFormatter,
+}: DashboardBarListProps) {
+  const maxValue = Math.max(...items.map((item) => item.value), 0);
+
+  return (
+    <Card title={title} description={description}>
+      {!items.length ? (
+        <p className="text-sm text-slate-500">{emptyText}</p>
+      ) : (
+        <div className="space-y-4">
+          {items.map((item) => {
+            const percentage = maxValue > 0 ? Math.max(6, (item.value / maxValue) * 100) : 0;
+
+            return (
+              <div key={item.label} className="space-y-2">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <span className="font-medium text-slate-700">{item.label}</span>
+                  <span className="text-slate-500">
+                    {valueFormatter ? valueFormatter(item.value) : item.value.toLocaleString("id-ID")}
+                    {item.suffix ? ` ${item.suffix}` : ""}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-slate-900"
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardcomponentsdashboardfilterstsx"></a>
+### src\modules\dashboard\components\DashboardFilters.tsx
+- SHA: `0a20b0623eb5`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Button, Card, Input } from "@/components/ui";
+import type { DashboardFilter } from "@/types/dashboard";
+import type { Outlet } from "@/types/outlet";
+
+interface DashboardFiltersProps {
+  value: DashboardFilter;
+  outlets: Outlet[];
+  loading?: boolean;
+  onChange: (next: DashboardFilter) => void;
+  onRefresh: () => void;
+  showOutletFilter?: boolean;
+}
+
+export function DashboardFilters({
+  value,
+  outlets,
+  loading = false,
+  onChange,
+  onRefresh,
+  showOutletFilter = true,
+}: DashboardFiltersProps) {
+  return (
+    <Card>
+      <div className="grid gap-4 md:grid-cols-5">
+        {showOutletFilter ? (
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Outlet
+            </label>
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={value.outlet_id ?? ""}
+              onChange={(event) =>
+                onChange({
+                  ...value,
+                  outlet_id: event.target.value ? Number(event.target.value) : "",
+                })
+              }
+            >
+              <option value="">Semua outlet</option>
+              {outlets.map((outlet) => (
+                <option key={outlet.id} value={outlet.id}>
+                  {outlet.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
+        <Input
+          label="Tanggal Awal"
+          type="date"
+          value={value.date_from ?? ""}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              date_from: event.target.value,
+            })
+          }
+        />
+
+        <Input
+          label="Tanggal Akhir"
+          type="date"
+          value={value.date_until ?? ""}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              date_until: event.target.value,
+            })
+          }
+        />
+
+        <Input
+          label="Limit"
+          type="number"
+          min="1"
+          max="20"
+          value={String(value.limit ?? 5)}
+          onChange={(event) =>
+            onChange({
+              ...value,
+              limit: Number(event.target.value || 5),
+            })
+          }
+        />
+
+        <div className="flex items-end">
+          <Button loading={loading} onClick={onRefresh}>
+            Refresh
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardcomponentsdashboardmetriccardtsx"></a>
+### src\modules\dashboard\components\DashboardMetricCard.tsx
+- SHA: `36d4a5fe2ce5`  
+- Ukuran: 558 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Card } from "@/components/ui";
+
+interface DashboardMetricCardProps {
+  title: string;
+  value: string;
+  description?: string;
+}
+
+export function DashboardMetricCard({
+  title,
+  value,
+  description,
+}: DashboardMetricCardProps) {
+  return (
+    <Card>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-slate-500">{title}</p>
+        <p className="text-2xl font-semibold text-slate-950">{value}</p>
+        {description ? <p className="text-xs text-slate-500">{description}</p> : null}
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardcomponentsdashboardquicktabletsx"></a>
+### src\modules\dashboard\components\DashboardQuickTable.tsx
+- SHA: `5cf7a9324f23`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReactNode } from "react";
+import { Card } from "@/components/ui";
+
+interface DashboardQuickTableColumn<T> {
+  key: string;
+  label: string;
+  render: (row: T) => ReactNode;
+}
+
+interface DashboardQuickTableProps<T> {
+  title: string;
+  description?: string;
+  rows: T[];
+  columns: DashboardQuickTableColumn<T>[];
+  emptyText: string;
+  getRowKey: (row: T, index: number) => string;
+}
+
+export function DashboardQuickTable<T>({
+  title,
+  description,
+  rows,
+  columns,
+  emptyText,
+  getRowKey,
+}: DashboardQuickTableProps<T>) {
+  return (
+    <Card title={title} description={description}>
+      {!rows.length ? (
+        <p className="text-sm text-slate-500">{emptyText}</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                {columns.map((column) => (
+                  <th key={column.key} className="px-3 py-3 font-semibold">
+                    {column.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={getRowKey(row, index)} className="border-b border-slate-100">
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-3 py-3 text-slate-700">
+                      {column.render(row)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardpagesadmindashboardpagetsx"></a>
+### src\modules\dashboard\pages\AdminDashboardPage.tsx
+- SHA: `6ef8c006f9a0`  
+- Ukuran: 9 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Card, Badge } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { dashboardService } from "@/modules/dashboard/services/dashboard.service";
+import { DashboardMetricCard } from "@/modules/dashboard/components/DashboardMetricCard";
+import { DashboardFilters } from "@/modules/dashboard/components/DashboardFilters";
+import { DashboardBarList } from "@/modules/dashboard/components/DashboardBarList";
+import { DashboardQuickTable } from "@/modules/dashboard/components/DashboardQuickTable";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import type {
+  DashboardCriticalStock,
+  DashboardFilter,
+  DashboardOrderRow,
+} from "@/types/dashboard";
+
+const today = new Date().toISOString().slice(0, 10);
+
+const formatCurrency = (value: number | string | null | undefined) => {
+  return `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+};
+
+const formatNumber = (value: number | string | null | undefined) => {
+  return Number(value ?? 0).toLocaleString("id-ID");
+};
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+export default function AdminDashboardPage() {
+  const { activeOutletId } = useActiveOutlet();
+
+  const [filters, setFilters] = useState<DashboardFilter>({
+    outlet_id: activeOutletId ?? "",
+    date_from: today,
+    date_until: today,
+    overdue_minutes: 30,
+    limit: 5,
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["dashboard-admin-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, is_active: true }),
+  });
+
+  const overviewQuery = useQuery({
+    queryKey: ["dashboard-admin-overview", filters],
+    queryFn: () => dashboardService.getOverview(filters),
+  });
+
+  const salesTrendQuery = useQuery({
+    queryKey: ["dashboard-admin-sales-trend", filters],
+    queryFn: () => dashboardService.getSalesTrend(filters),
+  });
+
+  const overview = overviewQuery.data?.data;
+  const summary = overview?.summary;
+  const outlets = outletsQuery.data?.items ?? [];
+  const salesTrend = salesTrendQuery.data?.data ?? [];
+
+  const topProducts = useMemo(() => {
+    return (overview?.top_products ?? []).map((item) => ({
+      label: item.product_name,
+      value: Number(item.total_qty ?? 0),
+      suffix: "terjual",
+    }));
+  }, [overview?.top_products]);
+
+  const salesTrendItems = useMemo(() => {
+    return salesTrend.map((item) => ({
+      label: item.label ?? item.period ?? item.date ?? "-",
+      value: Number(item.total_revenue ?? item.revenue ?? item.grand_total ?? 0),
+    }));
+  }, [salesTrend]);
+
+  const refresh = () => {
+    void overviewQuery.refetch();
+    void salesTrendQuery.refetch();
+  };
+
+  return (
+    <PermissionWrapper permission="reports.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Dashboard Admin"
+          description="Ringkasan operasional outlet, penjualan, stok kritis, dan order yang perlu dipantau."
+        />
+
+        <DashboardFilters
+          value={filters}
+          outlets={outlets}
+          loading={overviewQuery.isFetching || salesTrendQuery.isFetching}
+          onChange={setFilters}
+          onRefresh={refresh}
+        />
+
+        {overviewQuery.isError ? (
+          <PageErrorState onRetry={() => void overviewQuery.refetch()} />
+        ) : overviewQuery.isLoading ? (
+          <Card>Memuat dashboard admin...</Card>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <DashboardMetricCard
+                title="Omzet Hari Ini"
+                value={formatCurrency(summary?.today_sales ?? summary?.today_revenue)}
+                description="Order completed dan paid hari ini"
+              />
+              <DashboardMetricCard
+                title="Transaksi Hari Ini"
+                value={formatNumber(summary?.today_orders)}
+                description="Jumlah order hari ini"
+              />
+              <DashboardMetricCard
+                title="Order Pending"
+                value={formatNumber(summary?.pending_orders)}
+                description="Pending, confirmed, preparing, atau ready"
+              />
+              <DashboardMetricCard
+                title="Stok Minimum"
+                value={formatNumber(summary?.critical_stocks)}
+                description="Bahan baku di bawah batas minimum"
+              />
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              <DashboardBarList
+                title="Tren Penjualan"
+                description="Nilai penjualan berdasarkan filter tanggal"
+                items={salesTrendItems}
+                emptyText="Belum ada data tren penjualan."
+                valueFormatter={formatCurrency}
+              />
+
+              <DashboardBarList
+                title="Top Menu Outlet"
+                description="Produk terlaris berdasarkan jumlah item terjual"
+                items={topProducts}
+                emptyText="Belum ada data produk terlaris."
+              />
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              <DashboardQuickTable<DashboardOrderRow>
+                title="Order Pending"
+                description="Order aktif yang masih perlu diproses."
+                rows={overview?.pending_orders ?? []}
+                emptyText="Tidak ada order pending."
+                getRowKey={(row) => `pending-${row.order_id}`}
+                columns={[
+                  {
+                    key: "order",
+                    label: "Order",
+                    render: (row) => (
+                      <div>
+                        <div className="font-semibold text-slate-900">{row.order_number}</div>
+                        <div className="text-xs text-slate-500">{row.queue_number ?? "-"}</div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "outlet",
+                    label: "Outlet",
+                    render: (row) => row.outlet_name,
+                  },
+                  {
+                    key: "status",
+                    label: "Status",
+                    render: (row) => <Badge variant="warning">{row.order_status}</Badge>,
+                  },
+                  {
+                    key: "total",
+                    label: "Total",
+                    render: (row) => formatCurrency(row.grand_total),
+                  },
+                  {
+                    key: "time",
+                    label: "Waktu",
+                    render: (row) => formatDateTime(row.ordered_at),
+                  },
+                ]}
+              />
+
+              <DashboardQuickTable<DashboardCriticalStock>
+                title="Stok Kritis"
+                description="Bahan baku yang mencapai atau melewati batas minimum."
+                rows={overview?.critical_stocks ?? []}
+                emptyText="Tidak ada stok kritis."
+                getRowKey={(row) => `stock-${row.outlet_id}-${row.raw_material_id}`}
+                columns={[
+                  {
+                    key: "material",
+                    label: "Bahan",
+                    render: (row) => (
+                      <div>
+                        <div className="font-semibold text-slate-900">
+                          {row.raw_material_name}
+                        </div>
+                        <div className="text-xs text-slate-500">{row.outlet_name}</div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "stock",
+                    label: "Stok",
+                    render: (row) =>
+                      `${formatNumber(row.qty_on_hand)} ${row.unit_code ?? ""}`,
+                  },
+                  {
+                    key: "minimum",
+                    label: "Minimum",
+                    render: (row) =>
+                      `${formatNumber(row.minimum_stock)} ${row.unit_code ?? ""}`,
+                  },
+                  {
+                    key: "reserved",
+                    label: "Reserved",
+                    render: (row) =>
+                      `${formatNumber(row.qty_reserved)} ${row.unit_code ?? ""}`,
+                  },
+                ]}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardpagesownerdashboardpagetsx"></a>
+### src\modules\dashboard\pages\OwnerDashboardPage.tsx
+- SHA: `1de605f83d80`  
+- Ukuran: 9 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Card } from "@/components/ui";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import { dashboardService } from "@/modules/dashboard/services/dashboard.service";
+import { DashboardMetricCard } from "@/modules/dashboard/components/DashboardMetricCard";
+import { DashboardFilters } from "@/modules/dashboard/components/DashboardFilters";
+import { DashboardBarList } from "@/modules/dashboard/components/DashboardBarList";
+import { DashboardQuickTable } from "@/modules/dashboard/components/DashboardQuickTable";
+import type {
+  DashboardCashDiscrepancy,
+  DashboardFilter,
+  DashboardOrderRow,
+} from "@/types/dashboard";
+
+const today = new Date();
+const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  .toISOString()
+  .slice(0, 10);
+const currentDay = today.toISOString().slice(0, 10);
+
+const formatCurrency = (value: number | string | null | undefined) => {
+  return `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+};
+
+const formatNumber = (value: number | string | null | undefined) => {
+  return Number(value ?? 0).toLocaleString("id-ID");
+};
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+export default function OwnerDashboardPage() {
+  const [filters, setFilters] = useState<DashboardFilter>({
+    outlet_id: "",
+    date_from: firstDayOfMonth,
+    date_until: currentDay,
+    overdue_minutes: 30,
+    limit: 5,
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["dashboard-owner-outlets"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100, is_active: true }),
+  });
+
+  const overviewQuery = useQuery({
+    queryKey: ["dashboard-owner-overview", filters],
+    queryFn: () => dashboardService.getOverview(filters),
+  });
+
+  const salesTrendQuery = useQuery({
+    queryKey: ["dashboard-owner-sales-trend", filters],
+    queryFn: () => dashboardService.getSalesTrend(filters),
+  });
+
+  const overview = overviewQuery.data?.data;
+  const summary = overview?.summary;
+  const outlets = outletsQuery.data?.items ?? [];
+  const salesTrend = salesTrendQuery.data?.data ?? [];
+
+  const bestOutlets = useMemo(() => {
+    return (overview?.best_outlets ?? []).map((item) => ({
+      label: item.outlet_name,
+      value: Number(item.total_revenue ?? 0),
+    }));
+  }, [overview?.best_outlets]);
+
+  const topProducts = useMemo(() => {
+    return (overview?.top_products ?? []).map((item) => ({
+      label: item.product_name,
+      value: Number(item.total_sales ?? 0),
+    }));
+  }, [overview?.top_products]);
+
+  const salesTrendItems = useMemo(() => {
+    return salesTrend.map((item) => ({
+      label: item.label ?? item.period ?? item.date ?? "-",
+      value: Number(item.total_revenue ?? item.revenue ?? item.grand_total ?? 0),
+    }));
+  }, [salesTrend]);
+
+  const refresh = () => {
+    void overviewQuery.refetch();
+    void salesTrendQuery.refetch();
+  };
+
+  return (
+    <PermissionWrapper permission="reports.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Dashboard Owner"
+          description="Ringkasan performa semua outlet, omzet, produk terlaris, order tertunda, dan selisih kas."
+        />
+
+        <DashboardFilters
+          value={filters}
+          outlets={outlets}
+          loading={overviewQuery.isFetching || salesTrendQuery.isFetching}
+          onChange={setFilters}
+          onRefresh={refresh}
+        />
+
+        {overviewQuery.isError ? (
+          <PageErrorState onRetry={() => void overviewQuery.refetch()} />
+        ) : overviewQuery.isLoading ? (
+          <Card>Memuat dashboard owner...</Card>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <DashboardMetricCard
+                title="Omzet Bulan Ini"
+                value={formatCurrency(summary?.month_sales ?? summary?.month_revenue)}
+                description="Akumulasi order completed dan paid"
+              />
+              <DashboardMetricCard
+                title="Order Bulan Ini"
+                value={formatNumber(summary?.month_orders)}
+                description="Jumlah transaksi pada bulan berjalan"
+              />
+              <DashboardMetricCard
+                title="Order Terlambat"
+                value={formatNumber(summary?.overdue_orders)}
+                description="Order yang melewati batas waktu proses"
+              />
+              <DashboardMetricCard
+                title="Selisih Kas"
+                value={formatNumber(summary?.cash_discrepancies)}
+                description="Shift closed dengan cash difference"
+              />
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+              <DashboardBarList
+                title="Tren Omzet"
+                description="Pergerakan omzet berdasarkan filter tanggal"
+                items={salesTrendItems}
+                emptyText="Belum ada data tren omzet."
+                valueFormatter={formatCurrency}
+              />
+
+              <DashboardBarList
+                title="Perbandingan Outlet"
+                description="Outlet terbaik berdasarkan total revenue"
+                items={bestOutlets}
+                emptyText="Belum ada data outlet."
+                valueFormatter={formatCurrency}
+              />
+
+              <DashboardBarList
+                title="Top Menu Global"
+                description="Produk terlaris berdasarkan revenue"
+                items={topProducts}
+                emptyText="Belum ada data produk."
+                valueFormatter={formatCurrency}
+              />
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-2">
+              <DashboardQuickTable<DashboardCashDiscrepancy>
+                title="Cash Discrepancy"
+                description="Shift yang memiliki selisih kas."
+                rows={overview?.cash_discrepancies ?? []}
+                emptyText="Tidak ada selisih kas."
+                getRowKey={(row) => `cash-${row.cashier_shift_id}`}
+                columns={[
+                  {
+                    key: "shift",
+                    label: "Shift",
+                    render: (row) => (
+                      <div>
+                        <div className="font-semibold text-slate-900">{row.shift_number}</div>
+                        <div className="text-xs text-slate-500">{row.cashier_name}</div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "outlet",
+                    label: "Outlet",
+                    render: (row) => row.outlet_name,
+                  },
+                  {
+                    key: "expected",
+                    label: "Expected",
+                    render: (row) => formatCurrency(row.expected_cash),
+                  },
+                  {
+                    key: "closing",
+                    label: "Closing",
+                    render: (row) => formatCurrency(row.closing_cash),
+                  },
+                  {
+                    key: "diff",
+                    label: "Selisih",
+                    render: (row) => (
+                      <span className={row.cash_difference < 0 ? "text-red-600" : "text-emerald-600"}>
+                        {formatCurrency(row.cash_difference)}
+                      </span>
+                    ),
+                  },
+                ]}
+              />
+
+              <DashboardQuickTable<DashboardOrderRow>
+                title="Order Terlambat"
+                description="Order yang harus segera ditindaklanjuti."
+                rows={overview?.overdue_orders ?? []}
+                emptyText="Tidak ada order terlambat."
+                getRowKey={(row) => `overdue-${row.order_id}`}
+                columns={[
+                  {
+                    key: "order",
+                    label: "Order",
+                    render: (row) => (
+                      <div>
+                        <div className="font-semibold text-slate-900">{row.order_number}</div>
+                        <div className="text-xs text-slate-500">{row.queue_number ?? "-"}</div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "outlet",
+                    label: "Outlet",
+                    render: (row) => row.outlet_name,
+                  },
+                  {
+                    key: "status",
+                    label: "Status",
+                    render: (row) => <Badge variant="danger">{row.order_status}</Badge>,
+                  },
+                  {
+                    key: "cashier",
+                    label: "Kasir",
+                    render: (row) => row.cashier_name ?? "-",
+                  },
+                  {
+                    key: "time",
+                    label: "Waktu",
+                    render: (row) => formatDateTime(row.ordered_at),
+                  },
+                ]}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesdashboardservicesdashboardservicets"></a>
+### src\modules\dashboard\services\dashboard.service.ts
+- SHA: `242b8db22fde`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import type { ApiResponse } from "@/types/api";
+import type {
+  DashboardBestOutlet,
+  DashboardCashDiscrepancy,
+  DashboardCriticalStock,
+  DashboardFilter,
+  DashboardOrderRow,
+  DashboardOverview,
+  DashboardSalesTrendItem,
+  DashboardSummary,
+  DashboardTopProduct,
+} from "@/types/dashboard";
+
+const dashboardEndpoints = {
+  overview: "/dashboard/overview",
+  summary: "/dashboard/summary",
+  salesTrend: "/dashboard/sales-trend",
+  topProducts: "/dashboard/top-products",
+  bestOutlets: "/dashboard/best-outlets",
+  criticalStocks: "/dashboard/critical-stocks",
+  pendingOrders: "/dashboard/pending-orders",
+  overdueOrders: "/dashboard/overdue-orders",
+  cashDiscrepancies: "/dashboard/cash-discrepancies",
+};
+
+export const dashboardService = {
+  async getOverview(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardOverview>>(
+      dashboardEndpoints.overview,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getSummary(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardSummary>>(
+      dashboardEndpoints.summary,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getSalesTrend(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardSalesTrendItem[]>>(
+      dashboardEndpoints.salesTrend,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getTopProducts(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardTopProduct[]>>(
+      dashboardEndpoints.topProducts,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getBestOutlets(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardBestOutlet[]>>(
+      dashboardEndpoints.bestOutlets,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getCriticalStocks(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardCriticalStock[]>>(
+      dashboardEndpoints.criticalStocks,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getPendingOrders(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardOrderRow[]>>(
+      dashboardEndpoints.pendingOrders,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getOverdueOrders(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardOrderRow[]>>(
+      dashboardEndpoints.overdueOrders,
+      { params }
+    );
+
+    return response.data;
+  },
+
+  async getCashDiscrepancies(params: DashboardFilter = {}) {
+    const response = await apiClient.get<ApiResponse<DashboardCashDiscrepancy[]>>(
+      dashboardEndpoints.cashDiscrepancies,
+      { params }
+    );
+
+    return response.data;
+  },
+};
+```
+</details>
+
 <a id="file-srcmoduleskitchencomponentskitchenticketcardtsx"></a>
 ### src\modules\kitchen\components\KitchenTicketCard.tsx
 - SHA: `ec9044b182db`  
@@ -21023,6 +21942,119 @@ export interface CustomerAddressPayload {
   latitude?: string | null;
   longitude?: string | null;
   is_default?: boolean;
+}
+```
+</details>
+
+<a id="file-srctypesdashboardts"></a>
+### src\types\dashboard.ts
+- SHA: `534d2f20dd18`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export interface DashboardFilter {
+  outlet_id?: number | "";
+  date_from?: string;
+  date_until?: string;
+  overdue_minutes?: number;
+  limit?: number;
+}
+
+export interface DashboardSummary {
+  today_sales?: number;
+  today_revenue?: number;
+  month_sales?: number;
+  month_revenue?: number;
+  today_orders?: number;
+  month_orders?: number;
+  pending_orders?: number;
+  overdue_orders?: number;
+  critical_stocks?: number;
+  active_cashiers?: number;
+  cash_discrepancies?: number;
+}
+
+export interface DashboardTopProduct {
+  product_id: number | null;
+  product_name: string;
+  total_qty: number;
+  total_sales: number;
+}
+
+export interface DashboardBestOutlet {
+  outlet_id: number;
+  outlet_code: string;
+  outlet_name: string;
+  total_orders: number;
+  total_revenue: number;
+}
+
+export interface DashboardCriticalStock {
+  outlet_id: number;
+  outlet_code: string;
+  outlet_name: string;
+  raw_material_id: number;
+  raw_material_name: string;
+  qty_on_hand: number;
+  qty_reserved: number;
+  minimum_stock: number;
+  unit_code: string | null;
+}
+
+export interface DashboardOrderRow {
+  order_id: number;
+  order_number: string;
+  queue_number: string | null;
+  order_channel: string;
+  order_status: string;
+  payment_status: string;
+  grand_total: number;
+  ordered_at: string;
+  outlet_id: number;
+  outlet_code: string;
+  outlet_name: string;
+  cashier_name: string | null;
+}
+
+export interface DashboardCashDiscrepancy {
+  cashier_shift_id: number;
+  shift_number: string;
+  outlet_id: number;
+  outlet_code: string;
+  outlet_name: string;
+  cashier_name: string;
+  opened_at: string;
+  closed_at: string | null;
+  expected_cash: number;
+  closing_cash: number;
+  cash_difference: number;
+}
+
+export interface DashboardSalesTrendItem {
+  date?: string;
+  period?: string;
+  label?: string;
+  total_orders?: number;
+  total_revenue?: number;
+  revenue?: number;
+  grand_total?: number;
+}
+
+export interface DashboardOverviewMeta {
+  filters: DashboardFilter;
+  generated_at: string;
+}
+
+export interface DashboardOverview {
+  summary: DashboardSummary;
+  top_products: DashboardTopProduct[];
+  best_outlets: DashboardBestOutlet[];
+  critical_stocks: DashboardCriticalStock[];
+  pending_orders: DashboardOrderRow[];
+  overdue_orders: DashboardOrderRow[];
+  cash_discrepancies: DashboardCashDiscrepancy[];
+  meta?: DashboardOverviewMeta;
 }
 ```
 </details>
