@@ -28,6 +28,15 @@ const initialForm: RawMaterialPayload = {
   outlet_stocks: [],
 };
 
+const formatCurrency = (value: number | string | null | undefined) =>
+  `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
+const formatNumber = (value: number | string | null | undefined) =>
+  Number(value ?? 0).toLocaleString("id-ID");
+
+const selectClassName =
+  "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100";
+
 export default function RawMaterialsPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -175,7 +184,7 @@ export default function RawMaterialsPage() {
 
   return (
     <PermissionWrapper permission="raw_materials.view">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <PageHeader
           title="Bahan Baku"
           description="Kelola bahan baku, minimum stok, harga, dan saldo awal per outlet."
@@ -183,53 +192,68 @@ export default function RawMaterialsPage() {
         />
 
         <Card>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
             <Input
+              label="Pencarian"
               placeholder="Cari nama, kode, atau SKU..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={categoryFilter}
-              onChange={(event) =>
-                setCategoryFilter(event.target.value ? Number(event.target.value) : "")
-              }
-            >
-              <option value="">Semua kategori</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Kategori
+              </label>
+              <select
+                className={selectClassName}
+                value={categoryFilter}
+                onChange={(event) =>
+                  setCategoryFilter(event.target.value ? Number(event.target.value) : "")
+                }
+              >
+                <option value="">Semua kategori</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={unitFilter}
-              onChange={(event) =>
-                setUnitFilter(event.target.value ? Number(event.target.value) : "")
-              }
-            >
-              <option value="">Semua satuan</option>
-              {units.map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.name} ({unit.code})
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Satuan
+              </label>
+              <select
+                className={selectClassName}
+                value={unitFilter}
+                onChange={(event) =>
+                  setUnitFilter(event.target.value ? Number(event.target.value) : "")
+                }
+              >
+                <option value="">Semua satuan</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unit.name} ({unit.code})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </Card>
 
         {rawMaterialsQuery.isLoading ? (
-          <Card>Memuat bahan baku...</Card>
+          <Card>
+            <div className="flex min-h-40 items-center justify-center text-sm text-[var(--color-muted)]">
+              Memuat bahan baku...
+            </div>
+          </Card>
         ) : rawMaterialsQuery.isError ? (
           <PageErrorState onRetry={() => void rawMaterialsQuery.refetch()} />
         ) : !rawMaterials.length ? (
           <PageEmptyState title="Belum ada bahan baku" />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 xl:grid-cols-2">
             {rawMaterials.map((rawMaterial) => (
               <Card
                 key={rawMaterial.id}
@@ -241,24 +265,54 @@ export default function RawMaterialsPage() {
                   </Badge>
                 }
               >
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div>Kategori: {rawMaterial.category?.name ?? "-"}</div>
-                  <div>Satuan: {rawMaterial.unit?.code ?? "-"}</div>
-                  <div>
-                    Minimum Stok:{" "}
-                    {Number(rawMaterial.minimum_stock ?? 0).toLocaleString("id-ID")}
+                <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Kategori
+                    </div>
+                    <div className="mt-1 font-semibold text-slate-900">
+                      {rawMaterial.category?.name ?? "-"}
+                    </div>
                   </div>
-                  <div>
-                    Harga Beli Terakhir: Rp{" "}
-                    {Number(rawMaterial.last_purchase_price ?? 0).toLocaleString("id-ID")}
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Satuan
+                    </div>
+                    <div className="mt-1 font-semibold text-slate-900">
+                      {rawMaterial.unit?.code ?? "-"}
+                    </div>
                   </div>
-                  <div>
-                    Average Cost: Rp{" "}
-                    {Number(rawMaterial.average_cost ?? 0).toLocaleString("id-ID")}
+
+                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Minimum Stok
+                    </div>
+                    <div className="mt-1 font-semibold text-slate-900">
+                      {formatNumber(rawMaterial.minimum_stock)}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Average Cost
+                    </div>
+                    <div className="mt-1 font-semibold text-slate-900">
+                      {formatCurrency(rawMaterial.average_cost)}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-orange-100 bg-[var(--brand-brick-soft)] px-3 py-2 sm:col-span-2">
+                    <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                      Harga Beli Terakhir
+                    </div>
+                    <div className="mt-1 font-semibold text-slate-900">
+                      {formatCurrency(rawMaterial.last_purchase_price)}
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
                   <Button variant="outline" onClick={() => openEdit(rawMaterial)}>
                     Edit
                   </Button>
@@ -290,137 +344,160 @@ export default function RawMaterialsPage() {
             </>
           }
         >
-          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Kategori
-                </label>
-                <select
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.raw_material_category_id || ""}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      raw_material_category_id: Number(event.target.value || 0),
-                    }))
-                  }
-                >
-                  <option value="">Pilih kategori</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+          <div className="max-h-[72vh] space-y-5 overflow-y-auto pr-1">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Informasi Bahan Baku
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Lengkapi kategori, satuan, kode, nama, dan informasi biaya bahan baku.
+                </p>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Satuan
-                </label>
-                <select
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.unit_id || ""}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Kategori
+                  </label>
+                  <select
+                    className={selectClassName}
+                    value={form.raw_material_category_id || ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        raw_material_category_id: Number(event.target.value || 0),
+                      }))
+                    }
+                  >
+                    <option value="">Pilih kategori</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Satuan
+                  </label>
+                  <select
+                    className={selectClassName}
+                    value={form.unit_id || ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        unit_id: Number(event.target.value || 0),
+                      }))
+                    }
+                  >
+                    <option value="">Pilih satuan</option>
+                    {units.map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name} ({unit.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Input
+                  label="Kode"
+                  value={form.code ?? ""}
                   onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      unit_id: Number(event.target.value || 0),
-                    }))
-                  }
-                >
-                  <option value="">Pilih satuan</option>
-                  {units.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.name} ({unit.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <Input
-                label="Kode"
-                value={form.code ?? ""}
-                onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
-              />
-
-              <Input
-                label="SKU"
-                value={form.sku ?? ""}
-                onChange={(event) => setForm((prev) => ({ ...prev, sku: event.target.value }))}
-              />
-
-              <Input
-                label="Nama Bahan Baku"
-                value={form.name}
-                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-              />
-
-              <Input
-                label="Minimum Stok"
-                type="number"
-                value={String(form.minimum_stock ?? 0)}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    minimum_stock: Number(event.target.value || 0),
-                  }))
-                }
-              />
-
-              <Input
-                label="Harga Beli Terakhir"
-                type="number"
-                value={String(form.last_purchase_price ?? 0)}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    last_purchase_price: Number(event.target.value || 0),
-                  }))
-                }
-              />
-
-              <Input
-                label="Average Cost"
-                type="number"
-                value={String(form.average_cost ?? 0)}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    average_cost: Number(event.target.value || 0),
-                  }))
-                }
-              />
-
-              <Input
-                label="Deskripsi"
-                value={form.description ?? ""}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, description: event.target.value }))
-                }
-              />
-
-              <div className="flex items-end">
-                <Checkbox
-                  label="Bahan baku aktif"
-                  checked={Boolean(form.is_active)}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                    setForm((prev) => ({ ...prev, code: event.target.value }))
                   }
                 />
+
+                <Input
+                  label="SKU"
+                  value={form.sku ?? ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, sku: event.target.value }))
+                  }
+                />
+
+                <Input
+                  label="Nama Bahan Baku"
+                  value={form.name}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, name: event.target.value }))
+                  }
+                />
+
+                <Input
+                  label="Minimum Stok"
+                  type="number"
+                  value={String(form.minimum_stock ?? 0)}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      minimum_stock: Number(event.target.value || 0),
+                    }))
+                  }
+                />
+
+                <Input
+                  label="Harga Beli Terakhir"
+                  type="number"
+                  value={String(form.last_purchase_price ?? 0)}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      last_purchase_price: Number(event.target.value || 0),
+                    }))
+                  }
+                />
+
+                <Input
+                  label="Average Cost"
+                  type="number"
+                  value={String(form.average_cost ?? 0)}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      average_cost: Number(event.target.value || 0),
+                    }))
+                  }
+                />
+
+                <div className="md:col-span-2">
+                  <Input
+                    label="Deskripsi"
+                    value={form.description ?? ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, description: event.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <Checkbox
+                    label="Bahan baku aktif"
+                    checked={Boolean(form.is_active)}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            <Card title="Saldo Awal Per Outlet">
+            <Card title="Saldo Awal Per Outlet" description="Atur stok awal bahan baku untuk setiap outlet.">
               <div className="space-y-3">
                 {outlets.map((outlet) => (
                   <div
                     key={outlet.id}
-                    className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-3"
+                    className="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:grid-cols-[1.2fr_1fr_1fr]"
                   >
-                    <div>
-                      <div className="text-sm font-medium text-slate-900">{outlet.name}</div>
-                      <div className="text-xs text-slate-500">{outlet.code}</div>
+                    <div className="flex min-w-0 items-center">
+                      <div>
+                        <div className="truncate text-sm font-semibold text-slate-900">
+                          {outlet.name}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">{outlet.code}</div>
+                      </div>
                     </div>
 
                     <Input

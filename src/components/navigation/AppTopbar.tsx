@@ -16,10 +16,10 @@ export function AppTopbar({
   return (
     <header
       className={[
-        "sticky top-0 z-30 border-b px-4 py-3 backdrop-blur lg:px-6",
+        "sticky top-0 z-30 border-b px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-opacity-80 lg:px-6",
         dark
-          ? "border-slate-800 bg-slate-950/95"
-          : "border-slate-200 bg-white/95 shadow-sm shadow-slate-200/50",
+          ? "border-slate-800 bg-slate-950/90"
+          : "border-[var(--color-border)] bg-white/90 shadow-sm",
       ].join(" ")}
     >
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -28,10 +28,10 @@ export function AppTopbar({
             type="button"
             onClick={onMenuClick}
             className={[
-              "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition lg:hidden",
+              "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-brick)] lg:hidden",
               dark
                 ? "border-slate-800 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+                : "border-[var(--color-border)] bg-white text-white hover:bg-slate-100 hover:text-white",
             ].join(" ")}
             aria-label="Buka menu navigasi"
           >

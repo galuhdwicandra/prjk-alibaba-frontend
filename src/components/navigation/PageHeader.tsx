@@ -17,15 +17,17 @@ export function PageHeader({
     <div
       className={[
         "rounded-2xl border p-5 shadow-sm sm:p-6",
-        dark ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white",
+        dark
+          ? "border-slate-700 bg-slate-900"
+          : "border-[var(--color-border)] bg-white",
       ].join(" ")}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-1">
           <h1
             className={[
-              "text-xl font-semibold tracking-tight sm:text-2xl",
-              dark ? "text-white" : "text-slate-950",
+              "truncate text-xl font-semibold tracking-tight sm:text-2xl",
+              dark ? "text-white" : "text-[var(--color-text)]",
             ].join(" ")}
           >
             {title}
@@ -34,8 +36,8 @@ export function PageHeader({
           {description ? (
             <p
               className={[
-                "mt-1 max-w-3xl text-sm leading-6",
-                dark ? "text-slate-300" : "text-slate-500",
+                "max-w-2xl text-sm leading-relaxed",
+                dark ? "text-slate-300" : "text-[var(--color-muted)]",
               ].join(" ")}
             >
               {description}
@@ -44,7 +46,7 @@ export function PageHeader({
         </div>
 
         {actions ? (
-          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
             {actions}
           </div>
         ) : null}

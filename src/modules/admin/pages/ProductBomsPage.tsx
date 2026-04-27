@@ -139,7 +139,7 @@ export default function ProductBomsPage() {
 
   return (
     <PermissionWrapper permission="product_boms.view">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <PageHeader
           title="BOM / Resep Produk"
           description="Kelola komposisi bahan baku untuk setiap produk."
@@ -147,36 +147,49 @@ export default function ProductBomsPage() {
         />
 
         <Card>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-[1fr_280px] lg:items-end">
             <Input
-              placeholder="Cari BOM..."
+              label="Pencarian"
+              placeholder="Cari BOM, produk, atau bahan baku..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={productFilter}
-              onChange={(event) =>
-                setProductFilter(event.target.value ? Number(event.target.value) : "")
-              }
-            >
-              <option value="">Semua produk</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">
+                Produk
+              </label>
+              <select
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                value={productFilter}
+                onChange={(event) =>
+                  setProductFilter(event.target.value ? Number(event.target.value) : "")
+                }
+              >
+                <option value="">Semua produk</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </Card>
 
         {bomsQuery.isLoading ? (
-          <Card>Memuat BOM produk...</Card>
+          <Card>
+            <div className="flex min-h-40 items-center justify-center text-sm text-[var(--color-muted)]">
+              Memuat BOM produk...
+            </div>
+          </Card>
         ) : bomsQuery.isError ? (
           <PageErrorState onRetry={() => void bomsQuery.refetch()} />
         ) : !boms.length ? (
-          <PageEmptyState title="Belum ada BOM produk" />
+          <PageEmptyState
+            title="Belum ada BOM produk"
+            description="Tambahkan resep produk untuk mengatur kebutuhan bahan baku."
+          />
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
             {boms.map((bom) => (
@@ -190,31 +203,85 @@ export default function ProductBomsPage() {
                   </Badge>
                 }
               >
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div>Catatan: {bom.notes ?? "-"}</div>
-                  <div>Jumlah Item: {bom.items?.length ?? 0}</div>
-                  <div className="space-y-1">
-                    {(bom.items ?? []).slice(0, 5).map((item) => (
-                      <div key={item.id}>
-                        {item.raw_material?.name ?? item.rawMaterial?.name ?? "-"} —{" "}
-                        {Number(item.qty ?? 0).toLocaleString("id-ID")}{" "}
-                        {item.unit?.code ?? ""}
+                <div className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Jumlah Item
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="mt-1 text-lg font-semibold text-slate-900">
+                        {bom.items?.length ?? 0}
+                      </div>
+                    </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button variant="outline" onClick={() => openEdit(bom)}>
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    loading={deleteMutation.isPending}
-                    onClick={() => deleteMutation.mutate(bom.id)}
-                  >
-                    Hapus
-                  </Button>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Status Resep
+                      </div>
+                      <div className="mt-2">
+                        <Badge variant={bom.is_active ? "success" : "default"}>
+                          {bom.is_active ? "Digunakan" : "Arsip"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Catatan
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
+                      {bom.notes ?? "-"}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Komposisi Bahan
+                    </div>
+
+                    {(bom.items ?? []).slice(0, 5).length ? (
+                      <div className="space-y-2">
+                        {(bom.items ?? []).slice(0, 5).map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-slate-900">
+                                {item.raw_material?.name ?? item.rawMaterial?.name ?? "-"}
+                              </div>
+                              <div className="mt-1 text-xs text-slate-500">
+                                Waste {Number(item.waste_percent ?? 0).toLocaleString("id-ID")}%
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
+                              {Number(item.qty ?? 0).toLocaleString("id-ID")}{" "}
+                              {item.unit?.code ?? ""}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700">
+                        Belum ada bahan baku pada BOM ini.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+                    <Button variant="outline" onClick={() => openEdit(bom)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      loading={deleteMutation.isPending}
+                      onClick={() => deleteMutation.mutate(bom.id)}
+                    >
+                      Hapus
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -236,74 +303,98 @@ export default function ProductBomsPage() {
             </>
           }
         >
-          <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">
-                  Produk
-                </label>
-                <select
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.product_id || ""}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      product_id: Number(event.target.value || 0),
-                    }))
-                  }
-                >
-                  <option value="">Pilih produk</option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name}
-                    </option>
-                  ))}
-                </select>
+          <div className="max-h-[72vh] space-y-6 overflow-y-auto pr-1">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Informasi BOM
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Tentukan produk, versi resep, status aktif, dan catatan produksi.
+                </p>
               </div>
 
-              <Input
-                label="Versi"
-                type="number"
-                value={String(form.version)}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    version: Number(event.target.value || 1),
-                  }))
-                }
-              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Produk
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                    value={form.product_id || ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        product_id: Number(event.target.value || 0),
+                      }))
+                    }
+                  >
+                    <option value="">Pilih produk</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <Input
-                label="Catatan"
-                value={form.notes}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    notes: event.target.value,
-                  }))
-                }
-              />
-
-              <div className="flex items-end">
-                <Checkbox
-                  label="BOM aktif"
-                  checked={form.is_active}
+                <Input
+                  label="Versi"
+                  type="number"
+                  value={String(form.version)}
                   onChange={(event) =>
                     setForm((prev) => ({
                       ...prev,
-                      is_active: event.target.checked,
+                      version: Number(event.target.value || 1),
                     }))
                   }
                 />
+
+                <div className="md:col-span-2">
+                  <Input
+                    label="Catatan"
+                    value={form.notes}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        notes: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="md:col-span-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <Checkbox
+                    label="BOM aktif"
+                    checked={form.is_active}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        is_active: event.target.checked,
+                      }))
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            <BomItemsEditor
-              value={form.items}
-              onChange={(items) => setForm((prev) => ({ ...prev, items }))}
-              rawMaterials={rawMaterials}
-              units={units}
-            />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Komposisi Bahan Baku
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Atur bahan, satuan, kuantitas, dan waste percent untuk resep produk.
+                </p>
+              </div>
+
+              <BomItemsEditor
+                value={form.items}
+                onChange={(items) => setForm((prev) => ({ ...prev, items }))}
+                rawMaterials={rawMaterials}
+                units={units}
+              />
+            </div>
           </div>
         </Modal>
       </div>

@@ -275,7 +275,7 @@ export default function ProductsPage() {
 
   return (
     <PermissionWrapper permission="products.view">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <PageHeader
           title="Products"
           description="Kelola menu, harga outlet, status jual, varian, modifier, dan paket."
@@ -283,8 +283,9 @@ export default function ProductsPage() {
         />
 
         <Card>
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(160px,1fr))]">
             <Input
+              label="Pencarian"
               placeholder="Cari nama, SKU, code, atau slug..."
               value={search}
               onChange={(e) => {
@@ -293,102 +294,122 @@ export default function ProductsPage() {
               }}
             />
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={categoryFilter}
-              onChange={(e) => {
-                setPage(1);
-                setCategoryFilter(e.target.value ? Number(e.target.value) : "");
-              }}
-            >
-              <option value="">Semua kategori</option>
-              {categoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                value={categoryFilter}
+                onChange={(e) => {
+                  setPage(1);
+                  setCategoryFilter(e.target.value ? Number(e.target.value) : "");
+                }}
+              >
+                <option value="">Semua kategori</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={typeFilter}
-              onChange={(e) => {
-                setPage(1);
-                setTypeFilter((e.target.value as "single" | "bundle" | "") || "");
-              }}
-            >
-              <option value="">Semua tipe</option>
-              <option value="single">single</option>
-              <option value="bundle">bundle</option>
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Tipe Produk</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                value={typeFilter}
+                onChange={(e) => {
+                  setPage(1);
+                  setTypeFilter((e.target.value as "single" | "bundle" | "") || "");
+                }}
+              >
+                <option value="">Semua tipe</option>
+                <option value="single">single</option>
+                <option value="bundle">bundle</option>
+              </select>
+            </div>
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={statusFilter === "" ? "" : statusFilter ? "1" : "0"}
-              onChange={(e) => {
-                setPage(1);
-                if (e.target.value === "") {
-                  setStatusFilter("");
-                } else {
-                  setStatusFilter(e.target.value === "1");
-                }
-              }}
-            >
-              <option value="">Semua status</option>
-              <option value="1">Aktif</option>
-              <option value="0">Nonaktif</option>
-            </select>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Status</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                value={statusFilter === "" ? "" : statusFilter ? "1" : "0"}
+                onChange={(e) => {
+                  setPage(1);
+                  if (e.target.value === "") {
+                    setStatusFilter("");
+                  } else {
+                    setStatusFilter(e.target.value === "1");
+                  }
+                }}
+              >
+                <option value="">Semua status</option>
+                <option value="1">Aktif</option>
+                <option value="0">Nonaktif</option>
+              </select>
+            </div>
           </div>
         </Card>
 
         {productsQuery.isLoading ? (
-          <Card>Memuat produk...</Card>
+          <Card>
+            <div className="flex min-h-40 items-center justify-center text-sm text-[var(--color-muted)]">
+              Memuat produk...
+            </div>
+          </Card>
         ) : productsQuery.isError ? (
           <PageErrorState onRetry={() => void productsQuery.refetch()} />
         ) : !products.length ? (
           <PageEmptyState title="Belum ada produk" />
         ) : (
           <Card>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-slate-500">
-                    <th className="px-3 py-3">Produk</th>
-                    <th className="px-3 py-3">Kategori</th>
-                    <th className="px-3 py-3">Harga Dasar</th>
-                    <th className="px-3 py-3">Tipe</th>
-                    <th className="px-3 py-3">Tag</th>
-                    <th className="px-3 py-3">Status</th>
-                    <th className="px-3 py-3 text-right">Aksi</th>
+            <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead className="bg-slate-50">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-4 py-3">Produk</th>
+                    <th className="px-4 py-3">Kategori</th>
+                    <th className="px-4 py-3">Harga Dasar</th>
+                    <th className="px-4 py-3">Tipe</th>
+                    <th className="px-4 py-3">Tag</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100 bg-white">
                   {products.map((product) => (
-                    <tr key={product.id} className="border-b border-slate-100 align-top">
-                      <td className="px-3 py-3">
-                        <div className="font-medium text-slate-900">{product.name}</div>
-                        <div className="text-xs text-slate-500">
-                          SKU: {product.sku ?? "-"} • Code: {product.code ?? "-"}
+                    <tr
+                      key={product.id}
+                      className="align-top transition-colors hover:bg-orange-50/40"
+                    >
+                      <td className="px-4 py-4">
+                        <div className="max-w-sm">
+                          <div className="font-semibold text-slate-900">{product.name}</div>
+                          <div className="mt-1 text-xs leading-5 text-slate-500">
+                            SKU: {product.sku ?? "-"} • Code: {product.code ?? "-"}
+                          </div>
+                          {product.image_url ? (
+                            <div className="mt-2 max-w-xs break-all rounded-lg bg-slate-50 px-2 py-1 text-xs text-sky-700">
+                              {product.image_url}
+                            </div>
+                          ) : null}
                         </div>
-                        {product.image_url ? (
-                          <div className="mt-2 text-xs text-blue-600 break-all">{product.image_url}</div>
-                        ) : null}
                       </td>
 
-                      <td className="px-3 py-3 text-slate-600">{product.category?.name ?? "-"}</td>
+                      <td className="px-4 py-4 text-slate-600">{product.category?.name ?? "-"}</td>
 
-                      <td className="px-3 py-3 text-slate-600">
+                      <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-800">
                         Rp {Number(product.base_price ?? 0).toLocaleString("id-ID")}
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-4 py-4">
                         <Badge variant={product.product_type === "bundle" ? "warning" : "info"}>
                           {product.product_type}
                         </Badge>
                       </td>
 
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-2">
+                      <td className="px-4 py-4">
+                        <div className="flex max-w-md flex-wrap gap-2">
                           {product.is_featured ? <Badge variant="info">featured</Badge> : null}
                           {product.track_recipe ? <Badge variant="success">recipe</Badge> : null}
                           {product.track_stock_direct ? (
@@ -406,14 +427,14 @@ export default function ProductsPage() {
                         </div>
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-4 py-4">
                         <Badge variant={product.is_active ? "success" : "danger"}>
                           {product.is_active ? "Aktif" : "Nonaktif"}
                         </Badge>
                       </td>
 
-                      <td className="px-3 py-3">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col justify-end gap-2 sm:flex-row">
                           <Button variant="outline" onClick={() => openEdit(product)}>
                             Edit
                           </Button>
@@ -432,11 +453,16 @@ export default function ProductsPage() {
               </table>
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm text-slate-500">
-                Halaman {meta?.current_page ?? 1} dari {totalPages}
+                Halaman{" "}
+                <span className="font-semibold text-slate-800">
+                  {meta?.current_page ?? 1}
+                </span>{" "}
+                dari <span className="font-semibold text-slate-800">{totalPages}</span>
               </div>
-              <div className="flex gap-2">
+
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   variant="outline"
                   disabled={(meta?.current_page ?? 1) <= 1}
@@ -475,140 +501,177 @@ export default function ProductsPage() {
             </>
           }
         >
-          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
-                <select
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.product_category_id || ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      product_category_id: Number(e.target.value || 0),
-                    }))
-                  }
-                >
-                  <option value="">Pilih kategori</option>
-                  {categoryOptions.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+          <div className="max-h-[72vh] space-y-6 overflow-y-auto pr-1">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-slate-900">Informasi Produk</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Data utama produk yang tampil di katalog dan POS.
+                </p>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Product Type</label>
-                <select
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.product_type}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
+                  <select
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                    value={form.product_category_id || ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        product_category_id: Number(e.target.value || 0),
+                      }))
+                    }
+                  >
+                    <option value="">Pilih kategori</option>
+                    {categoryOptions.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">
+                    Product Type
+                  </label>
+                  <select
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                    value={form.product_type}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        product_type: e.target.value as "single" | "bundle",
+                      }))
+                    }
+                  >
+                    <option value="single">single</option>
+                    <option value="bundle">bundle</option>
+                  </select>
+                </div>
+
+                <Input
+                  label="Nama Produk"
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                />
+
+                <Input
+                  label="Harga Dasar"
+                  type="number"
+                  value={String(form.base_price ?? 0)}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      product_type: e.target.value as "single" | "bundle",
-                    }))
-                  }
-                >
-                  <option value="single">single</option>
-                  <option value="bundle">bundle</option>
-                </select>
-              </div>
-
-              <Input
-                label="Nama Produk"
-                value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              />
-
-              <Input
-                label="Harga Dasar"
-                type="number"
-                value={String(form.base_price ?? 0)}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    base_price: Number(e.target.value || 0),
-                  }))
-                }
-              />
-
-              <Input
-                label="SKU"
-                value={form.sku ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
-              />
-
-              <Input
-                label="Code"
-                value={form.code ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
-              />
-
-              <Input
-                label="Slug"
-                value={form.slug ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
-              />
-
-              <Input
-                label="Image URL"
-                value={form.image_url ?? ""}
-                onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
-              />
-
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-medium text-slate-700">Deskripsi</label>
-                <textarea
-                  className="min-h-[100px] w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  value={form.description ?? ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      description: e.target.value,
+                      base_price: Number(e.target.value || 0),
                     }))
                   }
                 />
-              </div>
 
-              <div className="md:col-span-2 grid gap-2 md:grid-cols-2">
-                <Checkbox
-                  label="Produk aktif"
-                  checked={Boolean(form.is_active)}
-                  onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                <Input
+                  label="SKU"
+                  value={form.sku ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
                 />
-                <Checkbox
-                  label="Featured"
-                  checked={Boolean(form.is_featured)}
-                  onChange={(e) => setForm((prev) => ({ ...prev, is_featured: e.target.checked }))}
+
+                <Input
+                  label="Code"
+                  value={form.code ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
                 />
-                <Checkbox
-                  label="Track recipe"
-                  checked={Boolean(form.track_recipe)}
-                  onChange={(e) => setForm((prev) => ({ ...prev, track_recipe: e.target.checked }))}
+
+                <Input
+                  label="Slug"
+                  value={form.slug ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
                 />
-                <Checkbox
-                  label="Track stock direct"
-                  checked={Boolean(form.track_stock_direct)}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      track_stock_direct: e.target.checked,
-                    }))
-                  }
+
+                <Input
+                  label="Image URL"
+                  value={form.image_url ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
                 />
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Deskripsi</label>
+                  <textarea
+                    className="min-h-[110px] w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                    value={form.description ?? ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="md:col-span-2 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
+                  <Checkbox
+                    label="Produk aktif"
+                    checked={Boolean(form.is_active)}
+                    onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                  />
+                  <Checkbox
+                    label="Featured"
+                    checked={Boolean(form.is_featured)}
+                    onChange={(e) => setForm((prev) => ({ ...prev, is_featured: e.target.checked }))}
+                  />
+                  <Checkbox
+                    label="Track recipe"
+                    checked={Boolean(form.track_recipe)}
+                    onChange={(e) => setForm((prev) => ({ ...prev, track_recipe: e.target.checked }))}
+                  />
+                  <Checkbox
+                    label="Track stock direct"
+                    checked={Boolean(form.track_stock_direct)}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        track_stock_direct: e.target.checked,
+                      }))
+                    }
+                  />
+                </div>
               </div>
             </div>
 
             <Card title="Harga per Outlet" description="Pengaturan harga penjualan per cabang.">
               <div className="space-y-4">
                 {(form.prices ?? []).map((price, index) => (
-                  <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900">
+                          Harga Outlet #{index + 1}
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Atur harga dasar dan harga per channel.
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="danger"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            prices: (prev.prices ?? []).filter((_, i) => i !== index),
+                          }))
+                        }
+                      >
+                        Hapus Baris
+                      </Button>
+                    </div>
+
                     <div className="grid gap-3 md:grid-cols-3">
                       <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
                         <select
-                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                           value={price.outlet_id || ""}
                           onChange={(e) =>
                             setForm((prev) => {
@@ -642,20 +705,6 @@ export default function ProductsPage() {
                           })
                         }
                       />
-
-                      <div className="flex items-end">
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              prices: (prev.prices ?? []).filter((_, i) => i !== index),
-                            }))
-                          }
-                        >
-                          Hapus Baris
-                        </Button>
-                      </div>
 
                       <Input
                         label="Dine In Price"
@@ -729,12 +778,40 @@ export default function ProductsPage() {
             <Card title="Status Produk per Outlet" description="Aktifasi jual dan visibility per outlet.">
               <div className="space-y-4">
                 {(form.outlet_statuses ?? []).map((status, index) => (
-                  <div key={index} className="rounded-2xl border border-slate-200 p-4">
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900">
+                          Status Outlet #{index + 1}
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Atur availability, visibility, dan limit harian.
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="danger"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            outlet_statuses: (prev.outlet_statuses ?? []).filter(
+                              (_, i) => i !== index
+                            ),
+                          }))
+                        }
+                      >
+                        Hapus Baris
+                      </Button>
+                    </div>
+
                     <div className="grid gap-3 md:grid-cols-3">
                       <div>
                         <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
                         <select
-                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                           value={status.outlet_id || ""}
                           onChange={(e) =>
                             setForm((prev) => {
@@ -772,41 +849,7 @@ export default function ProductsPage() {
                         }
                       />
 
-                      <div className="flex items-end">
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              outlet_statuses: (prev.outlet_statuses ?? []).filter(
-                                (_, i) => i !== index
-                              ),
-                            }))
-                          }
-                        >
-                          Hapus Baris
-                        </Button>
-                      </div>
-
-                      <div className="md:col-span-3">
-                        <label className="mb-2 block text-sm font-medium text-slate-700">Notes</label>
-                        <textarea
-                          className="min-h-[70px] w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                          value={status.notes ?? ""}
-                          onChange={(e) =>
-                            setForm((prev) => {
-                              const next = [...(prev.outlet_statuses ?? [])];
-                              next[index] = {
-                                ...next[index],
-                                notes: e.target.value,
-                              };
-                              return { ...prev, outlet_statuses: next };
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="md:col-span-3 grid gap-2 md:grid-cols-2">
+                      <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-3">
                         <Checkbox
                           label="Is available"
                           checked={Boolean(status.is_available)}
@@ -836,6 +879,24 @@ export default function ProductsPage() {
                           }
                         />
                       </div>
+
+                      <div className="md:col-span-3">
+                        <label className="mb-2 block text-sm font-medium text-slate-700">Notes</label>
+                        <textarea
+                          className="min-h-[80px] w-full resize-y rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                          value={status.notes ?? ""}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.outlet_statuses ?? [])];
+                              next[index] = {
+                                ...next[index],
+                                notes: e.target.value,
+                              };
+                              return { ...prev, outlet_statuses: next };
+                            })
+                          }
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -857,7 +918,35 @@ export default function ProductsPage() {
             <Card title="Variant Groups" description="Contoh: potongan ayam, level pedas.">
               <div className="space-y-4">
                 {(form.variant_groups ?? []).map((group, groupIndex) => (
-                  <div key={groupIndex} className="rounded-2xl border border-slate-200 p-4">
+                  <div
+                    key={groupIndex}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900">
+                          Variant Group #{groupIndex + 1}
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Kelompok pilihan varian untuk produk.
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="danger"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            variant_groups: (prev.variant_groups ?? []).filter(
+                              (_, i) => i !== groupIndex
+                            ),
+                          }))
+                        }
+                      >
+                        Hapus Group
+                      </Button>
+                    </div>
+
                     <div className="grid gap-3 md:grid-cols-3">
                       <Input
                         label="Nama Group"
@@ -876,7 +965,7 @@ export default function ProductsPage() {
                           Selection Type
                         </label>
                         <select
-                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                           value={group.selection_type}
                           onChange={(e) =>
                             setForm((prev) => {
@@ -894,23 +983,7 @@ export default function ProductsPage() {
                         </select>
                       </div>
 
-                      <div className="flex items-end">
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              variant_groups: (prev.variant_groups ?? []).filter(
-                                (_, i) => i !== groupIndex
-                              ),
-                            }))
-                          }
-                        >
-                          Hapus Group
-                        </Button>
-                      </div>
-
-                      <div className="md:col-span-3 grid gap-2 md:grid-cols-2">
+                      <div className="flex items-end rounded-xl border border-slate-200 bg-white p-3">
                         <Checkbox
                           label="Required"
                           checked={Boolean(group.is_required)}
@@ -932,7 +1005,7 @@ export default function ProductsPage() {
                       {group.options.map((option, optionIndex) => (
                         <div
                           key={optionIndex}
-                          className="grid gap-3 rounded-xl border border-slate-100 p-3 md:grid-cols-4"
+                          className="grid gap-3 rounded-xl border border-slate-200 bg-white p-3 md:grid-cols-4"
                         >
                           <Input
                             label="Option Name"
@@ -1052,7 +1125,35 @@ export default function ProductsPage() {
             <Card title="Modifier Groups" description="Contoh: extra sambal, saus, nasi.">
               <div className="space-y-4">
                 {(form.modifier_groups ?? []).map((group, groupIndex) => (
-                  <div key={groupIndex} className="rounded-2xl border border-slate-200 p-4">
+                  <div
+                    key={groupIndex}
+                    className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                  >
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-900">
+                          Modifier Group #{groupIndex + 1}
+                        </h4>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Kelompok tambahan untuk pesanan.
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="danger"
+                        onClick={() =>
+                          setForm((prev) => ({
+                            ...prev,
+                            modifier_groups: (prev.modifier_groups ?? []).filter(
+                              (_, i) => i !== groupIndex
+                            ),
+                          }))
+                        }
+                      >
+                        Hapus Group
+                      </Button>
+                    </div>
+
                     <div className="grid gap-3 md:grid-cols-4">
                       <Input
                         label="Nama Group"
@@ -1098,23 +1199,7 @@ export default function ProductsPage() {
                         }
                       />
 
-                      <div className="flex items-end">
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              modifier_groups: (prev.modifier_groups ?? []).filter(
-                                (_, i) => i !== groupIndex
-                              ),
-                            }))
-                          }
-                        >
-                          Hapus Group
-                        </Button>
-                      </div>
-
-                      <div className="md:col-span-4">
+                      <div className="flex items-end rounded-xl border border-slate-200 bg-white p-3">
                         <Checkbox
                           label="Required"
                           checked={Boolean(group.is_required)}
@@ -1136,7 +1221,7 @@ export default function ProductsPage() {
                       {group.options.map((option, optionIndex) => (
                         <div
                           key={optionIndex}
-                          className="grid gap-3 rounded-xl border border-slate-100 p-3 md:grid-cols-4"
+                          className="grid gap-3 rounded-xl border border-slate-200 bg-white p-3 md:grid-cols-4"
                         >
                           <Input
                             label="Option Name"
@@ -1257,46 +1342,20 @@ export default function ProductsPage() {
               <Card title="Bundle Items" description="Komponen produk untuk paket/combo.">
                 <div className="space-y-4">
                   {(form.bundle_items ?? []).map((item, index) => (
-                    <div key={index} className="grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-3">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-slate-700">Bundled Product</label>
-                        <select
-                          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                          value={item.bundled_product_id || ""}
-                          onChange={(e) =>
-                            setForm((prev) => {
-                              const next = [...(prev.bundle_items ?? [])];
-                              next[index] = {
-                                ...next[index],
-                                bundled_product_id: Number(e.target.value || 0),
-                              };
-                              return { ...prev, bundle_items: next };
-                            })
-                          }
-                        >
-                          <option value="">Pilih produk</option>
-                          {bundleCandidateProducts.map((product) => (
-                            <option key={product.id} value={product.id}>
-                              {product.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <div
+                      key={index}
+                      className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"
+                    >
+                      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900">
+                            Bundle Item #{index + 1}
+                          </h4>
+                          <p className="mt-1 text-xs text-slate-500">
+                            Pilih produk yang menjadi komponen paket.
+                          </p>
+                        </div>
 
-                      <Input
-                        label="Qty"
-                        type="number"
-                        value={String(item.qty ?? 1)}
-                        onChange={(e) =>
-                          setForm((prev) => {
-                            const next = [...(prev.bundle_items ?? [])];
-                            next[index] = { ...next[index], qty: Number(e.target.value || 1) };
-                            return { ...prev, bundle_items: next };
-                          })
-                        }
-                      />
-
-                      <div className="flex items-end">
                         <Button
                           variant="danger"
                           onClick={() =>
@@ -1308,6 +1367,48 @@ export default function ProductsPage() {
                         >
                           Hapus Item
                         </Button>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-3">
+                        <div className="md:col-span-2">
+                          <label className="mb-2 block text-sm font-medium text-slate-700">
+                            Bundled Product
+                          </label>
+                          <select
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                            value={item.bundled_product_id || ""}
+                            onChange={(e) =>
+                              setForm((prev) => {
+                                const next = [...(prev.bundle_items ?? [])];
+                                next[index] = {
+                                  ...next[index],
+                                  bundled_product_id: Number(e.target.value || 0),
+                                };
+                                return { ...prev, bundle_items: next };
+                              })
+                            }
+                          >
+                            <option value="">Pilih produk</option>
+                            {bundleCandidateProducts.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <Input
+                          label="Qty"
+                          type="number"
+                          value={String(item.qty ?? 1)}
+                          onChange={(e) =>
+                            setForm((prev) => {
+                              const next = [...(prev.bundle_items ?? [])];
+                              next[index] = { ...next[index], qty: Number(e.target.value || 1) };
+                              return { ...prev, bundle_items: next };
+                            })
+                          }
+                        />
                       </div>
                     </div>
                   ))}

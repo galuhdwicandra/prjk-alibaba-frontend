@@ -51,10 +51,10 @@ export default function PermissionsPage() {
 
   return (
     <PermissionWrapper permission="permissions.view">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <PageHeader
           title="Permissions"
-          description="Kelola permission sistem."
+          description="Kelola daftar permission sistem untuk pembatasan akses fitur."
           actions={
             <Button
               onClick={() => {
@@ -69,42 +69,68 @@ export default function PermissionsPage() {
         />
 
         {permissionsQuery.isLoading ? (
-          <Card>Memuat data permission...</Card>
+          <Card>
+            <div className="flex min-h-40 items-center justify-center text-sm text-[var(--color-muted)]">
+              Memuat data permission...
+            </div>
+          </Card>
         ) : permissionsQuery.isError ? (
           <PageErrorState onRetry={() => void permissionsQuery.refetch()} />
         ) : !permissions.length ? (
-          <PageEmptyState title="Belum ada permission" />
+          <PageEmptyState
+            title="Belum ada permission"
+            description="Permission sistem belum tersedia."
+          />
         ) : (
           <Card>
-            <div className="space-y-3">
+            <div className="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Daftar Permission</h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Total {permissions.length} permission terdaftar.
+                </p>
+              </div>
+
+              <Button variant="outline" onClick={() => void permissionsQuery.refetch()}>
+                Refresh
+              </Button>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {permissions.map((permission) => (
                 <div
                   key={permission.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between"
+                  className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-orange-200 hover:bg-orange-50/30"
                 >
-                  <div>
-                    <div className="font-medium text-slate-900">{permission.name}</div>
-                    <div className="text-xs text-slate-500">{permission.guard_name}</div>
-                  </div>
+                  <div className="flex min-h-24 flex-col justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-slate-900">
+                        {permission.name}
+                      </div>
+                      <div className="mt-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-500">
+                        {permission.guard_name}
+                      </div>
+                    </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setEditing(permission);
-                        setName(permission.name);
-                        setOpen(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      loading={deleteMutation.isPending}
-                      onClick={() => deleteMutation.mutate(permission.id)}
-                    >
-                      Hapus
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditing(permission);
+                          setName(permission.name);
+                          setOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        loading={deleteMutation.isPending}
+                        onClick={() => deleteMutation.mutate(permission.id)}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -115,6 +141,7 @@ export default function PermissionsPage() {
         <Modal
           open={open}
           title={editing ? "Edit Permission" : "Tambah Permission"}
+          description="Gunakan format nama permission yang konsisten dengan backend."
           onClose={() => setOpen(false)}
           footer={
             <>
@@ -127,12 +154,19 @@ export default function PermissionsPage() {
             </>
           }
         >
-          <Input
-            label="Nama Permission"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="contoh: users.view"
-          />
+          <div className="space-y-4">
+            <Input
+              label="Nama Permission"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="contoh: users.view"
+            />
+
+            <div className="rounded-xl border border-orange-200 bg-[var(--brand-brick-soft)] px-4 py-3 text-xs leading-5 text-orange-800">
+              Permission sebaiknya mengikuti pola modul.aksi, misalnya users.view,
+              users.create, atau reports.export.
+            </div>
+          </div>
         </Modal>
       </div>
     </PermissionWrapper>

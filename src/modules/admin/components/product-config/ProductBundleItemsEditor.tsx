@@ -26,15 +26,24 @@ export function ProductBundleItemsEditor({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-orange-100 bg-orange-50/50 px-4 py-3">
+        <p className="text-sm font-semibold text-[var(--brand-brick)]">
+          Bundle Items
+        </p>
+        <p className="mt-1 text-xs leading-5 text-slate-600">
+          Atur produk yang menjadi bagian dari paket dan jumlah item di dalam bundle.
+        </p>
+      </div>
+
       {value.map((item, index) => (
         <Card key={index} title={`Bundle Item #${index + 1}`}>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="md:col-span-2">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_160px]">
+            <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Bundled Product
               </label>
               <select
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                 value={item.bundled_product_id || ""}
                 onChange={(e) =>
                   updateItems((prev) => {
@@ -72,7 +81,7 @@ export function ProductBundleItemsEditor({
               }
             />
 
-            <div className="md:col-span-3">
+            <div className="flex justify-end md:col-span-2">
               <Button
                 variant="danger"
                 onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
@@ -84,9 +93,14 @@ export function ProductBundleItemsEditor({
         </Card>
       ))}
 
-      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyBundleItem()])}>
-        Tambah Bundle Item
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          onClick={() => onChange([...(value ?? []), createEmptyBundleItem()])}
+        >
+          Tambah Bundle Item
+        </Button>
+      </div>
     </div>
   );
 }

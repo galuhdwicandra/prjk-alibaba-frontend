@@ -34,14 +34,15 @@ function SidebarLink({
         [
           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          dark ? "focus-visible:ring-slate-600" : "focus-visible:ring-slate-900",
+          dark ? "focus-visible:ring-slate-600" : "focus-visible:ring-[var(--brand-brick)]",
+
           dark
             ? isActive
-              ? "bg-slate-800 text-white shadow-sm"
+              ? "bg-slate-800 text-white shadow-sm ring-1 ring-slate-700"
               : "text-slate-300 hover:bg-slate-900 hover:text-white"
             : isActive
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+              ? "bg-[var(--brand-brick)] text-white shadow-sm ring-1 ring-[var(--brand-brick-dark)]"
+              : "text-white/90 hover:bg-[var(--brand-brick-soft)] hover:text-[var(--brand-brick)]",
         ].join(" ")
       }
     >
@@ -65,7 +66,7 @@ export function AppSidebar({
         className={[
           "fixed inset-0 z-40 transition-opacity lg:hidden",
           open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
-          dark ? "bg-slate-950/70" : "bg-slate-950/40",
+          dark ? "bg-slate-950/70" : "bg-slate-950/40 backdrop-blur-sm",
         ].join(" ")}
       />
 
@@ -73,19 +74,19 @@ export function AppSidebar({
         className={[
           "fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] shrink-0 flex-col border-r shadow-xl transition-transform duration-300 lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
-          dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
+          dark ? "border-slate-800 bg-slate-950" : "border-[var(--color-border)] bg-white",
         ].join(" ")}
       >
         <div
           className={[
             "flex h-16 items-center justify-between gap-3 px-5",
-            dark ? "border-b border-slate-800" : "border-b border-slate-200",
+            dark ? "border-b border-slate-800" : "border-b border-[var(--color-border)]",
           ].join(" ")}
         >
           <span
             className={[
               "truncate text-base font-semibold tracking-tight",
-              dark ? "text-white" : "text-slate-900",
+              dark ? "text-white" : "text-[var(--color-text)]",
             ].join(" ")}
           >
             {title}
@@ -106,7 +107,7 @@ export function AppSidebar({
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {items.map((item) => (
             <SidebarLink
               key={item.to}
