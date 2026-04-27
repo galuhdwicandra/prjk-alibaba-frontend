@@ -1,5 +1,3 @@
-// src/router/index.tsx
-
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -30,11 +28,14 @@ import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
 import SuppliersPage from "@/modules/admin/pages/SuppliersPage";
 import PurchaseOrdersPage from "@/modules/admin/pages/PurchaseOrdersPage";
 import GoodsReceiptsPage from "@/modules/admin/pages/GoodsReceiptsPage";
+import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
+import CustomersPage from "@/modules/admin/pages/CustomersPage";
+import VouchersPage from "@/modules/admin/pages/VouchersPage";
+import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
-import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -80,9 +81,10 @@ export const router = createBrowserRouter([
           { path: "suppliers", element: <SuppliersPage /> },
           { path: "purchase-orders", element: <PurchaseOrdersPage /> },
           { path: "goods-receipts", element: <GoodsReceiptsPage /> },
-          {
-            path: "stock-movements", element: <StockMovementsPage />,
-          },
+          { path: "stock-movements", element: <StockMovementsPage /> },
+          { path: "customers", element: <CustomersPage /> },
+          { path: "vouchers", element: <VouchersPage /> },
+          { path: "promotions", element: <PromotionsPage /> },
         ],
       },
       {

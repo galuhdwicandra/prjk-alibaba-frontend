@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-26 11:31:24_  
+_Dihasilkan otomatis: 2026-04-27 10:24:04_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -29,6 +29,7 @@ _Dihasilkan otomatis: 2026-04-26 11:31:24_
   - [src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx)
   - [src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx)
   - [src\modules\admin\components\stock\StockFlowItemsEditor.tsx](#file-srcmodulesadmincomponentsstockstockflowitemseditortsx)
+  - [src\modules\admin\pages\CustomersPage.tsx](#file-srcmodulesadminpagescustomerspagetsx)
   - [src\modules\admin\pages\GoodsReceiptsPage.tsx](#file-srcmodulesadminpagesgoodsreceiptspagetsx)
   - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
@@ -39,6 +40,7 @@ _Dihasilkan otomatis: 2026-04-26 11:31:24_
   - [src\modules\admin\pages\ProductModifiersPage.tsx](#file-srcmodulesadminpagesproductmodifierspagetsx)
   - [src\modules\admin\pages\ProductsPage.tsx](#file-srcmodulesadminpagesproductspagetsx)
   - [src\modules\admin\pages\ProductVariantsPage.tsx](#file-srcmodulesadminpagesproductvariantspagetsx)
+  - [src\modules\admin\pages\PromotionsPage.tsx](#file-srcmodulesadminpagespromotionspagetsx)
   - [src\modules\admin\pages\PurchaseOrdersPage.tsx](#file-srcmodulesadminpagespurchaseorderspagetsx)
   - [src\modules\admin\pages\RawMaterialCategoriesPage.tsx](#file-srcmodulesadminpagesrawmaterialcategoriespagetsx)
   - [src\modules\admin\pages\RawMaterialsPage.tsx](#file-srcmodulesadminpagesrawmaterialspagetsx)
@@ -48,7 +50,9 @@ _Dihasilkan otomatis: 2026-04-26 11:31:24_
   - [src\modules\admin\pages\SystemSettingsPage.tsx](#file-srcmodulesadminpagessystemsettingspagetsx)
   - [src\modules\admin\pages\UnitsPage.tsx](#file-srcmodulesadminpagesunitspagetsx)
   - [src\modules\admin\pages\UsersPage.tsx](#file-srcmodulesadminpagesuserspagetsx)
+  - [src\modules\admin\pages\VouchersPage.tsx](#file-srcmodulesadminpagesvoucherspagetsx)
   - [src\modules\admin\services\catalog.service.ts](#file-srcmodulesadminservicescatalogservicets)
+  - [src\modules\admin\services\customer-promo.service.ts](#file-srcmodulesadminservicescustomer-promoservicets)
   - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\admin\services\purchasing.service.ts](#file-srcmodulesadminservicespurchasingservicets)
@@ -130,6 +134,7 @@ _Dihasilkan otomatis: 2026-04-26 11:31:24_
   - [src\types\outlet.ts](#file-srctypesoutletts)
   - [src\types\permission.ts](#file-srctypespermissionts)
   - [src\types\product.ts](#file-srctypesproductts)
+  - [src\types\promo.ts](#file-srctypespromots)
   - [src\types\purchasing.ts](#file-srctypespurchasingts)
   - [src\types\role.ts](#file-srctypesrolets)
   - [src\types\settings.ts](#file-srctypessettingsts)
@@ -318,13 +323,11 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `31631034c956`  
+- SHA: `6286cf069c29`  
 - Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-// src/router/index.tsx
-
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AdminLayout } from "@/layouts/AdminLayout";
@@ -355,11 +358,14 @@ import ProductBomsPage from "@/modules/admin/pages/ProductBomsPage";
 import SuppliersPage from "@/modules/admin/pages/SuppliersPage";
 import PurchaseOrdersPage from "@/modules/admin/pages/PurchaseOrdersPage";
 import GoodsReceiptsPage from "@/modules/admin/pages/GoodsReceiptsPage";
+import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
+import CustomersPage from "@/modules/admin/pages/CustomersPage";
+import VouchersPage from "@/modules/admin/pages/VouchersPage";
+import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
-import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 
 export const router = createBrowserRouter([
   {
@@ -405,9 +411,10 @@ export const router = createBrowserRouter([
           { path: "suppliers", element: <SuppliersPage /> },
           { path: "purchase-orders", element: <PurchaseOrdersPage /> },
           { path: "goods-receipts", element: <GoodsReceiptsPage /> },
-          {
-            path: "stock-movements", element: <StockMovementsPage />,
-          },
+          { path: "stock-movements", element: <StockMovementsPage /> },
+          { path: "customers", element: <CustomersPage /> },
+          { path: "vouchers", element: <VouchersPage /> },
+          { path: "promotions", element: <PromotionsPage /> },
         ],
       },
       {
@@ -2443,6 +2450,418 @@ export function sanitizeOpnameItems(value: StockOpnameItemPayload[]): StockOpnam
       Number(item.unit_id) > 0 &&
       Number(item.actual_qty) >= 0
   );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagescustomerspagetsx"></a>
+### src\modules\admin\pages\CustomersPage.tsx
+- SHA: `35c63d229182`  
+- Ukuran: 18 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { customerPromoService } from "@/modules/admin/services/customer-promo.service";
+import type { Customer, CustomerPayload } from "@/types/customer";
+
+interface CustomerFormState {
+    code: string;
+    name: string;
+    phone: string;
+    email: string;
+    gender: string;
+    birth_date: string;
+    points: string;
+    total_spent: string;
+    is_member: boolean;
+    notes: string;
+}
+
+const initialForm: CustomerFormState = {
+    code: "",
+    name: "",
+    phone: "",
+    email: "",
+    gender: "",
+    birth_date: "",
+    points: "0",
+    total_spent: "0",
+    is_member: false,
+    notes: "",
+};
+
+const toPayload = (form: CustomerFormState): CustomerPayload => ({
+    code: form.code.trim() || null,
+    name: form.name.trim(),
+    phone: form.phone.trim() || null,
+    email: form.email.trim() || null,
+    gender: form.gender.trim() || null,
+    birth_date: form.birth_date || null,
+    points: Number(form.points || 0),
+    total_spent: Number(form.total_spent || 0),
+    is_member: form.is_member,
+    notes: form.notes.trim() || null,
+});
+
+const fromCustomer = (customer: Customer): CustomerFormState => ({
+    code: customer.code ?? "",
+    name: customer.name,
+    phone: customer.phone ?? "",
+    email: customer.email ?? "",
+    gender: customer.gender ?? "",
+    birth_date: customer.birth_date ?? "",
+    points: String(customer.points ?? 0),
+    total_spent: String(customer.total_spent ?? 0),
+    is_member: Boolean(customer.is_member),
+    notes: customer.notes ?? "",
+});
+
+export default function CustomersPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [isMember, setIsMember] = useState<boolean | "">("");
+    const [open, setOpen] = useState(false);
+    const [detail, setDetail] = useState<Customer | null>(null);
+    const [editing, setEditing] = useState<Customer | null>(null);
+    const [deleting, setDeleting] = useState<Customer | null>(null);
+    const [form, setForm] = useState<CustomerFormState>(initialForm);
+
+    const customersQuery = useQuery({
+        queryKey: ["admin-customers", page, search, isMember],
+        queryFn: () =>
+            customerPromoService.getCustomers({
+                page,
+                per_page: 10,
+                search,
+                is_member: isMember,
+            }),
+    });
+
+    const customers = customersQuery.data?.items ?? [];
+    const meta = customersQuery.data?.meta ?? null;
+
+    const memberCount = useMemo(
+        () => customers.filter((customer) => customer.is_member).length,
+        [customers]
+    );
+
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            const payload = toPayload(form);
+
+            if (editing) {
+                return customerPromoService.updateCustomer(editing.id, payload);
+            }
+
+            return customerPromoService.createCustomer(payload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpen(false);
+            setEditing(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan customer", parseApiError(error));
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (customer: Customer) => customerPromoService.deleteCustomer(customer.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleting(null);
+            void queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus customer", parseApiError(error));
+        },
+    });
+
+    const openCreate = () => {
+        setEditing(null);
+        setForm(initialForm);
+        setOpen(true);
+    };
+
+    const openEdit = (customer: Customer) => {
+        setEditing(customer);
+        setForm(fromCustomer(customer));
+        setOpen(true);
+    };
+
+    return (
+        <PermissionWrapper permission="customers.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Customers"
+                    description="Kelola data pelanggan, status member, dan ringkasan transaksi pelanggan."
+                    actions={
+                        <PermissionWrapper permission="customers.create" fallback={null}>
+                            <Button onClick={openCreate}>Tambah Customer</Button>
+                        </PermissionWrapper>
+                    }
+                />
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card title="Total Customer">
+                        <div className="text-3xl font-semibold text-slate-900">
+                            {meta?.total ?? customers.length}
+                        </div>
+                    </Card>
+                    <Card title="Member di Halaman Ini">
+                        <div className="text-3xl font-semibold text-slate-900">{memberCount}</div>
+                    </Card>
+                    <Card title="Filter Aktif">
+                        <div className="text-sm text-slate-600">{search || isMember !== "" ? "Ya" : "Tidak"}</div>
+                    </Card>
+                </div>
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <Input
+                            placeholder="Cari kode, nama, phone, atau email..."
+                            value={search}
+                            onChange={(event) => {
+                                setSearch(event.target.value);
+                                setPage(1);
+                            }}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                            value={isMember === "" ? "" : String(isMember)}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setIsMember(value === "" ? "" : value === "true");
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="true">Member</option>
+                            <option value="false">Non Member</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {customersQuery.isLoading ? (
+                    <Card>Memuat data customer...</Card>
+                ) : customersQuery.isError ? (
+                    <PageErrorState onRetry={() => void customersQuery.refetch()} />
+                ) : !customers.length ? (
+                    <PageEmptyState title="Belum ada customer" />
+                ) : (
+                    <div className="space-y-3">
+                        {customers.map((customer) => (
+                            <Card
+                                key={customer.id}
+                                title={customer.name}
+                                description={customer.phone ?? customer.email ?? "-"}
+                                actions={
+                                    <Badge variant={customer.is_member ? "success" : "default"}>
+                                        {customer.is_member ? "Member" : "Non Member"}
+                                    </Badge>
+                                }
+                            >
+                                <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-4">
+                                    <div>
+                                        <div className="text-xs text-slate-400">Kode</div>
+                                        <div className="font-medium text-slate-900">{customer.code ?? "-"}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-400">Point</div>
+                                        <div className="font-medium text-slate-900">{customer.points}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-400">Total Belanja</div>
+                                        <div className="font-medium text-slate-900">
+                                            Rp {Number(customer.total_spent ?? 0).toLocaleString("id-ID")}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-slate-400">Alamat</div>
+                                        <div className="font-medium text-slate-900">
+                                            {customer.addresses?.length ?? 0} alamat
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <Button variant="outline" onClick={() => setDetail(customer)}>
+                                        Detail
+                                    </Button>
+                                    <PermissionWrapper permission="customers.update" fallback={null}>
+                                        <Button variant="secondary" onClick={() => openEdit(customer)}>
+                                            Edit
+                                        </Button>
+                                    </PermissionWrapper>
+                                    <PermissionWrapper permission="customers.delete" fallback={null}>
+                                        <Button variant="danger" onClick={() => setDeleting(customer)}>
+                                            Hapus
+                                        </Button>
+                                    </PermissionWrapper>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+
+                {meta ? (
+                    <Pagination
+                        meta={meta}
+                        onPageChange={setPage}
+                    />
+                ) : null}
+
+                <Modal
+                    open={open}
+                    title={editing ? "Edit Customer" : "Tambah Customer"}
+                    onClose={() => setOpen(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpen(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Input
+                            label="Kode"
+                            value={form.code}
+                            onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+                        />
+                        <Input
+                            label="Nama"
+                            value={form.name}
+                            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                        />
+                        <Input
+                            label="Phone"
+                            value={form.phone}
+                            onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
+                        />
+                        <Input
+                            label="Email"
+                            type="email"
+                            value={form.email}
+                            onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                        />
+                        <Input
+                            label="Gender"
+                            value={form.gender}
+                            onChange={(event) => setForm((prev) => ({ ...prev, gender: event.target.value }))}
+                        />
+                        <Input
+                            label="Tanggal Lahir"
+                            type="date"
+                            value={form.birth_date}
+                            onChange={(event) => setForm((prev) => ({ ...prev, birth_date: event.target.value }))}
+                        />
+                        <Input
+                            label="Point"
+                            type="number"
+                            value={form.points}
+                            onChange={(event) => setForm((prev) => ({ ...prev, points: event.target.value }))}
+                        />
+                        <Input
+                            label="Total Belanja"
+                            type="number"
+                            value={form.total_spent}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, total_spent: event.target.value }))
+                            }
+                        />
+                        <label className="flex items-center gap-2 text-sm text-slate-700">
+                            <input
+                                type="checkbox"
+                                checked={form.is_member}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, is_member: event.target.checked }))
+                                }
+                            />
+                            Customer member
+                        </label>
+                        <Input
+                            label="Catatan"
+                            value={form.notes}
+                            onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+                        />
+                    </div>
+                </Modal>
+
+                <Modal
+                    open={Boolean(detail)}
+                    title="Detail Customer"
+                    onClose={() => setDetail(null)}
+                >
+                    <div className="space-y-4 text-sm">
+                        <Card title={detail?.name ?? "-"}>
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div>Kode: {detail?.code ?? "-"}</div>
+                                <div>Phone: {detail?.phone ?? "-"}</div>
+                                <div>Email: {detail?.email ?? "-"}</div>
+                                <div>Status: {detail?.is_member ? "Member" : "Non Member"}</div>
+                                <div>Point: {detail?.points ?? 0}</div>
+                                <div>Total: Rp {Number(detail?.total_spent ?? 0).toLocaleString("id-ID")}</div>
+                            </div>
+                        </Card>
+
+                        <Card title="Alamat Customer">
+                            {!detail?.addresses?.length ? (
+                                <div className="text-slate-500">Belum ada alamat.</div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {detail.addresses.map((address) => (
+                                        <div key={address.id} className="rounded-xl border border-slate-200 p-3">
+                                            <div className="font-semibold text-slate-900">
+                                                {address.label ?? "Alamat"} {address.is_default ? "(Default)" : ""}
+                                            </div>
+                                            <div className="text-slate-600">{address.address}</div>
+                                            <div className="text-slate-500">
+                                                {[address.city, address.province, address.postal_code].filter(Boolean).join(", ")}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Card>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleting)}
+                    title="Hapus customer?"
+                    description={`Customer ${deleting?.name ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleting(null)}
+                    onConfirm={() => {
+                        if (deleting) {
+                            deleteMutation.mutate(deleting);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
 }
 ```
 </details>
@@ -5941,6 +6360,460 @@ export default function ProductVariantsPage() {
       })}
     />
   );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagespromotionspagetsx"></a>
+### src\modules\admin\pages\PromotionsPage.tsx
+- SHA: `c1f83cab5e6e`  
+- Ukuran: 19 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { customerPromoService } from "@/modules/admin/services/customer-promo.service";
+import type {
+    Promotion,
+    PromotionPayload,
+    PromotionRulePayload,
+    PromotionRuleType,
+    PromotionType,
+} from "@/types/promo";
+
+interface PromotionFormState {
+    name: string;
+    description: string;
+    promotion_type: PromotionType;
+    starts_at: string;
+    ends_at: string;
+    priority: string;
+    is_active: boolean;
+    rules: PromotionRulePayload[];
+}
+
+const createEmptyRule = (): PromotionRulePayload => ({
+    rule_type: "min_total",
+    operator: ">=",
+    value: "",
+});
+
+const initialForm: PromotionFormState = {
+    name: "",
+    description: "",
+    promotion_type: "discount",
+    starts_at: "",
+    ends_at: "",
+    priority: "0",
+    is_active: true,
+    rules: [createEmptyRule()],
+};
+
+const toPayload = (form: PromotionFormState): PromotionPayload => ({
+    name: form.name.trim(),
+    description: form.description.trim() || null,
+    promotion_type: form.promotion_type,
+    starts_at: form.starts_at || null,
+    ends_at: form.ends_at || null,
+    priority: Number(form.priority || 0),
+    is_active: form.is_active,
+    rules: form.rules
+        .filter((rule) => rule.rule_type && String(rule.value ?? "").trim() !== "")
+        .map((rule) => ({
+            rule_type: rule.rule_type,
+            operator: rule.operator || null,
+            value: rule.value || null,
+        })),
+});
+
+const fromPromotion = (promotion: Promotion): PromotionFormState => ({
+    name: promotion.name,
+    description: promotion.description ?? "",
+    promotion_type: promotion.promotion_type,
+    starts_at: promotion.starts_at ?? "",
+    ends_at: promotion.ends_at ?? "",
+    priority: String(promotion.priority ?? 0),
+    is_active: Boolean(promotion.is_active),
+    rules:
+        promotion.rules?.length
+            ? promotion.rules.map((rule) => ({
+                rule_type: rule.rule_type,
+                operator: rule.operator,
+                value: rule.value,
+            }))
+            : [createEmptyRule()],
+});
+
+export default function PromotionsPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [isActive, setIsActive] = useState<boolean | "">("");
+    const [open, setOpen] = useState(false);
+    const [editing, setEditing] = useState<Promotion | null>(null);
+    const [deleting, setDeleting] = useState<Promotion | null>(null);
+    const [form, setForm] = useState<PromotionFormState>(initialForm);
+
+    const promotionsQuery = useQuery({
+        queryKey: ["admin-promotions", page, search, isActive],
+        queryFn: () =>
+            customerPromoService.getPromotions({
+                page,
+                per_page: 10,
+                search,
+                is_active: isActive,
+            }),
+    });
+
+    const promotions = promotionsQuery.data?.items ?? [];
+    const meta = promotionsQuery.data?.meta ?? null;
+
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            const payload = toPayload(form);
+
+            if (editing) {
+                return customerPromoService.updatePromotion(editing.id, payload);
+            }
+
+            return customerPromoService.createPromotion(payload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpen(false);
+            setEditing(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan promotion", parseApiError(error));
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (promotion: Promotion) => customerPromoService.deletePromotion(promotion.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleting(null);
+            void queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus promotion", parseApiError(error));
+        },
+    });
+
+    const openCreate = () => {
+        setEditing(null);
+        setForm(initialForm);
+        setOpen(true);
+    };
+
+    const openEdit = (promotion: Promotion) => {
+        setEditing(promotion);
+        setForm(fromPromotion(promotion));
+        setOpen(true);
+    };
+
+    const updateRule = (index: number, next: PromotionRulePayload) => {
+        setForm((prev) => {
+            const rules = [...prev.rules];
+            rules[index] = next;
+
+            return {
+                ...prev,
+                rules,
+            };
+        });
+    };
+
+    return (
+        <PermissionWrapper permission="promotions.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Promotions"
+                    description="Kelola promo campaign, tipe promo, prioritas, masa aktif, dan rule sederhana."
+                    actions={
+                        <PermissionWrapper permission="promotions.create" fallback={null}>
+                            <Button onClick={openCreate}>Tambah Promo</Button>
+                        </PermissionWrapper>
+                    }
+                />
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <Input
+                            placeholder="Cari nama promo..."
+                            value={search}
+                            onChange={(event) => {
+                                setSearch(event.target.value);
+                                setPage(1);
+                            }}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                            value={isActive === "" ? "" : String(isActive)}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setIsActive(value === "" ? "" : value === "true");
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {promotionsQuery.isLoading ? (
+                    <Card>Memuat data promotion...</Card>
+                ) : promotionsQuery.isError ? (
+                    <PageErrorState onRetry={() => void promotionsQuery.refetch()} />
+                ) : !promotions.length ? (
+                    <PageEmptyState title="Belum ada promotion" />
+                ) : (
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        {promotions.map((promotion) => (
+                            <Card
+                                key={promotion.id}
+                                title={promotion.name}
+                                description={promotion.description ?? "-"}
+                                actions={
+                                    <Badge variant={promotion.is_active ? "success" : "danger"}>
+                                        {promotion.is_active ? "Aktif" : "Nonaktif"}
+                                    </Badge>
+                                }
+                            >
+                                <div className="space-y-2 text-sm text-slate-600">
+                                    <div>
+                                        Tipe: <span className="font-semibold text-slate-900">{promotion.promotion_type}</span>
+                                    </div>
+                                    <div>Prioritas: {promotion.priority}</div>
+                                    <div>
+                                        Berlaku: {promotion.starts_at ?? "-"} s/d {promotion.ends_at ?? "-"}
+                                    </div>
+                                    <div>Rules: {promotion.rules?.length ?? 0}</div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <PermissionWrapper permission="promotions.update" fallback={null}>
+                                        <Button variant="secondary" onClick={() => openEdit(promotion)}>
+                                            Edit
+                                        </Button>
+                                    </PermissionWrapper>
+                                    <PermissionWrapper permission="promotions.delete" fallback={null}>
+                                        <Button variant="danger" onClick={() => setDeleting(promotion)}>
+                                            Hapus
+                                        </Button>
+                                    </PermissionWrapper>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+
+                {meta ? (
+                    <Pagination
+                        meta={meta}
+                        onPageChange={setPage}
+                    />
+                ) : null}
+
+                <Modal
+                    open={open}
+                    title={editing ? "Edit Promotion" : "Tambah Promotion"}
+                    onClose={() => setOpen(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpen(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <Input
+                                label="Nama Promo"
+                                value={form.name}
+                                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                            />
+
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">Tipe Promo</label>
+                                <select
+                                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                                    value={form.promotion_type}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            promotion_type: event.target.value as PromotionType,
+                                        }))
+                                    }
+                                >
+                                    <option value="discount">discount</option>
+                                    <option value="bundle">bundle</option>
+                                    <option value="buy_x_get_y">buy_x_get_y</option>
+                                </select>
+                            </div>
+
+                            <Input
+                                label="Mulai"
+                                type="datetime-local"
+                                value={form.starts_at}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, starts_at: event.target.value }))
+                                }
+                            />
+
+                            <Input
+                                label="Berakhir"
+                                type="datetime-local"
+                                value={form.ends_at}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, ends_at: event.target.value }))
+                                }
+                            />
+
+                            <Input
+                                label="Prioritas"
+                                type="number"
+                                value={form.priority}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, priority: event.target.value }))
+                                }
+                            />
+
+                            <Input
+                                label="Deskripsi"
+                                value={form.description}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, description: event.target.value }))
+                                }
+                            />
+
+                            <label className="flex items-center gap-2 text-sm text-slate-700">
+                                <input
+                                    type="checkbox"
+                                    checked={form.is_active}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                                    }
+                                />
+                                Promo aktif
+                            </label>
+                        </div>
+
+                        <Card title="Promotion Rules">
+                            <div className="space-y-3">
+                                {form.rules.map((rule, index) => (
+                                    <div key={index} className="grid gap-3 rounded-xl border border-slate-200 p-3 md:grid-cols-4">
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">Rule Type</label>
+                                            <select
+                                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                                                value={rule.rule_type}
+                                                onChange={(event) =>
+                                                    updateRule(index, {
+                                                        ...rule,
+                                                        rule_type: event.target.value as PromotionRuleType,
+                                                    })
+                                                }
+                                            >
+                                                <option value="min_total">min_total</option>
+                                                <option value="product">product</option>
+                                                <option value="category">category</option>
+                                                <option value="outlet">outlet</option>
+                                                <option value="channel">channel</option>
+                                                <option value="time">time</option>
+                                            </select>
+                                        </div>
+
+                                        <Input
+                                            label="Operator"
+                                            value={rule.operator ?? ""}
+                                            onChange={(event) =>
+                                                updateRule(index, {
+                                                    ...rule,
+                                                    operator: event.target.value,
+                                                })
+                                            }
+                                        />
+
+                                        <Input
+                                            label="Value"
+                                            value={rule.value ?? ""}
+                                            onChange={(event) =>
+                                                updateRule(index, {
+                                                    ...rule,
+                                                    value: event.target.value,
+                                                })
+                                            }
+                                        />
+
+                                        <div className="flex items-end">
+                                            <Button
+                                                variant="danger"
+                                                onClick={() =>
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        rules: prev.rules.filter((_, ruleIndex) => ruleIndex !== index),
+                                                    }))
+                                                }
+                                            >
+                                                Hapus
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            rules: [...prev.rules, createEmptyRule()],
+                                        }))
+                                    }
+                                >
+                                    Tambah Rule
+                                </Button>
+                            </div>
+                        </Card>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleting)}
+                    title="Hapus promotion?"
+                    description={`Promotion ${deleting?.name ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleting(null)}
+                    onConfirm={() => {
+                        if (deleting) {
+                            deleteMutation.mutate(deleting);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
 }
 ```
 </details>
@@ -9805,6 +10678,413 @@ export default function UsersPage() {
 ```
 </details>
 
+<a id="file-srcmodulesadminpagesvoucherspagetsx"></a>
+### src\modules\admin\pages\VouchersPage.tsx
+- SHA: `a41a47dca924`  
+- Ukuran: 17 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { customerPromoService } from "@/modules/admin/services/customer-promo.service";
+import type { Voucher, VoucherAppliesTo, VoucherDiscountType, VoucherPayload } from "@/types/promo";
+
+interface VoucherFormState {
+    code: string;
+    name: string;
+    description: string;
+    discount_type: VoucherDiscountType;
+    discount_value: string;
+    max_discount: string;
+    min_order_total: string;
+    quota: string;
+    starts_at: string;
+    ends_at: string;
+    is_active: boolean;
+    applies_to: VoucherAppliesTo;
+}
+
+const initialForm: VoucherFormState = {
+    code: "",
+    name: "",
+    description: "",
+    discount_type: "fixed",
+    discount_value: "0",
+    max_discount: "",
+    min_order_total: "0",
+    quota: "",
+    starts_at: "",
+    ends_at: "",
+    is_active: true,
+    applies_to: "all",
+};
+
+const toPayload = (form: VoucherFormState): VoucherPayload => ({
+    code: form.code.trim().toUpperCase(),
+    name: form.name.trim(),
+    description: form.description.trim() || null,
+    discount_type: form.discount_type,
+    discount_value: Number(form.discount_value || 0),
+    max_discount: form.max_discount === "" ? null : Number(form.max_discount),
+    min_order_total: Number(form.min_order_total || 0),
+    quota: form.quota === "" ? null : Number(form.quota),
+    starts_at: form.starts_at || null,
+    ends_at: form.ends_at || null,
+    is_active: form.is_active,
+    applies_to: form.applies_to,
+});
+
+const fromVoucher = (voucher: Voucher): VoucherFormState => ({
+    code: voucher.code,
+    name: voucher.name,
+    description: voucher.description ?? "",
+    discount_type: voucher.discount_type,
+    discount_value: String(voucher.discount_value ?? 0),
+    max_discount: voucher.max_discount === null ? "" : String(voucher.max_discount),
+    min_order_total: String(voucher.min_order_total ?? 0),
+    quota: voucher.quota === null ? "" : String(voucher.quota),
+    starts_at: voucher.starts_at ?? "",
+    ends_at: voucher.ends_at ?? "",
+    is_active: Boolean(voucher.is_active),
+    applies_to: voucher.applies_to,
+});
+
+export default function VouchersPage() {
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [isActive, setIsActive] = useState<boolean | "">("");
+    const [open, setOpen] = useState(false);
+    const [editing, setEditing] = useState<Voucher | null>(null);
+    const [deleting, setDeleting] = useState<Voucher | null>(null);
+    const [form, setForm] = useState<VoucherFormState>(initialForm);
+
+    const vouchersQuery = useQuery({
+        queryKey: ["admin-vouchers", page, search, isActive],
+        queryFn: () =>
+            customerPromoService.getVouchers({
+                page,
+                per_page: 10,
+                search,
+                is_active: isActive,
+            }),
+    });
+
+    const vouchers = vouchersQuery.data?.items ?? [];
+    const meta = vouchersQuery.data?.meta ?? null;
+
+    const saveMutation = useMutation({
+        mutationFn: () => {
+            const payload = toPayload(form);
+
+            if (editing) {
+                return customerPromoService.updateVoucher(editing.id, payload);
+            }
+
+            return customerPromoService.createVoucher(payload);
+        },
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setOpen(false);
+            setEditing(null);
+            setForm(initialForm);
+            void queryClient.invalidateQueries({ queryKey: ["admin-vouchers"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan voucher", parseApiError(error));
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (voucher: Voucher) => customerPromoService.deleteVoucher(voucher.id),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setDeleting(null);
+            void queryClient.invalidateQueries({ queryKey: ["admin-vouchers"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menghapus voucher", parseApiError(error));
+        },
+    });
+
+    const openCreate = () => {
+        setEditing(null);
+        setForm(initialForm);
+        setOpen(true);
+    };
+
+    const openEdit = (voucher: Voucher) => {
+        setEditing(voucher);
+        setForm(fromVoucher(voucher));
+        setOpen(true);
+    };
+
+    return (
+        <PermissionWrapper permission="vouchers.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Vouchers"
+                    description="Kelola kode voucher, nominal diskon, masa aktif, kuota, dan status voucher."
+                    actions={
+                        <PermissionWrapper permission="vouchers.create" fallback={null}>
+                            <Button onClick={openCreate}>Tambah Voucher</Button>
+                        </PermissionWrapper>
+                    }
+                />
+
+                <Card>
+                    <div className="grid gap-4 md:grid-cols-3">
+                        <Input
+                            placeholder="Cari kode atau nama voucher..."
+                            value={search}
+                            onChange={(event) => {
+                                setSearch(event.target.value);
+                                setPage(1);
+                            }}
+                        />
+
+                        <select
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                            value={isActive === "" ? "" : String(isActive)}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setIsActive(value === "" ? "" : value === "true");
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="true">Aktif</option>
+                            <option value="false">Nonaktif</option>
+                        </select>
+                    </div>
+                </Card>
+
+                {vouchersQuery.isLoading ? (
+                    <Card>Memuat data voucher...</Card>
+                ) : vouchersQuery.isError ? (
+                    <PageErrorState onRetry={() => void vouchersQuery.refetch()} />
+                ) : !vouchers.length ? (
+                    <PageEmptyState title="Belum ada voucher" />
+                ) : (
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        {vouchers.map((voucher) => (
+                            <Card
+                                key={voucher.id}
+                                title={voucher.name}
+                                description={voucher.code}
+                                actions={
+                                    <Badge variant={voucher.is_active ? "success" : "danger"}>
+                                        {voucher.is_active ? "Aktif" : "Nonaktif"}
+                                    </Badge>
+                                }
+                            >
+                                <div className="space-y-2 text-sm text-slate-600">
+                                    <div>
+                                        Diskon:{" "}
+                                        <span className="font-semibold text-slate-900">
+                                            {voucher.discount_type === "percent"
+                                                ? `${Number(voucher.discount_value).toLocaleString("id-ID")}%`
+                                                : `Rp ${Number(voucher.discount_value).toLocaleString("id-ID")}`}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        Minimal Order: Rp {Number(voucher.min_order_total ?? 0).toLocaleString("id-ID")}
+                                    </div>
+                                    <div>
+                                        Kuota: {voucher.quota ?? "Tanpa batas"} | Dipakai: {voucher.used_count}
+                                    </div>
+                                    <div>
+                                        Berlaku: {voucher.starts_at ?? "-"} s/d {voucher.ends_at ?? "-"}
+                                    </div>
+                                    <div>Applies To: {voucher.applies_to}</div>
+                                </div>
+
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <PermissionWrapper permission="vouchers.update" fallback={null}>
+                                        <Button variant="secondary" onClick={() => openEdit(voucher)}>
+                                            Edit
+                                        </Button>
+                                    </PermissionWrapper>
+                                    <PermissionWrapper permission="vouchers.delete" fallback={null}>
+                                        <Button variant="danger" onClick={() => setDeleting(voucher)}>
+                                            Hapus
+                                        </Button>
+                                    </PermissionWrapper>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+
+                {meta ? (
+                    <Pagination
+                        meta={meta}
+                        onPageChange={setPage}
+                    />
+                ) : null}
+
+                <Modal
+                    open={open}
+                    title={editing ? "Edit Voucher" : "Tambah Voucher"}
+                    onClose={() => setOpen(false)}
+                    footer={
+                        <>
+                            <Button variant="outline" onClick={() => setOpen(false)}>
+                                Batal
+                            </Button>
+                            <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                                Simpan
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Input
+                            label="Kode Voucher"
+                            value={form.code}
+                            onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+                        />
+                        <Input
+                            label="Nama Voucher"
+                            value={form.name}
+                            onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                        />
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">Tipe Diskon</label>
+                            <select
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                                value={form.discount_type}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        discount_type: event.target.value as VoucherDiscountType,
+                                    }))
+                                }
+                            >
+                                <option value="fixed">fixed</option>
+                                <option value="percent">percent</option>
+                            </select>
+                        </div>
+
+                        <Input
+                            label="Nilai Diskon"
+                            type="number"
+                            value={form.discount_value}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, discount_value: event.target.value }))
+                            }
+                        />
+
+                        <Input
+                            label="Max Discount"
+                            type="number"
+                            value={form.max_discount}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, max_discount: event.target.value }))
+                            }
+                        />
+
+                        <Input
+                            label="Minimal Order"
+                            type="number"
+                            value={form.min_order_total}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, min_order_total: event.target.value }))
+                            }
+                        />
+
+                        <Input
+                            label="Kuota"
+                            type="number"
+                            value={form.quota}
+                            onChange={(event) => setForm((prev) => ({ ...prev, quota: event.target.value }))}
+                        />
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">Applies To</label>
+                            <select
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                                value={form.applies_to}
+                                onChange={(event) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        applies_to: event.target.value as VoucherAppliesTo,
+                                    }))
+                                }
+                            >
+                                <option value="all">all</option>
+                                <option value="specific_products">specific_products</option>
+                                <option value="specific_categories">specific_categories</option>
+                            </select>
+                        </div>
+
+                        <Input
+                            label="Mulai"
+                            type="datetime-local"
+                            value={form.starts_at}
+                            onChange={(event) => setForm((prev) => ({ ...prev, starts_at: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Berakhir"
+                            type="datetime-local"
+                            value={form.ends_at}
+                            onChange={(event) => setForm((prev) => ({ ...prev, ends_at: event.target.value }))}
+                        />
+
+                        <Input
+                            label="Deskripsi"
+                            value={form.description}
+                            onChange={(event) =>
+                                setForm((prev) => ({ ...prev, description: event.target.value }))
+                            }
+                        />
+
+                        <label className="flex items-center gap-2 text-sm text-slate-700">
+                            <input
+                                type="checkbox"
+                                checked={form.is_active}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                                }
+                            />
+                            Voucher aktif
+                        </label>
+                    </div>
+                </Modal>
+
+                <ConfirmDialog
+                    open={Boolean(deleting)}
+                    title="Hapus voucher?"
+                    description={`Voucher ${deleting?.code ?? ""} akan dihapus.`}
+                    confirmText="Hapus"
+                    confirmVariant="danger"
+                    loading={deleteMutation.isPending}
+                    onClose={() => setDeleting(null)}
+                    onConfirm={() => {
+                        if (deleting) {
+                            deleteMutation.mutate(deleting);
+                        }
+                    }}
+                />
+            </div>
+        </PermissionWrapper>
+    );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminservicescatalogservicets"></a>
 ### src\modules\admin\services\catalog.service.ts
 - SHA: `14e6905c0e73`  
@@ -10002,6 +11282,158 @@ export type {
   ProductOutletStatus,
   ProductPrice,
   ProductVariantGroup,
+};
+```
+</details>
+
+<a id="file-srcmodulesadminservicescustomer-promoservicets"></a>
+### src\modules\admin\services\customer-promo.service.ts
+- SHA: `62a4ea5cdea8`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta, ApiResponse } from "@/types/api";
+import type { Customer, CustomerPayload, CustomerQuery } from "@/types/customer";
+import type {
+  Promotion,
+  PromotionPayload,
+  PromotionQuery,
+  Voucher,
+  VoucherPayload,
+  VoucherQuery,
+} from "@/types/promo";
+
+export interface PaginatedResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
+  message: string;
+}
+
+const unwrapPaginated = <T>(response: ApiResponse<T[]>): PaginatedResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+  message: response.message,
+});
+
+export const customerPromoService = {
+  async getCustomers(params: CustomerQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Customer[]>>(endpoints.customers.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getCustomer(id: number) {
+    const response = await apiClient.get<ApiResponse<Customer>>(endpoints.customers.show(id));
+
+    return response.data;
+  },
+
+  async createCustomer(payload: CustomerPayload) {
+    const response = await apiClient.post<ApiResponse<Customer>>(
+      endpoints.customers.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateCustomer(id: number, payload: CustomerPayload) {
+    const response = await apiClient.put<ApiResponse<Customer>>(
+      endpoints.customers.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteCustomer(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.customers.destroy(id));
+
+    return response.data;
+  },
+
+  async getVouchers(params: VoucherQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Voucher[]>>(endpoints.vouchers.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getVoucher(id: number) {
+    const response = await apiClient.get<ApiResponse<Voucher>>(endpoints.vouchers.show(id));
+
+    return response.data;
+  },
+
+  async createVoucher(payload: VoucherPayload) {
+    const response = await apiClient.post<ApiResponse<Voucher>>(
+      endpoints.vouchers.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateVoucher(id: number, payload: VoucherPayload) {
+    const response = await apiClient.put<ApiResponse<Voucher>>(
+      endpoints.vouchers.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteVoucher(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(endpoints.vouchers.destroy(id));
+
+    return response.data;
+  },
+
+  async getPromotions(params: PromotionQuery = {}) {
+    const response = await apiClient.get<ApiResponse<Promotion[]>>(endpoints.promotions.index, {
+      params,
+    });
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getPromotion(id: number) {
+    const response = await apiClient.get<ApiResponse<Promotion>>(endpoints.promotions.show(id));
+
+    return response.data;
+  },
+
+  async createPromotion(payload: PromotionPayload) {
+    const response = await apiClient.post<ApiResponse<Promotion>>(
+      endpoints.promotions.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updatePromotion(id: number, payload: PromotionPayload) {
+    const response = await apiClient.put<ApiResponse<Promotion>>(
+      endpoints.promotions.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deletePromotion(id: number) {
+    const response = await apiClient.delete<ApiResponse<null>>(
+      endpoints.promotions.destroy(id)
+    );
+
+    return response.data;
+  },
 };
 ```
 </details>
@@ -16351,13 +17783,11 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `acc3fdfbf910`  
+- SHA: `839161bb08fd`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-// src/components/navigation/navigation.config.ts
-
 export interface NavigationItem {
   label: string;
   to: string;
@@ -16371,81 +17801,28 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
   { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
   { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
-  {
-    label: "Product Categories",
-    to: "/admin/product-categories",
-    permission: "product_categories.view",
-  },
-  {
-    label: "Products",
-    to: "/admin/products",
-    permission: "products.view",
-  },
-  {
-    label: "Product Variants",
-    to: "/admin/product-variants",
-    permission: "products.view",
-  },
-  {
-    label: "Product Modifiers",
-    to: "/admin/product-modifiers",
-    permission: "products.view",
-  },
-  {
-    label: "Product Bundles",
-    to: "/admin/product-bundles",
-    permission: "products.view",
-  },
-  {
-    label: "Units",
-    to: "/admin/units",
-    permission: "units.view",
-  },
-  {
-    label: "Raw Material Categories",
-    to: "/admin/raw-material-categories",
-    permission: "raw_material_categories.view",
-  },
-  {
-    label: "Raw Materials",
-    to: "/admin/raw-materials",
-    permission: "raw_materials.view",
-  },
-  {
-    label: "Outlet Material Stocks",
-    to: "/admin/outlet-material-stocks",
-    permission: "outlet_material_stocks.view",
-  },
-  {
-    label: "Product BOM",
-    to: "/admin/product-boms",
-    permission: "product_boms.view",
-  },
-  {
-    label: "Suppliers",
-    to: "/admin/suppliers",
-    permission: "suppliers.view",
-  },
-  {
-    label: "Purchase Orders",
-    to: "/admin/purchase-orders",
-    permission: "purchase_orders.view",
-  },
-  {
-    label: "Goods Receipts",
-    to: "/admin/goods-receipts",
-    permission: "goods_receipts.view",
-  },
-  {
-    label: "Stock Movement",
-    to: "/admin/stock-movements",
-    permission: "stock_movements.view",
-  },
+  { label: "Product Categories", to: "/admin/product-categories", permission: "product_categories.view" },
+  { label: "Products", to: "/admin/products", permission: "products.view" },
+  { label: "Product Variants", to: "/admin/product-variants", permission: "products.view" },
+  { label: "Product Modifiers", to: "/admin/product-modifiers", permission: "products.view" },
+  { label: "Product Bundles", to: "/admin/product-bundles", permission: "products.view" },
+  { label: "Units", to: "/admin/units", permission: "units.view" },
+  { label: "Raw Material Categories", to: "/admin/raw-material-categories", permission: "raw_material_categories.view" },
+  { label: "Raw Materials", to: "/admin/raw-materials", permission: "raw_materials.view" },
+  { label: "Outlet Material Stocks", to: "/admin/outlet-material-stocks", permission: "outlet_material_stocks.view" },
+  { label: "Product BOM", to: "/admin/product-boms", permission: "product_boms.view" },
+  { label: "Suppliers", to: "/admin/suppliers", permission: "suppliers.view" },
+  { label: "Purchase Orders", to: "/admin/purchase-orders", permission: "purchase_orders.view" },
+  { label: "Goods Receipts", to: "/admin/goods-receipts", permission: "goods_receipts.view" },
+  { label: "Stock Movements", to: "/admin/stock-movements", permission: "stock_movements.view" },
+  { label: "Customers", to: "/admin/customers", permission: "customers.view" },
+  { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view" },
+  { label: "Promotions", to: "/admin/promotions", permission: "promotions.view" },
 ];
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "Orders", to: "/pos/orders", permission: "orders.create" },
+  { label: "Orders", to: "/pos/orders", permission: "orders.view" },
   { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
@@ -16455,8 +17832,8 @@ export const kitchenNavigation: NavigationItem[] = [
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview" },
-  { label: "Reports", to: "/owner/reports" },
+  { label: "Overview", to: "/owner/overview", permission: "dashboard.view" },
+  { label: "Reports", to: "/owner/reports", permission: "reports.view" },
 ];
 ```
 </details>
@@ -18161,8 +19538,8 @@ export interface CashMovementPayload {
 
 <a id="file-srctypescustomerts"></a>
 ### src\types\customer.ts
-- SHA: `c6eb0d8af4fe`  
-- Ukuran: 751 B
+- SHA: `5795793b6b87`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -18198,6 +19575,40 @@ export interface Customer {
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
+}
+
+export interface CustomerQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_member?: boolean | "";
+}
+
+export interface CustomerPayload {
+  code?: string | null;
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  gender?: string | null;
+  birth_date?: string | null;
+  points?: number;
+  total_spent?: number;
+  is_member?: boolean;
+  notes?: string | null;
+  addresses?: CustomerAddressPayload[];
+}
+
+export interface CustomerAddressPayload {
+  label?: string | null;
+  recipient_name?: string | null;
+  recipient_phone?: string | null;
+  address: string;
+  city?: string | null;
+  province?: string | null;
+  postal_code?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+  is_default?: boolean;
 }
 ```
 </details>
@@ -18598,6 +20009,113 @@ export interface Product {
   bundle_items?: ProductBundleItem[];
   created_at?: string;
   updated_at?: string;
+}
+```
+</details>
+
+<a id="file-srctypespromots"></a>
+### src\types\promo.ts
+- SHA: `9ca701801d74`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export type VoucherDiscountType = "percent" | "fixed";
+export type VoucherAppliesTo = "all" | "specific_products" | "specific_categories";
+export type PromotionType = "discount" | "bundle" | "buy_x_get_y";
+export type PromotionRuleType = "min_total" | "product" | "category" | "outlet" | "channel" | "time";
+
+export interface Voucher {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+  discount_type: VoucherDiscountType;
+  discount_value: number | string;
+  max_discount: number | string | null;
+  min_order_total: number | string;
+  quota: number | null;
+  used_count: number;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  applies_to: VoucherAppliesTo;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface VoucherQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  discount_type?: VoucherDiscountType | "";
+  applies_to?: VoucherAppliesTo | "";
+  is_active?: boolean | "";
+}
+
+export interface VoucherPayload {
+  code: string;
+  name: string;
+  description?: string | null;
+  discount_type: VoucherDiscountType;
+  discount_value: number;
+  max_discount?: number | null;
+  min_order_total?: number;
+  quota?: number | null;
+  used_count?: number;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active?: boolean;
+  applies_to: VoucherAppliesTo;
+}
+
+export interface PromotionRule {
+  id: number;
+  promotion_id: number;
+  rule_type: PromotionRuleType;
+  operator: string | null;
+  value: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface Promotion {
+  id: number;
+  name: string;
+  description: string | null;
+  promotion_type: PromotionType;
+  starts_at: string | null;
+  ends_at: string | null;
+  priority: number;
+  is_active: boolean;
+  rules?: PromotionRule[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface PromotionQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  promotion_type?: PromotionType | "";
+  is_active?: boolean | "";
+}
+
+export interface PromotionPayload {
+  name: string;
+  description?: string | null;
+  promotion_type: PromotionType;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  priority?: number;
+  is_active?: boolean;
+  rules?: PromotionRulePayload[];
+}
+
+export interface PromotionRulePayload {
+  rule_type: PromotionRuleType;
+  operator?: string | null;
+  value?: string | null;
 }
 ```
 </details>
