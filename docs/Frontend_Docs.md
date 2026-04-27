@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 11:34:38_  
+_Dihasilkan otomatis: 2026-04-27 13:07:51_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -90,6 +90,10 @@ _Dihasilkan otomatis: 2026-04-27 11:34:38_
   - [src\modules\pos\services\pos.service.ts](#file-srcmodulesposservicesposservicets)
   - [src\modules\pos\services\shift.service.ts](#file-srcmodulesposservicesshiftservicets)
   - [src\modules\pos\types\pos.ts](#file-srcmodulespostypesposts)
+  - [src\modules\reporting\components\ReportDataTable.tsx](#file-srcmodulesreportingcomponentsreportdatatabletsx)
+  - [src\modules\reporting\components\ReportFilters.tsx](#file-srcmodulesreportingcomponentsreportfilterstsx)
+  - [src\modules\reporting\pages\ReportsPage.tsx](#file-srcmodulesreportingpagesreportspagetsx)
+  - [src\modules\reporting\services\report.service.ts](#file-srcmodulesreportingservicesreportservicets)
 - [Components (src/components)](#components-src-components)
   - [src\components\feedback\AppLoader.tsx](#file-srccomponentsfeedbackapploadertsx)
   - [src\components\feedback\AppToaster.tsx](#file-srccomponentsfeedbackapptoastertsx)
@@ -149,6 +153,7 @@ _Dihasilkan otomatis: 2026-04-27 11:34:38_
   - [src\types\product.ts](#file-srctypesproductts)
   - [src\types\promo.ts](#file-srctypespromots)
   - [src\types\purchasing.ts](#file-srctypespurchasingts)
+  - [src\types\report.ts](#file-srctypesreportts)
   - [src\types\role.ts](#file-srctypesrolets)
   - [src\types\settings.ts](#file-srctypessettingsts)
   - [src\types\stock-movement.ts](#file-srctypesstock-movementts)
@@ -336,7 +341,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `39684c0fbdaf`  
+- SHA: `3fd924a86f3f`  
 - Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -380,6 +385,7 @@ import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
 import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
 import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
+import ReportsPage from "@/modules/reporting/pages/ReportsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -436,6 +442,7 @@ export const router = createBrowserRouter([
           { path: "expense-categories", element: <ExpenseCategoriesPage /> },
           { path: "expenses", element: <ExpensesPage /> },
           { path: "cash-movements", element: <CashMovementsPage /> },
+          { path: "reports", element: <ReportsPage /> },
         ],
       },
       {
@@ -462,7 +469,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <OwnerDashboardPage /> },
           { path: "overview", element: <OwnerDashboardPage /> },
-          { path: "reports", element: <RoutePlaceholder title="Reports" /> },
+          { path: "reports", element: <ReportsPage /> },
         ],
       },
     ],
@@ -19520,6 +19527,686 @@ export interface PosCheckoutDraftResult {
 ```
 </details>
 
+<a id="file-srcmodulesreportingcomponentsreportdatatabletsx"></a>
+### src\modules\reporting\components\ReportDataTable.tsx
+- SHA: `4c77486b924f`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Card } from "@/components/ui";
+
+type ReportCellValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | Record<string, unknown>
+  | unknown[];
+
+interface ReportDataTableProps {
+  rows: Record<string, ReportCellValue>[];
+}
+
+const formatHeader = (key: string) => {
+  return key
+    .replaceAll("_", " ")
+    .replaceAll("-", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+};
+
+const formatValue = (value: ReportCellValue): string => {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Ya" : "Tidak";
+  }
+
+  if (typeof value === "number") {
+    return value.toLocaleString("id-ID");
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length ? JSON.stringify(value) : "-";
+  }
+
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+};
+
+export function ReportDataTable({ rows }: ReportDataTableProps) {
+  const columns = Array.from(
+    rows.reduce<Set<string>>((accumulator, row) => {
+      Object.keys(row).forEach((key) => accumulator.add(key));
+      return accumulator;
+    }, new Set<string>())
+  );
+
+  if (!rows.length || !columns.length) {
+    return (
+      <Card>
+        <div className="py-8 text-center text-sm text-slate-500">
+          Tidak ada data laporan untuk filter ini.
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <thead className="bg-slate-50">
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column}
+                  className="whitespace-nowrap px-4 py-3 text-left font-semibold text-slate-700"
+                >
+                  {formatHeader(column)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-slate-100 bg-white">
+            {rows.map((row, index) => (
+              <tr key={index} className="hover:bg-slate-50">
+                {columns.map((column) => (
+                  <td key={column} className="whitespace-nowrap px-4 py-3 text-slate-700">
+                    {formatValue(row[column])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesreportingcomponentsreportfilterstsx"></a>
+### src\modules\reporting\components\ReportFilters.tsx
+- SHA: `3686d70900e3`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import type { ReportExportFormat, ReportFilterParams, ReportGroupBy } from "@/types/report";
+import { Button, Card, Input } from "@/components/ui";
+
+interface ReportFiltersProps {
+  value: ReportFilterParams;
+  exportFormat: ReportExportFormat;
+  loading?: boolean;
+  exporting?: boolean;
+  onChange: (next: ReportFilterParams) => void;
+  onExportFormatChange: (format: ReportExportFormat) => void;
+  onRefresh: () => void;
+  onExport: () => void;
+}
+
+const groupByOptions: ReportGroupBy[] = ["day", "week", "month"];
+const exportFormatOptions: ReportExportFormat[] = ["csv", "xls", "pdf"];
+
+export function ReportFilters({
+  value,
+  exportFormat,
+  loading = false,
+  exporting = false,
+  onChange,
+  onExportFormatChange,
+  onRefresh,
+  onExport,
+}: ReportFiltersProps) {
+  const update = <K extends keyof ReportFilterParams>(key: K, fieldValue: ReportFilterParams[K]) => {
+    onChange({
+      ...value,
+      [key]: fieldValue,
+    });
+  };
+
+  return (
+    <Card>
+      <div className="grid gap-4 lg:grid-cols-6">
+        <Input
+          label="Dari Tanggal"
+          type="date"
+          value={value.date_from ?? ""}
+          onChange={(event) => update("date_from", event.target.value || undefined)}
+        />
+
+        <Input
+          label="Sampai Tanggal"
+          type="date"
+          value={value.date_until ?? ""}
+          onChange={(event) => update("date_until", event.target.value || undefined)}
+        />
+
+        <Input
+          label="Outlet ID"
+          type="number"
+          placeholder="Kosongkan untuk semua"
+          value={value.outlet_id ? String(value.outlet_id) : ""}
+          onChange={(event) =>
+            update("outlet_id", event.target.value ? Number(event.target.value) : undefined)
+          }
+        />
+
+        <Input
+          label="Status"
+          placeholder="paid, completed, approved..."
+          value={value.status ?? ""}
+          onChange={(event) => update("status", event.target.value || undefined)}
+        />
+
+        <Input
+          label="Search"
+          placeholder="Cari keyword"
+          value={value.search ?? ""}
+          onChange={(event) => update("search", event.target.value || undefined)}
+        />
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-700">Group By</label>
+          <select
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            value={value.group_by ?? "day"}
+            onChange={(event) => update("group_by", event.target.value as ReportGroupBy)}
+          >
+            {groupByOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <Input
+          label="Limit"
+          type="number"
+          value={String(value.limit ?? 100)}
+          onChange={(event) => update("limit", Number(event.target.value || 100))}
+        />
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-slate-700">Format Export</label>
+          <select
+            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            value={exportFormat}
+            onChange={(event) => onExportFormatChange(event.target.value as ReportExportFormat)}
+          >
+            {exportFormatOptions.map((option) => (
+              <option key={option} value={option}>
+                {option.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-end gap-2 lg:col-span-4">
+          <Button loading={loading} onClick={onRefresh}>
+            Terapkan Filter
+          </Button>
+
+          <Button variant="outline" loading={exporting} onClick={onExport}>
+            Export
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesreportingpagesreportspagetsx"></a>
+### src\modules\reporting\pages\ReportsPage.tsx
+- SHA: `9088a0e0e871`  
+- Ukuran: 10 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { Badge, Button, Card } from "@/components/ui";
+import { ReportFilters } from "@/modules/reporting/components/ReportFilters";
+import { ReportDataTable } from "@/modules/reporting/components/ReportDataTable";
+import { reportDefinitions, reportService } from "@/modules/reporting/services/report.service";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import type { ReportExportFormat, ReportFilterParams, ReportKey } from "@/types/report";
+
+const today = new Date().toISOString().slice(0, 10);
+
+const initialFilters: ReportFilterParams = {
+    date_from: today,
+    date_until: today,
+    group_by: "day",
+    limit: 100,
+    per_page: 100,
+};
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(value);
+};
+
+interface NumericSummary {
+    amount: number;
+    count: number;
+}
+
+const getNumericSummary = (
+    rows: Record<string, string | number | boolean | null>[]
+): NumericSummary => {
+    return rows.reduce<NumericSummary>(
+        (accumulator, row) => {
+            Object.entries(row).forEach(([key, value]) => {
+                if (typeof value !== "number") {
+                    return;
+                }
+
+                const normalizedKey = key.toLowerCase();
+
+                if (
+                    normalizedKey.includes("total") ||
+                    normalizedKey.includes("amount") ||
+                    normalizedKey.includes("grand") ||
+                    normalizedKey.includes("subtotal") ||
+                    normalizedKey.includes("sales") ||
+                    normalizedKey.includes("revenue")
+                ) {
+                    accumulator.amount += value;
+                }
+
+                if (
+                    normalizedKey.includes("count") ||
+                    normalizedKey.includes("qty") ||
+                    normalizedKey.includes("quantity") ||
+                    normalizedKey.includes("orders")
+                ) {
+                    accumulator.count += value;
+                }
+            });
+
+            return accumulator;
+        },
+        {
+            amount: 0,
+            count: 0,
+        }
+    );
+};
+
+export default function ReportsPage() {
+    const toast = useToast();
+
+    const [selectedReport, setSelectedReport] = useState<ReportKey>("sales-summary");
+    const [filters, setFilters] = useState<ReportFilterParams>(initialFilters);
+    const [exportFormat, setExportFormat] = useState<ReportExportFormat>("csv");
+
+    const selectedDefinition = useMemo(
+        () => reportDefinitions.find((definition) => definition.key === selectedReport),
+        [selectedReport]
+    );
+
+    const reportQuery = useQuery({
+        queryKey: ["reports", selectedReport, filters],
+        queryFn: () => reportService.getReport(selectedReport, filters),
+    });
+
+    const rows = useMemo(() => {
+        const data = reportQuery.data?.data;
+
+        if (!data) {
+            return [];
+        }
+
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        const possibleRows = Object.values(data).find((value) => Array.isArray(value));
+
+        if (Array.isArray(possibleRows)) {
+            return possibleRows.filter(
+                (item): item is Record<string, string | number | boolean | null> =>
+                    typeof item === "object" && item !== null && !Array.isArray(item)
+            );
+        }
+
+        const metadataKeys = new Set(["filters", "filter", "meta", "metadata"]);
+
+        const cleanRow = Object.entries(data).reduce<Record<string, string | number | boolean | null>>(
+            (accumulator, [key, value]) => {
+                if (metadataKeys.has(key)) {
+                    return accumulator;
+                }
+
+                if (
+                    typeof value === "string" ||
+                    typeof value === "number" ||
+                    typeof value === "boolean" ||
+                    value === null
+                ) {
+                    accumulator[key] = value;
+                }
+
+                return accumulator;
+            },
+            {}
+        );
+
+        return Object.keys(cleanRow).length ? [cleanRow] : [];
+    }, [reportQuery.data?.data]);
+
+    const numericSummary = useMemo(() => getNumericSummary(rows), [rows]);
+
+    const exportMutation = useMutation({
+        mutationFn: async () => {
+            const blob = await reportService.exportReport(selectedReport, {
+                ...filters,
+                format: exportFormat,
+                limit: filters.limit ?? 1000,
+                per_page: filters.per_page ?? 1000,
+            });
+
+            reportService.downloadBlob(blob, selectedReport, exportFormat);
+        },
+        onSuccess: () => {
+            toast.success("Export laporan berhasil diproses.");
+        },
+        onError: (error) => {
+            toast.error("Export laporan gagal", parseApiError(error));
+        },
+    });
+
+    return (
+        <PermissionWrapper permission="reports.view">
+            <div className="space-y-4">
+                <PageHeader
+                    title="Reporting"
+                    description="Pusat laporan operasional Chicken Alibaba: penjualan, pembayaran, stok, pembelian, shift, promo, dan expense."
+                />
+
+                <Card>
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        {reportDefinitions.map((definition) => {
+                            const active = definition.key === selectedReport;
+
+                            return (
+                                <button
+                                    key={definition.key}
+                                    type="button"
+                                    onClick={() => setSelectedReport(definition.key)}
+                                    className={[
+                                        "rounded-2xl border p-4 text-left transition",
+                                        active
+                                            ? "border-slate-900 bg-slate-900 text-white"
+                                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-400",
+                                    ].join(" ")}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div className="font-semibold">{definition.label}</div>
+                                            <div className={["mt-1 text-xs", active ? "text-slate-200" : "text-slate-500"].join(" ")}>
+                                                {definition.description}
+                                            </div>
+                                        </div>
+
+                                        <Badge variant={active ? "info" : "default"}>{definition.category}</Badge>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </Card>
+
+                <ReportFilters
+                    value={filters}
+                    exportFormat={exportFormat}
+                    loading={reportQuery.isFetching}
+                    exporting={exportMutation.isPending}
+                    onChange={setFilters}
+                    onExportFormatChange={setExportFormat}
+                    onRefresh={() => void reportQuery.refetch()}
+                    onExport={() => exportMutation.mutate()}
+                />
+
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Card title="Report Aktif" description={selectedDefinition?.description ?? "-"}>
+                        <div className="text-2xl font-semibold text-slate-900">
+                            {selectedDefinition?.label ?? selectedReport}
+                        </div>
+                    </Card>
+
+                    <Card title="Total Baris" description="Jumlah data yang diterima dari backend">
+                        <div className="text-2xl font-semibold text-slate-900">
+                            {rows.length.toLocaleString("id-ID")}
+                        </div>
+                    </Card>
+
+                    <Card title="Akumulasi Nominal" description="Ringkasan nilai numerik utama">
+                        <div className="text-2xl font-semibold text-slate-900">
+                            {formatCurrency(numericSummary.amount)}
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                            Qty/Count: {numericSummary.count.toLocaleString("id-ID")}
+                        </div>
+                    </Card>
+                </div>
+
+                {reportQuery.isLoading ? (
+                    <Card>
+                        <div className="py-8 text-center text-sm text-slate-500">Memuat laporan...</div>
+                    </Card>
+                ) : reportQuery.isError ? (
+                    <PageErrorState onRetry={() => void reportQuery.refetch()} />
+                ) : (
+                    <ReportDataTable rows={rows} />
+                )}
+
+                <div className="flex justify-end">
+                    <Button variant="outline" loading={reportQuery.isFetching} onClick={() => void reportQuery.refetch()}>
+                        Refresh Data
+                    </Button>
+                </div>
+            </div>
+        </PermissionWrapper>
+    );
+}
+```
+</details>
+
+<a id="file-srcmodulesreportingservicesreportservicets"></a>
+### src\modules\reporting\services\report.service.ts
+- SHA: `f9f104b3d8a7`  
+- Ukuran: 4 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import type {
+  ReportApiResponse,
+  ReportData,
+  ReportDefinition,
+  ReportExportFormat,
+  ReportExportParams,
+  ReportFilterParams,
+  ReportKey,
+} from "@/types/report";
+
+export const reportDefinitions: ReportDefinition[] = [
+  {
+    key: "sales-summary",
+    label: "Ringkasan Penjualan",
+    description: "Rekap omzet, transaksi, diskon, pajak, dan total penjualan.",
+    category: "sales",
+    endpoint: "/reports/sales-summary",
+  },
+  {
+    key: "sales-trend",
+    label: "Tren Penjualan",
+    description: "Pergerakan penjualan berdasarkan periode.",
+    category: "sales",
+    endpoint: "/reports/sales-trend",
+  },
+  {
+    key: "sales-by-outlet",
+    label: "Penjualan per Outlet",
+    description: "Perbandingan performa penjualan antar outlet.",
+    category: "sales",
+    endpoint: "/reports/sales-by-outlet",
+  },
+  {
+    key: "sales-by-cashier",
+    label: "Penjualan per Kasir",
+    description: "Ringkasan transaksi berdasarkan kasir.",
+    category: "sales",
+    endpoint: "/reports/sales-by-cashier",
+  },
+  {
+    key: "top-products",
+    label: "Produk Terlaris",
+    description: "Daftar produk dengan penjualan tertinggi.",
+    category: "sales",
+    endpoint: "/reports/top-products",
+  },
+  {
+    key: "payment-summary",
+    label: "Ringkasan Pembayaran",
+    description: "Rekap metode pembayaran dan nominal transaksi.",
+    category: "cash",
+    endpoint: "/reports/payment-summary",
+  },
+  {
+    key: "promo-usage",
+    label: "Pemakaian Promo",
+    description: "Rekap penggunaan promo dan potongan transaksi.",
+    category: "sales",
+    endpoint: "/reports/promo-usage",
+  },
+  {
+    key: "void-refund",
+    label: "Void & Refund",
+    description: "Monitoring transaksi batal dan refund.",
+    category: "cash",
+    endpoint: "/reports/void-refund",
+  },
+  {
+    key: "low-stocks",
+    label: "Stok Minimum",
+    description: "Daftar bahan baku yang berada di bawah batas minimum.",
+    category: "inventory",
+    endpoint: "/reports/low-stocks",
+  },
+  {
+    key: "purchase-materials",
+    label: "Pembelian Bahan",
+    description: "Rekap pembelian bahan baku dan penerimaan barang.",
+    category: "purchase",
+    endpoint: "/reports/purchase-materials",
+  },
+  {
+    key: "expenses",
+    label: "Pengeluaran",
+    description: "Rekap pengeluaran operasional outlet.",
+    category: "expense",
+    endpoint: "/reports/expenses",
+  },
+  {
+    key: "shift-summary",
+    label: "Ringkasan Shift",
+    description: "Rekap buka tutup shift dan pergerakan kas.",
+    category: "cash",
+    endpoint: "/reports/shift-summary",
+  },
+];
+
+const reportEndpointMap = reportDefinitions.reduce<Record<ReportKey, string>>(
+  (accumulator, definition) => ({
+    ...accumulator,
+    [definition.key]: definition.endpoint,
+  }),
+  {
+    "sales-summary": "/reports/sales-summary",
+    "sales-trend": "/reports/sales-trend",
+    "sales-by-outlet": "/reports/sales-by-outlet",
+    "sales-by-cashier": "/reports/sales-by-cashier",
+    "top-products": "/reports/top-products",
+    "payment-summary": "/reports/payment-summary",
+    "promo-usage": "/reports/promo-usage",
+    "void-refund": "/reports/void-refund",
+    "low-stocks": "/reports/low-stocks",
+    "purchase-materials": "/reports/purchase-materials",
+    expenses: "/reports/expenses",
+    "shift-summary": "/reports/shift-summary",
+    "order-details": "/reports/order-details",
+  }
+);
+
+export const reportService = {
+  async getReport(report: ReportKey, params: ReportFilterParams): Promise<ReportApiResponse> {
+    const response = await apiClient.get<ReportApiResponse>(reportEndpointMap[report], {
+      params,
+    });
+
+    return response.data;
+  },
+
+  async exportReport(report: ReportKey, params: ReportExportParams): Promise<Blob> {
+    const response = await apiClient.get<Blob>(`/reports/${report}/export`, {
+      params,
+      responseType: "blob",
+    });
+
+    return response.data;
+  },
+
+  downloadBlob(blob: Blob, report: ReportKey, format: ReportExportFormat) {
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+
+    anchor.href = url;
+    anchor.download = `${report}.${format}`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    window.URL.revokeObjectURL(url);
+  },
+
+  normalizeRows(data: ReportData): Record<string, string | number | boolean | null>[] {
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    return [data];
+  },
+};
+```
+</details>
+
 
 ## Components (src/components)
 
@@ -20092,7 +20779,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `7195ad7e9b72`  
+- SHA: `8cd5b53ee6f6`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -20130,6 +20817,7 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
   { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
   { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
+  { label: "Reports", to: "/admin/reports", permission: "reports.view" },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -22844,6 +23532,68 @@ export interface GoodsReceipt {
   items?: GoodsReceiptItem[];
   created_at?: string | null;
   updated_at?: string | null;
+}
+```
+</details>
+
+<a id="file-srctypesreportts"></a>
+### src\types\report.ts
+- SHA: `d834978a7220`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export type ReportKey =
+  | "sales-summary"
+  | "sales-trend"
+  | "sales-by-outlet"
+  | "sales-by-cashier"
+  | "top-products"
+  | "payment-summary"
+  | "promo-usage"
+  | "void-refund"
+  | "low-stocks"
+  | "purchase-materials"
+  | "expenses"
+  | "shift-summary"
+  | "order-details";
+
+export type ReportExportFormat = "csv" | "xls" | "pdf";
+
+export type ReportGroupBy = "day" | "week" | "month";
+
+export interface ReportFilterParams {
+  date_from?: string;
+  date_until?: string;
+  outlet_id?: number;
+  status?: string;
+  search?: string;
+  group_by?: ReportGroupBy;
+  limit?: number;
+  per_page?: number;
+}
+
+export interface ReportExportParams extends ReportFilterParams {
+  format: ReportExportFormat;
+}
+
+export type ReportPrimitiveValue = string | number | boolean | null;
+
+export type ReportRow = Record<string, ReportPrimitiveValue>;
+
+export type ReportData = ReportRow[] | ReportRow;
+
+export interface ReportApiResponse {
+  message: string;
+  data: ReportData;
+}
+
+export interface ReportDefinition {
+  key: ReportKey;
+  label: string;
+  description: string;
+  category: "sales" | "cash" | "inventory" | "purchase" | "expense";
+  endpoint: string;
 }
 ```
 </details>

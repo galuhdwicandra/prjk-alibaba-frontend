@@ -31,6 +31,7 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
   { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
   { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
+  { label: "Reports", to: "/admin/reports", permission: "reports.view" },
 ];
 
 export const posNavigation: NavigationItem[] = [

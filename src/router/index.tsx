@@ -37,6 +37,7 @@ import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
 import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
 import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
 import OwnerDashboardPage from "@/modules/dashboard/pages/OwnerDashboardPage";
+import ReportsPage from "@/modules/reporting/pages/ReportsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
           { path: "expense-categories", element: <ExpenseCategoriesPage /> },
           { path: "expenses", element: <ExpensesPage /> },
           { path: "cash-movements", element: <CashMovementsPage /> },
+          { path: "reports", element: <ReportsPage /> },
         ],
       },
       {
@@ -119,7 +121,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <OwnerDashboardPage /> },
           { path: "overview", element: <OwnerDashboardPage /> },
-          { path: "reports", element: <RoutePlaceholder title="Reports" /> },
+          { path: "reports", element: <ReportsPage /> },
         ],
       },
     ],
