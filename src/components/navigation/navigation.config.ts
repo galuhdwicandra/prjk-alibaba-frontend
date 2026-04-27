@@ -28,6 +28,9 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Customers", to: "/admin/customers", permission: "customers.view" },
   { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view" },
   { label: "Promotions", to: "/admin/promotions", permission: "promotions.view" },
+  { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
+  { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
+  { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -42,6 +45,6 @@ export const kitchenNavigation: NavigationItem[] = [
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview", permission: "dashboard.view" },
+  { label: "Overview", to: "/owner/overview" },
   { label: "Reports", to: "/owner/reports", permission: "reports.view" },
 ];

@@ -202,6 +202,27 @@ export const endpoints = {
     show: (id: number | string) => `/cash-movements/${id}`,
   },
 
+  expenseCategories: {
+    index: "/expense-categories",
+    store: "/expense-categories",
+    show: (id: number | string) => `/expense-categories/${id}`,
+    update: (id: number | string) => `/expense-categories/${id}`,
+    destroy: (id: number | string) => `/expense-categories/${id}`,
+  },
+
+  expenses: {
+    index: "/expenses",
+    store: "/expenses",
+    show: (id: number | string) => `/expenses/${id}`,
+    update: (id: number | string) => `/expenses/${id}`,
+    destroy: (id: number | string) => `/expenses/${id}`,
+    submit: (id: number | string) => `/expenses/${id}/submit`,
+    approve: (id: number | string) => `/expenses/${id}/approve`,
+    reject: (id: number | string) => `/expenses/${id}/reject`,
+    attachments: (id: number | string) => `/expenses/${id}/attachments`,
+    deleteAttachment: (id: number | string) => `/expense-attachments/${id}`,
+  },
+
   kitchenTickets: {
     index: "/kitchen-tickets",
     store: "/kitchen-tickets",

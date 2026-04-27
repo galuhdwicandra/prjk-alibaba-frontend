@@ -32,6 +32,9 @@ import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 import CustomersPage from "@/modules/admin/pages/CustomersPage";
 import VouchersPage from "@/modules/admin/pages/VouchersPage";
 import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
+import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
+import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
+import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -85,6 +88,9 @@ export const router = createBrowserRouter([
           { path: "customers", element: <CustomersPage /> },
           { path: "vouchers", element: <VouchersPage /> },
           { path: "promotions", element: <PromotionsPage /> },
+          { path: "expense-categories", element: <ExpenseCategoriesPage /> },
+          { path: "expenses", element: <ExpensesPage /> },
+          { path: "cash-movements", element: <CashMovementsPage /> },
         ],
       },
       {

@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 10:24:04_  
+_Dihasilkan otomatis: 2026-04-27 11:18:22_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -29,7 +29,10 @@ _Dihasilkan otomatis: 2026-04-27 10:24:04_
   - [src\modules\admin\components\purchasing\GoodsReceiptItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasinggoodsreceiptitemseditortsx)
   - [src\modules\admin\components\purchasing\PurchaseOrderItemsEditor.tsx](#file-srcmodulesadmincomponentspurchasingpurchaseorderitemseditortsx)
   - [src\modules\admin\components\stock\StockFlowItemsEditor.tsx](#file-srcmodulesadmincomponentsstockstockflowitemseditortsx)
+  - [src\modules\admin\pages\CashMovementsPage.tsx](#file-srcmodulesadminpagescashmovementspagetsx)
   - [src\modules\admin\pages\CustomersPage.tsx](#file-srcmodulesadminpagescustomerspagetsx)
+  - [src\modules\admin\pages\ExpenseCategoriesPage.tsx](#file-srcmodulesadminpagesexpensecategoriespagetsx)
+  - [src\modules\admin\pages\ExpensesPage.tsx](#file-srcmodulesadminpagesexpensespagetsx)
   - [src\modules\admin\pages\GoodsReceiptsPage.tsx](#file-srcmodulesadminpagesgoodsreceiptspagetsx)
   - [src\modules\admin\pages\OutletMaterialStocksPage.tsx](#file-srcmodulesadminpagesoutletmaterialstockspagetsx)
   - [src\modules\admin\pages\OutletsPage.tsx](#file-srcmodulesadminpagesoutletspagetsx)
@@ -53,6 +56,7 @@ _Dihasilkan otomatis: 2026-04-27 10:24:04_
   - [src\modules\admin\pages\VouchersPage.tsx](#file-srcmodulesadminpagesvoucherspagetsx)
   - [src\modules\admin\services\catalog.service.ts](#file-srcmodulesadminservicescatalogservicets)
   - [src\modules\admin\services\customer-promo.service.ts](#file-srcmodulesadminservicescustomer-promoservicets)
+  - [src\modules\admin\services\expense.service.ts](#file-srcmodulesadminservicesexpenseservicets)
   - [src\modules\admin\services\inventory.service.ts](#file-srcmodulesadminservicesinventoryservicets)
   - [src\modules\admin\services\master-data.service.ts](#file-srcmodulesadminservicesmaster-dataservicets)
   - [src\modules\admin\services\purchasing.service.ts](#file-srcmodulesadminservicespurchasingservicets)
@@ -129,6 +133,7 @@ _Dihasilkan otomatis: 2026-04-27 10:24:04_
   - [src\types\auth.ts](#file-srctypesauthts)
   - [src\types\cashier-shift.ts](#file-srctypescashier-shiftts)
   - [src\types\customer.ts](#file-srctypescustomerts)
+  - [src\types\expense.ts](#file-srctypesexpensets)
   - [src\types\inventory.ts](#file-srctypesinventoryts)
   - [src\types\kitchen.ts](#file-srctypeskitchents)
   - [src\types\outlet.ts](#file-srctypesoutletts)
@@ -323,8 +328,8 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `6286cf069c29`  
-- Ukuran: 5 KB
+- SHA: `67290a554df2`  
+- Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -362,6 +367,9 @@ import StockMovementsPage from "@/modules/admin/pages/StockMovementsPage";
 import CustomersPage from "@/modules/admin/pages/CustomersPage";
 import VouchersPage from "@/modules/admin/pages/VouchersPage";
 import PromotionsPage from "@/modules/admin/pages/PromotionsPage";
+import ExpenseCategoriesPage from "@/modules/admin/pages/ExpenseCategoriesPage";
+import ExpensesPage from "@/modules/admin/pages/ExpensesPage";
+import CashMovementsPage from "@/modules/admin/pages/CashMovementsPage";
 import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
@@ -415,6 +423,9 @@ export const router = createBrowserRouter([
           { path: "customers", element: <CustomersPage /> },
           { path: "vouchers", element: <VouchersPage /> },
           { path: "promotions", element: <PromotionsPage /> },
+          { path: "expense-categories", element: <ExpenseCategoriesPage /> },
+          { path: "expenses", element: <ExpensesPage /> },
+          { path: "cash-movements", element: <CashMovementsPage /> },
         ],
       },
       {
@@ -2454,6 +2465,293 @@ export function sanitizeOpnameItems(value: StockOpnameItemPayload[]): StockOpnam
 ```
 </details>
 
+<a id="file-srcmodulesadminpagescashmovementspagetsx"></a>
+### src\modules\admin\pages\CashMovementsPage.tsx
+- SHA: `09923f5d1dde`  
+- Ukuran: 10 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { expenseService } from "@/modules/admin/services/expense.service";
+import type { CashMovementPayload, CashMovementType } from "@/types/expense";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+  `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
+const initialForm: CashMovementPayload = {
+  cashier_shift_id: 0,
+  movement_type: "cash_in",
+  amount: 0,
+  reason: "",
+  notes: "",
+};
+
+const movementBadge = (type: CashMovementType) => {
+  if (type === "cash_in" || type === "opening") {
+    return "success";
+  }
+
+  if (type === "cash_out") {
+    return "danger";
+  }
+
+  return "warning";
+};
+
+export default function CashMovementsPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(1);
+  const [movementType, setMovementType] = useState<CashMovementType | "">("");
+  const [cashierShiftId, setCashierShiftId] = useState<number | "">("");
+  const [openForm, setOpenForm] = useState(false);
+  const [form, setForm] = useState<CashMovementPayload>(initialForm);
+
+  const queryParams = useMemo(
+    () => ({
+      page,
+      per_page: 10,
+      movement_type: movementType,
+      cashier_shift_id: cashierShiftId,
+    }),
+    [page, movementType, cashierShiftId]
+  );
+
+  const cashMovementsQuery = useQuery({
+    queryKey: ["cash-movements", queryParams],
+    queryFn: () => expenseService.getCashMovements(queryParams),
+  });
+
+  const shiftsQuery = useQuery({
+    queryKey: ["cashier-shifts", "cash-movement-options"],
+    queryFn: () => expenseService.getCashierShifts({ per_page: 100 }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => expenseService.createCashMovement(form),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenForm(false);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["cash-movements"] });
+      void queryClient.invalidateQueries({ queryKey: ["cashier-shifts"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menyimpan cash movement", parseApiError(error));
+    },
+  });
+
+  const openCreateForm = () => {
+    setForm(initialForm);
+    setOpenForm(true);
+  };
+
+  return (
+    <PermissionWrapper permission="cash_movements.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Cash Movements"
+          description="Pantau dan catat pergerakan kas pada shift kasir."
+        />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Shift</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={cashierShiftId}
+                onChange={(event) => {
+                  setCashierShiftId(event.target.value ? Number(event.target.value) : "");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua shift</option>
+                {shiftsQuery.data?.items.map((shift) => (
+                  <option key={shift.id} value={shift.id}>
+                    {shift.shift_number} — {shift.outlet?.name ?? "-"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Tipe</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={movementType}
+                onChange={(event) => {
+                  setMovementType(event.target.value as CashMovementType | "");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua tipe</option>
+                <option value="opening">opening</option>
+                <option value="cash_in">cash_in</option>
+                <option value="cash_out">cash_out</option>
+                <option value="closing_adjustment">closing_adjustment</option>
+              </select>
+            </div>
+
+            <div className="flex items-end justify-end">
+              <PermissionWrapper permission="cash_movements.create">
+                <Button onClick={openCreateForm}>Tambah Cash Movement</Button>
+              </PermissionWrapper>
+            </div>
+          </div>
+        </Card>
+
+        {cashMovementsQuery.isLoading ? (
+          <Card>Memuat cash movement...</Card>
+        ) : cashMovementsQuery.isError ? (
+          <PageErrorState onRetry={() => void cashMovementsQuery.refetch()} />
+        ) : !cashMovementsQuery.data?.items.length ? (
+          <PageEmptyState title="Belum ada cash movement" />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500">
+                    <th className="px-3 py-3 font-medium">Shift</th>
+                    <th className="px-3 py-3 font-medium">Outlet</th>
+                    <th className="px-3 py-3 font-medium">Tipe</th>
+                    <th className="px-3 py-3 font-medium">Nominal</th>
+                    <th className="px-3 py-3 font-medium">Alasan</th>
+                    <th className="px-3 py-3 font-medium">Dibuat Oleh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cashMovementsQuery.data.items.map((movement) => {
+                    const shift = movement.cashier_shift ?? movement.cashierShift ?? null;
+
+                    return (
+                      <tr key={movement.id} className="border-b border-slate-100">
+                        <td className="px-3 py-3 font-medium text-slate-900">
+                          {shift?.shift_number ?? `#${movement.cashier_shift_id}`}
+                        </td>
+                        <td className="px-3 py-3 text-slate-600">{shift?.outlet?.name ?? "-"}</td>
+                        <td className="px-3 py-3">
+                          <Badge variant={movementBadge(movement.movement_type)}>
+                            {movement.movement_type}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-3 font-semibold text-slate-900">
+                          {formatCurrency(movement.amount)}
+                        </td>
+                        <td className="px-3 py-3 text-slate-600">{movement.reason ?? "-"}</td>
+                        <td className="px-3 py-3 text-slate-600">
+                          {movement.creator?.name ?? "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        <Pagination meta={cashMovementsQuery.data?.meta ?? null} onPageChange={setPage} />
+
+        <Modal
+          open={openForm}
+          title="Tambah Cash Movement"
+          onClose={() => setOpenForm(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenForm(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Shift</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.cashier_shift_id || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    cashier_shift_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih shift</option>
+                {shiftsQuery.data?.items.map((shift) => (
+                  <option key={shift.id} value={shift.id}>
+                    {shift.shift_number} — {shift.outlet?.name ?? "-"} — {shift.status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Tipe</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.movement_type}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    movement_type: event.target.value as CashMovementType,
+                  }))
+                }
+              >
+                <option value="cash_in">cash_in</option>
+                <option value="cash_out">cash_out</option>
+                <option value="opening">opening</option>
+                <option value="closing_adjustment">closing_adjustment</option>
+              </select>
+            </div>
+
+            <Input
+              label="Nominal"
+              type="number"
+              value={String(form.amount)}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  amount: Number(event.target.value || 0),
+                }))
+              }
+            />
+
+            <Input
+              label="Alasan"
+              value={form.reason ?? ""}
+              onChange={(event) => setForm((prev) => ({ ...prev, reason: event.target.value }))}
+            />
+
+            <Input
+              label="Catatan"
+              value={form.notes ?? ""}
+              onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+            />
+          </div>
+        </Modal>
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesadminpagescustomerspagetsx"></a>
 ### src\modules\admin\pages\CustomersPage.tsx
 - SHA: `35c63d229182`  
@@ -2862,6 +3160,887 @@ export default function CustomersPage() {
             </div>
         </PermissionWrapper>
     );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesexpensecategoriespagetsx"></a>
+### src\modules\admin\pages\ExpenseCategoriesPage.tsx
+- SHA: `1efdfb97f6a7`  
+- Ukuran: 9 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { expenseService } from "@/modules/admin/services/expense.service";
+import type { ExpenseCategory, ExpenseCategoryPayload } from "@/types/expense";
+
+const initialForm: ExpenseCategoryPayload = {
+  name: "",
+  is_active: true,
+};
+
+export default function ExpenseCategoriesPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [isActive, setIsActive] = useState<boolean | "">("");
+  const [openForm, setOpenForm] = useState(false);
+  const [editing, setEditing] = useState<ExpenseCategory | null>(null);
+  const [form, setForm] = useState<ExpenseCategoryPayload>(initialForm);
+  const [deleting, setDeleting] = useState<ExpenseCategory | null>(null);
+
+  const queryParams = useMemo(
+    () => ({
+      page,
+      per_page: 10,
+      search,
+      is_active: isActive,
+    }),
+    [page, search, isActive]
+  );
+
+  const categoriesQuery = useQuery({
+    queryKey: ["expense-categories", queryParams],
+    queryFn: () => expenseService.getExpenseCategories(queryParams),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      if (editing) {
+        return expenseService.updateExpenseCategory(editing.id, form);
+      }
+
+      return expenseService.createExpenseCategory(form);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenForm(false);
+      setEditing(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["expense-categories"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menyimpan kategori expense", parseApiError(error));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => expenseService.deleteExpenseCategory(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setDeleting(null);
+      void queryClient.invalidateQueries({ queryKey: ["expense-categories"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menghapus kategori expense", parseApiError(error));
+    },
+  });
+
+  const openCreateForm = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setOpenForm(true);
+  };
+
+  const openEditForm = (category: ExpenseCategory) => {
+    setEditing(category);
+    setForm({
+      name: category.name,
+      is_active: Boolean(category.is_active),
+    });
+    setOpenForm(true);
+  };
+
+  return (
+    <PermissionWrapper permission="expense_categories.view">
+      <div className="space-y-4">
+        <PageHeader
+          title="Expense Categories"
+          description="Kelola kategori pengeluaran operasional outlet."
+        />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Input
+              label="Search"
+              placeholder="Cari nama kategori"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Status</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={isActive === "" ? "" : String(isActive)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setIsActive(value === "" ? "" : value === "true");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua status</option>
+                <option value="true">Aktif</option>
+                <option value="false">Nonaktif</option>
+              </select>
+            </div>
+
+            <div className="flex items-end justify-end">
+              <PermissionWrapper permission="expense_categories.create">
+                <Button onClick={openCreateForm}>Tambah Kategori</Button>
+              </PermissionWrapper>
+            </div>
+          </div>
+        </Card>
+
+        {categoriesQuery.isLoading ? (
+          <Card>Memuat kategori expense...</Card>
+        ) : categoriesQuery.isError ? (
+          <PageErrorState onRetry={() => void categoriesQuery.refetch()} />
+        ) : !categoriesQuery.data?.items.length ? (
+          <PageEmptyState title="Belum ada kategori expense" />
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500">
+                    <th className="px-3 py-3 font-medium">Nama</th>
+                    <th className="px-3 py-3 font-medium">Status</th>
+                    <th className="px-3 py-3 font-medium">Total Expense</th>
+                    <th className="px-3 py-3 text-right font-medium">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoriesQuery.data.items.map((category) => (
+                    <tr key={category.id} className="border-b border-slate-100">
+                      <td className="px-3 py-3 font-medium text-slate-900">{category.name}</td>
+                      <td className="px-3 py-3">
+                        <Badge variant={category.is_active ? "success" : "danger"}>
+                          {category.is_active ? "Aktif" : "Nonaktif"}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3 text-slate-600">
+                        {Number(category.expenses_count ?? 0).toLocaleString("id-ID")}
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-2">
+                          <PermissionWrapper permission="expense_categories.update">
+                            <Button variant="outline" onClick={() => openEditForm(category)}>
+                              Edit
+                            </Button>
+                          </PermissionWrapper>
+
+                          <PermissionWrapper permission="expense_categories.delete">
+                            <Button variant="danger" onClick={() => setDeleting(category)}>
+                              Hapus
+                            </Button>
+                          </PermissionWrapper>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        <Pagination meta={categoriesQuery.data?.meta ?? null} onPageChange={setPage} />
+
+        <Modal
+          open={openForm}
+          title={editing ? "Edit Kategori Expense" : "Tambah Kategori Expense"}
+          onClose={() => setOpenForm(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenForm(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Nama Kategori"
+              value={form.name}
+              onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+            />
+
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, is_active: event.target.checked }))
+                }
+              />
+              Aktif
+            </label>
+          </div>
+        </Modal>
+
+        <ConfirmDialog
+          open={Boolean(deleting)}
+          title="Hapus kategori expense"
+          description={`Kategori "${deleting?.name ?? "-"}" akan dihapus.`}
+          loading={deleteMutation.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+        />
+      </div>
+    </PermissionWrapper>
+  );
+}
+```
+</details>
+
+<a id="file-srcmodulesadminpagesexpensespagetsx"></a>
+### src\modules\admin\pages\ExpensesPage.tsx
+- SHA: `f88c2f049fd3`  
+- Ukuran: 22 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { Badge, Button, Card, ConfirmDialog, Input, Modal, Pagination } from "@/components/ui";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { expenseService } from "@/modules/admin/services/expense.service";
+import { masterDataService } from "@/modules/admin/services/master-data.service";
+import type { Expense, ExpensePayload, ExpenseStatus } from "@/types/expense";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+  `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+const initialForm: ExpensePayload = {
+  outlet_id: 0,
+  expense_category_id: 0,
+  expense_date: today(),
+  amount: 0,
+  description: "",
+  status: "draft",
+};
+
+const statusBadge = (status: ExpenseStatus) => {
+  if (status === "approved") {
+    return "success";
+  }
+
+  if (status === "submitted") {
+    return "warning";
+  }
+
+  if (status === "rejected") {
+    return "danger";
+  }
+
+  return "info";
+};
+
+export default function ExpensesPage() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<ExpenseStatus | "">("");
+  const [outletId, setOutletId] = useState<number | "">("");
+  const [categoryId, setCategoryId] = useState<number | "">("");
+  const [expenseFrom, setExpenseFrom] = useState("");
+  const [expenseUntil, setExpenseUntil] = useState("");
+  const [openForm, setOpenForm] = useState(false);
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [form, setForm] = useState<ExpensePayload>(initialForm);
+  const [deleting, setDeleting] = useState<Expense | null>(null);
+  const [actionTarget, setActionTarget] = useState<Expense | null>(null);
+  const [actionType, setActionType] = useState<"submit" | "approve" | "reject" | null>(null);
+  const [approvalNotes, setApprovalNotes] = useState("");
+  const [attachmentTarget, setAttachmentTarget] = useState<Expense | null>(null);
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
+
+  const queryParams = useMemo(
+    () => ({
+      page,
+      per_page: 10,
+      search,
+      status,
+      outlet_id: outletId,
+      expense_category_id: categoryId,
+      expense_from: expenseFrom,
+      expense_until: expenseUntil,
+    }),
+    [page, search, status, outletId, categoryId, expenseFrom, expenseUntil]
+  );
+
+  const expensesQuery = useQuery({
+    queryKey: ["expenses", queryParams],
+    queryFn: () => expenseService.getExpenses(queryParams),
+  });
+
+  const categoriesQuery = useQuery({
+    queryKey: ["expense-categories", "active-options"],
+    queryFn: () => expenseService.getExpenseCategories({ per_page: 100, is_active: true }),
+  });
+
+  const outletsQuery = useQuery({
+    queryKey: ["outlets", "expense-options"],
+    queryFn: () => masterDataService.getOutlets({ per_page: 100 }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      if (editing) {
+        return expenseService.updateExpense(editing.id, form);
+      }
+
+      return expenseService.createExpense(form);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setOpenForm(false);
+      setEditing(null);
+      setForm(initialForm);
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menyimpan expense", parseApiError(error));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => expenseService.deleteExpense(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setDeleting(null);
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menghapus expense", parseApiError(error));
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: () => {
+      if (!actionTarget || !actionType) {
+        throw new Error("Expense belum dipilih");
+      }
+
+      if (actionType === "submit") {
+        return expenseService.submitExpense(actionTarget.id);
+      }
+
+      if (actionType === "approve") {
+        return expenseService.approveExpense(actionTarget.id, approvalNotes);
+      }
+
+      return expenseService.rejectExpense(actionTarget.id, approvalNotes);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setActionTarget(null);
+      setActionType(null);
+      setApprovalNotes("");
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal memproses status expense", parseApiError(error));
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: () => {
+      if (!attachmentTarget) {
+        throw new Error("Expense belum dipilih");
+      }
+
+      return expenseService.uploadExpenseAttachments(attachmentTarget.id, attachmentFiles);
+    },
+    onSuccess: (response) => {
+      toast.success(response.message);
+      setAttachmentTarget(null);
+      setAttachmentFiles([]);
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal upload attachment", parseApiError(error));
+    },
+  });
+
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: (id: number) => expenseService.deleteExpenseAttachment(id),
+    onSuccess: (response) => {
+      toast.success(response.message);
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    },
+    onError: (error) => {
+      toast.error("Gagal menghapus attachment", parseApiError(error));
+    },
+  });
+
+  const openCreateForm = () => {
+    setEditing(null);
+    setForm(initialForm);
+    setOpenForm(true);
+  };
+
+  const openEditForm = (expense: Expense) => {
+    setEditing(expense);
+    setForm({
+      outlet_id: expense.outlet_id,
+      expense_category_id: expense.expense_category_id,
+      expense_date: expense.expense_date,
+      amount: Number(expense.amount ?? 0),
+      description: expense.description ?? "",
+      status: expense.status,
+    });
+    setOpenForm(true);
+  };
+
+  const confirmStatusAction = (expense: Expense, nextAction: "submit" | "approve" | "reject") => {
+    setActionTarget(expense);
+    setActionType(nextAction);
+    setApprovalNotes("");
+  };
+
+  return (
+    <PermissionWrapper permission="expenses.view">
+      <div className="space-y-4">
+        <PageHeader title="Expenses" description="Catat dan kontrol biaya operasional outlet." />
+
+        <Card>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Input
+              label="Search"
+              placeholder="Deskripsi, outlet, kategori"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+            />
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={outletId}
+                onChange={(event) => {
+                  setOutletId(event.target.value ? Number(event.target.value) : "");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua outlet</option>
+                {outletsQuery.data?.items.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={categoryId}
+                onChange={(event) => {
+                  setCategoryId(event.target.value ? Number(event.target.value) : "");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua kategori</option>
+                {categoriesQuery.data?.items.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Status</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={status}
+                onChange={(event) => {
+                  setStatus(event.target.value as ExpenseStatus | "");
+                  setPage(1);
+                }}
+              >
+                <option value="">Semua status</option>
+                <option value="draft">draft</option>
+                <option value="submitted">submitted</option>
+                <option value="approved">approved</option>
+                <option value="rejected">rejected</option>
+              </select>
+            </div>
+
+            <Input
+              label="Dari tanggal"
+              type="date"
+              value={expenseFrom}
+              onChange={(event) => {
+                setExpenseFrom(event.target.value);
+                setPage(1);
+              }}
+            />
+
+            <Input
+              label="Sampai tanggal"
+              type="date"
+              value={expenseUntil}
+              onChange={(event) => {
+                setExpenseUntil(event.target.value);
+                setPage(1);
+              }}
+            />
+
+            <div className="md:col-span-2 flex items-end justify-end">
+              <PermissionWrapper permission="expenses.create">
+                <Button onClick={openCreateForm}>Tambah Expense</Button>
+              </PermissionWrapper>
+            </div>
+          </div>
+        </Card>
+
+        {expensesQuery.isLoading ? (
+          <Card>Memuat expense...</Card>
+        ) : expensesQuery.isError ? (
+          <PageErrorState onRetry={() => void expensesQuery.refetch()} />
+        ) : !expensesQuery.data?.items.length ? (
+          <PageEmptyState title="Belum ada data expense" />
+        ) : (
+          <div className="space-y-4">
+            {expensesQuery.data.items.map((expense) => (
+              <Card
+                key={expense.id}
+                title={expense.category?.name ?? "Expense"}
+                description={`${expense.outlet?.name ?? "-"} • ${expense.expense_date}`}
+                actions={<Badge variant={statusBadge(expense.status)}>{expense.status}</Badge>}
+              >
+                <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-2xl font-semibold text-slate-900">
+                        {formatCurrency(expense.amount)}
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {expense.description || "Tidak ada deskripsi"}
+                      </p>
+                    </div>
+
+                    <div className="grid gap-3 text-sm md:grid-cols-3">
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <div className="text-slate-500">Dibuat oleh</div>
+                        <div className="font-medium text-slate-900">
+                          {expense.creator?.name ?? "-"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <div className="text-slate-500">Disetujui oleh</div>
+                        <div className="font-medium text-slate-900">
+                          {expense.approver?.name ?? "-"}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <div className="text-slate-500">Attachment</div>
+                        <div className="font-medium text-slate-900">
+                          {Number(expense.attachments_count ?? expense.attachments?.length ?? 0)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {expense.attachments?.length ? (
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-slate-700">Attachment</div>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {expense.attachments.map((attachment) => (
+                            <div
+                              key={attachment.id}
+                              className="flex items-center justify-between rounded-xl border border-slate-200 p-3 text-sm"
+                            >
+                              <span className="truncate text-slate-700">
+                                {attachment.file_name ?? attachment.file_path}
+                              </span>
+                              <PermissionWrapper permission="expenses.update">
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => deleteAttachmentMutation.mutate(attachment.id)}
+                                >
+                                  Hapus
+                                </Button>
+                              </PermissionWrapper>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex flex-col gap-2 lg:items-end">
+                    <PermissionWrapper permission="expenses.update">
+                      <Button variant="outline" onClick={() => openEditForm(expense)}>
+                        Edit
+                      </Button>
+                    </PermissionWrapper>
+
+                    <PermissionWrapper permission="expenses.submit">
+                      <Button
+                        variant="outline"
+                        disabled={expense.status !== "draft"}
+                        onClick={() => confirmStatusAction(expense, "submit")}
+                      >
+                        Submit
+                      </Button>
+                    </PermissionWrapper>
+
+                    <PermissionWrapper permission="expenses.approve">
+                      <Button
+                        variant="outline"
+                        disabled={expense.status !== "submitted"}
+                        onClick={() => confirmStatusAction(expense, "approve")}
+                      >
+                        Approve
+                      </Button>
+                    </PermissionWrapper>
+
+                    <PermissionWrapper permission="expenses.reject">
+                      <Button
+                        variant="outline"
+                        disabled={expense.status !== "submitted"}
+                        onClick={() => confirmStatusAction(expense, "reject")}
+                      >
+                        Reject
+                      </Button>
+                    </PermissionWrapper>
+
+                    <PermissionWrapper permission="expenses.update">
+                      <Button variant="outline" onClick={() => setAttachmentTarget(expense)}>
+                        Upload Attachment
+                      </Button>
+                    </PermissionWrapper>
+
+                    <PermissionWrapper permission="expenses.delete">
+                      <Button variant="danger" onClick={() => setDeleting(expense)}>
+                        Hapus
+                      </Button>
+                    </PermissionWrapper>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <Pagination meta={expensesQuery.data?.meta ?? null} onPageChange={setPage} />
+
+        <Modal
+          open={openForm}
+          title={editing ? "Edit Expense" : "Tambah Expense"}
+          onClose={() => setOpenForm(false)}
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setOpenForm(false)}>
+                Batal
+              </Button>
+              <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                Simpan
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Outlet</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.outlet_id || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    outlet_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih outlet</option>
+                {outletsQuery.data?.items.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-700">Kategori</label>
+              <select
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.expense_category_id || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    expense_category_id: Number(event.target.value || 0),
+                  }))
+                }
+              >
+                <option value="">Pilih kategori</option>
+                {categoriesQuery.data?.items.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Input
+              label="Tanggal Expense"
+              type="date"
+              value={form.expense_date}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, expense_date: event.target.value }))
+              }
+            />
+
+            <Input
+              label="Nominal"
+              type="number"
+              value={String(form.amount)}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  amount: Number(event.target.value || 0),
+                }))
+              }
+            />
+
+            <Input
+              label="Deskripsi"
+              value={form.description ?? ""}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, description: event.target.value }))
+              }
+            />
+          </div>
+        </Modal>
+
+        <Modal
+          open={Boolean(actionTarget && actionType)}
+          title="Konfirmasi Status Expense"
+          description={`${actionType ?? "-"} expense #${actionTarget?.id ?? "-"}`}
+          onClose={() => {
+            setActionTarget(null);
+            setActionType(null);
+            setApprovalNotes("");
+          }}
+          footer={
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setActionTarget(null);
+                  setActionType(null);
+                  setApprovalNotes("");
+                }}
+              >
+                Batal
+              </Button>
+              <Button loading={statusMutation.isPending} onClick={() => statusMutation.mutate()}>
+                Proses
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              label="Catatan"
+              value={approvalNotes}
+              onChange={(event) => setApprovalNotes(event.target.value)}
+              placeholder="Opsional untuk approve, wajib untuk reject jika backend mewajibkan"
+            />
+          </div>
+        </Modal>
+
+        <Modal
+          open={Boolean(attachmentTarget)}
+          title="Upload Attachment Expense"
+          onClose={() => {
+            setAttachmentTarget(null);
+            setAttachmentFiles([]);
+          }}
+          footer={
+            <>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAttachmentTarget(null);
+                  setAttachmentFiles([]);
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                loading={uploadMutation.isPending}
+                disabled={!attachmentFiles.length}
+                onClick={() => uploadMutation.mutate()}
+              >
+                Upload
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <Input
+              type="file"
+              multiple
+              onChange={(event) => setAttachmentFiles(Array.from(event.target.files ?? []))}
+            />
+
+            <div className="text-sm text-slate-500">
+              {attachmentFiles.length
+                ? `${attachmentFiles.length} file dipilih`
+                : "Belum ada file dipilih"}
+            </div>
+          </div>
+        </Modal>
+
+        <ConfirmDialog
+          open={Boolean(deleting)}
+          title="Hapus expense"
+          description={`Expense #${deleting?.id ?? "-"} akan dihapus.`}
+          loading={deleteMutation.isPending}
+          onClose={() => setDeleting(null)}
+          onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+        />
+      </div>
+    </PermissionWrapper>
+  );
 }
 ```
 </details>
@@ -11438,6 +12617,217 @@ export const customerPromoService = {
 ```
 </details>
 
+<a id="file-srcmodulesadminservicesexpenseservicets"></a>
+### src\modules\admin\services\expense.service.ts
+- SHA: `4de86def8f64`  
+- Ukuran: 5 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { apiClient } from "@/services/api/api-client";
+import { endpoints } from "@/services/api/endpoints";
+import type { ApiMeta } from "@/types/api";
+import type {
+  CashMovement,
+  CashMovementListParams,
+  CashMovementPayload,
+  CashierShift,
+  CashierShiftListParams,
+  Expense,
+  ExpenseCategory,
+  ExpenseCategoryListParams,
+  ExpenseCategoryPayload,
+  ExpenseListParams,
+  ExpensePayload,
+  PaginatedExpenseResult,
+} from "@/types/expense";
+
+interface ApiCollectionResponse<T> {
+  message: string;
+  data: T[];
+  meta?: ApiMeta | null;
+}
+
+interface ApiResourceResponse<T> {
+  message: string;
+  data: T;
+}
+
+const normalizeCollection = <T>(
+  response: ApiCollectionResponse<T>
+): PaginatedExpenseResult<T> => ({
+  items: response.data,
+  meta: response.meta ?? null,
+});
+
+export const expenseService = {
+  async getExpenseCategories(
+    params: ExpenseCategoryListParams = {}
+  ): Promise<PaginatedExpenseResult<ExpenseCategory>> {
+    const response = await apiClient.get<ApiCollectionResponse<ExpenseCategory>>(
+      endpoints.expenseCategories.index,
+      { params }
+    );
+
+    return normalizeCollection(response.data);
+  },
+
+  async createExpenseCategory(
+    payload: ExpenseCategoryPayload
+  ): Promise<ApiResourceResponse<ExpenseCategory>> {
+    const response = await apiClient.post<ApiResourceResponse<ExpenseCategory>>(
+      endpoints.expenseCategories.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateExpenseCategory(
+    id: number,
+    payload: ExpenseCategoryPayload
+  ): Promise<ApiResourceResponse<ExpenseCategory>> {
+    const response = await apiClient.put<ApiResourceResponse<ExpenseCategory>>(
+      endpoints.expenseCategories.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async deleteExpenseCategory(id: number): Promise<{ message: string }> {
+    const response = await apiClient.delete<{ message: string }>(
+      endpoints.expenseCategories.destroy(id)
+    );
+
+    return response.data;
+  },
+
+  async getExpenses(params: ExpenseListParams = {}): Promise<PaginatedExpenseResult<Expense>> {
+    const response = await apiClient.get<ApiCollectionResponse<Expense>>(endpoints.expenses.index, {
+      params,
+    });
+
+    return normalizeCollection(response.data);
+  },
+
+  async createExpense(payload: ExpensePayload): Promise<ApiResourceResponse<Expense>> {
+    const response = await apiClient.post<ApiResourceResponse<Expense>>(
+      endpoints.expenses.store,
+      payload
+    );
+
+    return response.data;
+  },
+
+  async updateExpense(id: number, payload: ExpensePayload): Promise<ApiResourceResponse<Expense>> {
+    const response = await apiClient.put<ApiResourceResponse<Expense>>(
+      endpoints.expenses.update(id),
+      payload
+    );
+
+    return response.data;
+  },
+
+  async submitExpense(id: number): Promise<ApiResourceResponse<Expense>> {
+    const response = await apiClient.post<ApiResourceResponse<Expense>>(
+      endpoints.expenses.submit(id)
+    );
+
+    return response.data;
+  },
+
+  async approveExpense(id: number, notes?: string): Promise<ApiResourceResponse<Expense>> {
+    const response = await apiClient.post<ApiResourceResponse<Expense>>(
+      endpoints.expenses.approve(id),
+      { notes: notes ?? null }
+    );
+
+    return response.data;
+  },
+
+  async rejectExpense(id: number, notes: string): Promise<ApiResourceResponse<Expense>> {
+    const response = await apiClient.post<ApiResourceResponse<Expense>>(
+      endpoints.expenses.reject(id),
+      { notes }
+    );
+
+    return response.data;
+  },
+
+  async uploadExpenseAttachments(
+    id: number,
+    files: File[]
+  ): Promise<ApiResourceResponse<Expense>> {
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append("attachments[]", file);
+    });
+
+    const response = await apiClient.post<ApiResourceResponse<Expense>>(
+      endpoints.expenses.attachments(id),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return response.data;
+  },
+
+  async deleteExpenseAttachment(id: number): Promise<{ message: string }> {
+    const response = await apiClient.delete<{ message: string }>(
+      endpoints.expenses.deleteAttachment(id)
+    );
+
+    return response.data;
+  },
+
+  async deleteExpense(id: number): Promise<{ message: string }> {
+    const response = await apiClient.delete<{ message: string }>(endpoints.expenses.destroy(id));
+
+    return response.data;
+  },
+
+  async getCashierShifts(
+    params: CashierShiftListParams = {}
+  ): Promise<PaginatedExpenseResult<CashierShift>> {
+    const response = await apiClient.get<ApiCollectionResponse<CashierShift>>(
+      endpoints.cashierShifts.index,
+      { params }
+    );
+
+    return normalizeCollection(response.data);
+  },
+
+  async getCashMovements(
+    params: CashMovementListParams = {}
+  ): Promise<PaginatedExpenseResult<CashMovement>> {
+    const response = await apiClient.get<ApiCollectionResponse<CashMovement>>(
+      endpoints.cashMovements.index,
+      { params }
+    );
+
+    return normalizeCollection(response.data);
+  },
+
+  async createCashMovement(
+    payload: CashMovementPayload
+  ): Promise<ApiResourceResponse<CashMovement>> {
+    const response = await apiClient.post<ApiResourceResponse<CashMovement>>(
+      endpoints.cashMovements.store,
+      payload
+    );
+
+    return response.data;
+  },
+};
+```
+</details>
+
 <a id="file-srcmodulesadminservicesinventoryservicets"></a>
 ### src\modules\admin\services\inventory.service.ts
 - SHA: `c1b010b6ce81`  
@@ -17783,7 +19173,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `839161bb08fd`  
+- SHA: `7195ad7e9b72`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -17818,6 +19208,9 @@ export const adminNavigation: NavigationItem[] = [
   { label: "Customers", to: "/admin/customers", permission: "customers.view" },
   { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view" },
   { label: "Promotions", to: "/admin/promotions", permission: "promotions.view" },
+  { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
+  { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
+  { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
 ];
 
 export const posNavigation: NavigationItem[] = [
@@ -17832,7 +19225,7 @@ export const kitchenNavigation: NavigationItem[] = [
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview", permission: "dashboard.view" },
+  { label: "Overview", to: "/owner/overview" },
   { label: "Reports", to: "/owner/reports", permission: "reports.view" },
 ];
 ```
@@ -18972,8 +20365,8 @@ apiClient.interceptors.response.use(
 
 <a id="file-srcservicesapiendpointsts"></a>
 ### src\services\api\endpoints.ts
-- SHA: `df4acef24ee8`  
-- Ukuran: 7 KB
+- SHA: `e4de188641fb`  
+- Ukuran: 8 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -19179,6 +20572,27 @@ export const endpoints = {
     index: "/cash-movements",
     store: "/cash-movements",
     show: (id: number | string) => `/cash-movements/${id}`,
+  },
+
+  expenseCategories: {
+    index: "/expense-categories",
+    store: "/expense-categories",
+    show: (id: number | string) => `/expense-categories/${id}`,
+    update: (id: number | string) => `/expense-categories/${id}`,
+    destroy: (id: number | string) => `/expense-categories/${id}`,
+  },
+
+  expenses: {
+    index: "/expenses",
+    store: "/expenses",
+    show: (id: number | string) => `/expenses/${id}`,
+    update: (id: number | string) => `/expenses/${id}`,
+    destroy: (id: number | string) => `/expenses/${id}`,
+    submit: (id: number | string) => `/expenses/${id}/submit`,
+    approve: (id: number | string) => `/expenses/${id}/approve`,
+    reject: (id: number | string) => `/expenses/${id}/reject`,
+    attachments: (id: number | string) => `/expenses/${id}/attachments`,
+    deleteAttachment: (id: number | string) => `/expense-attachments/${id}`,
   },
 
   kitchenTickets: {
@@ -19609,6 +21023,168 @@ export interface CustomerAddressPayload {
   latitude?: string | null;
   longitude?: string | null;
   is_default?: boolean;
+}
+```
+</details>
+
+<a id="file-srctypesexpensets"></a>
+### src\types\expense.ts
+- SHA: `82c23c19c422`  
+- Ukuran: 3 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import type { ApiMeta } from "@/types/api";
+
+export type ExpenseStatus = "draft" | "submitted" | "approved" | "rejected";
+
+export type CashMovementType = "cash_in" | "cash_out" | "opening" | "closing_adjustment";
+
+export interface ExpenseOutlet {
+  id: number;
+  code?: string | null;
+  name: string;
+}
+
+export interface ExpenseUser {
+  id: number;
+  name: string;
+  email?: string | null;
+  username?: string | null;
+}
+
+export interface ExpenseCategory {
+  id: number;
+  name: string;
+  is_active: boolean;
+  expenses_count?: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ExpenseAttachment {
+  id: number;
+  expense_id: number;
+  file_path: string;
+  file_name?: string | null;
+  mime_type?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface Expense {
+  id: number;
+  outlet_id: number;
+  expense_category_id: number;
+  expense_date: string;
+  amount: number | string;
+  description?: string | null;
+  status: ExpenseStatus;
+  created_by?: number | null;
+  approved_by?: number | null;
+  approved_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  outlet?: ExpenseOutlet | null;
+  category?: ExpenseCategory | null;
+  creator?: ExpenseUser | null;
+  approver?: ExpenseUser | null;
+  attachments?: ExpenseAttachment[];
+  attachments_count?: number;
+}
+
+export interface CashierShift {
+  id: number;
+  outlet_id: number;
+  user_id: number;
+  shift_number: string;
+  opened_at: string;
+  closed_at?: string | null;
+  opening_cash: number | string;
+  expected_cash: number | string;
+  closing_cash: number | string;
+  cash_difference: number | string;
+  status: "open" | "closed";
+  notes?: string | null;
+  outlet?: ExpenseOutlet | null;
+  user?: ExpenseUser | null;
+  orders_count?: number;
+}
+
+export interface CashMovement {
+  id: number;
+  cashier_shift_id: number;
+  movement_type: CashMovementType;
+  amount: number | string;
+  reason?: string | null;
+  notes?: string | null;
+  created_by?: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  cashier_shift?: CashierShift | null;
+  cashierShift?: CashierShift | null;
+  creator?: ExpenseUser | null;
+}
+
+export interface ExpenseListParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  outlet_id?: number | "";
+  expense_category_id?: number | "";
+  status?: ExpenseStatus | "";
+  expense_from?: string;
+  expense_until?: string;
+}
+
+export interface ExpenseCategoryListParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  is_active?: boolean | "";
+}
+
+export interface CashMovementListParams {
+  page?: number;
+  per_page?: number;
+  cashier_shift_id?: number | "";
+  outlet_id?: number | "";
+  movement_type?: CashMovementType | "";
+}
+
+export interface CashierShiftListParams {
+  page?: number;
+  per_page?: number;
+  outlet_id?: number | "";
+  user_id?: number | "";
+  status?: "open" | "closed" | "";
+}
+
+export interface ExpensePayload {
+  outlet_id: number;
+  expense_category_id: number;
+  expense_date: string;
+  amount: number;
+  description?: string | null;
+  status?: ExpenseStatus;
+}
+
+export interface ExpenseCategoryPayload {
+  name: string;
+  is_active: boolean;
+}
+
+export interface CashMovementPayload {
+  cashier_shift_id: number;
+  movement_type: CashMovementType;
+  amount: number;
+  reason?: string | null;
+  notes?: string | null;
+}
+
+export interface PaginatedExpenseResult<T> {
+  items: T[];
+  meta: ApiMeta | null;
 }
 ```
 </details>
