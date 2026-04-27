@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { AppTopbar } from "./AppTopbar";
@@ -16,23 +17,35 @@ export function AppShell({
   dark = false,
   showOutletSwitcher = true,
 }: AppShellProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div
       className={[
-        "min-h-screen lg:flex",
+        "min-h-screen",
         dark
           ? "bg-slate-950 text-slate-100"
           : "bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 text-slate-950",
       ].join(" ")}
     >
-      <AppSidebar title={appTitle} items={navItems} dark={dark} />
+      <AppSidebar
+        title={appTitle}
+        items={navItems}
+        dark={dark}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <AppTopbar dark={dark} showOutletSwitcher={showOutletSwitcher} />
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-72">
+        <AppTopbar
+          dark={dark}
+          showOutletSwitcher={showOutletSwitcher}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main
           className={[
-            "flex-1 min-w-0",
+            "min-w-0 flex-1",
             "px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6 xl:px-8",
             dark ? "bg-slate-950" : "bg-transparent",
           ].join(" ")}

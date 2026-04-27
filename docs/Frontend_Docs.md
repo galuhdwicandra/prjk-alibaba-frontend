@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 15:32:50_  
+_Dihasilkan otomatis: 2026-04-27 15:44:33_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -22340,11 +22340,12 @@ export function AppProfileMenu({ dark = false }: AppProfileMenuProps) {
 
 <a id="file-srccomponentsnavigationappshelltsx"></a>
 ### src\components\navigation\AppShell.tsx
-- SHA: `07532a59759b`  
+- SHA: `8955cb54e811`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { AppTopbar } from "./AppTopbar";
@@ -22363,23 +22364,35 @@ export function AppShell({
   dark = false,
   showOutletSwitcher = true,
 }: AppShellProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div
       className={[
-        "min-h-screen lg:flex",
+        "min-h-screen",
         dark
           ? "bg-slate-950 text-slate-100"
           : "bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 text-slate-950",
       ].join(" ")}
     >
-      <AppSidebar title={appTitle} items={navItems} dark={dark} />
+      <AppSidebar
+        title={appTitle}
+        items={navItems}
+        dark={dark}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <AppTopbar dark={dark} showOutletSwitcher={showOutletSwitcher} />
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-72">
+        <AppTopbar
+          dark={dark}
+          showOutletSwitcher={showOutletSwitcher}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main
           className={[
-            "flex-1 min-w-0",
+            "min-w-0 flex-1",
             "px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6 xl:px-8",
             dark ? "bg-slate-950" : "bg-transparent",
           ].join(" ")}
@@ -22397,8 +22410,8 @@ export function AppShell({
 
 <a id="file-srccomponentsnavigationappsidebartsx"></a>
 ### src\components\navigation\AppSidebar.tsx
-- SHA: `9ff2ebdc42cb`  
-- Ukuran: 2 KB
+- SHA: `40829415fe89`  
+- Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22410,9 +22423,19 @@ interface AppSidebarProps {
   title: string;
   items: NavigationItem[];
   dark?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 }
 
-function SidebarLink({ item, dark = false }: { item: NavigationItem; dark?: boolean }) {
+function SidebarLink({
+  item,
+  dark = false,
+  onClick,
+}: {
+  item: NavigationItem;
+  dark?: boolean;
+  onClick?: () => void;
+}) {
   const allowed = item.permission ? usePermission(item.permission) : true;
 
   if (!allowed) {
@@ -22423,13 +22446,12 @@ function SidebarLink({ item, dark = false }: { item: NavigationItem; dark?: bool
     <NavLink
       to={item.to}
       end={item.to.split("/").length <= 3}
+      onClick={onClick}
       className={({ isActive }) =>
         [
           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          dark
-            ? "focus-visible:ring-slate-600"
-            : "focus-visible:ring-slate-900",
+          dark ? "focus-visible:ring-slate-600" : "focus-visible:ring-slate-900",
           dark
             ? isActive
               ? "bg-slate-800 text-white shadow-sm"
@@ -22445,33 +22467,74 @@ function SidebarLink({ item, dark = false }: { item: NavigationItem; dark?: bool
   );
 }
 
-export function AppSidebar({ title, items, dark = false }: AppSidebarProps) {
+export function AppSidebar({
+  title,
+  items,
+  dark = false,
+  open = false,
+  onClose,
+}: AppSidebarProps) {
   return (
-    <aside
-      className={[
-        "flex w-full shrink-0 flex-col border-r lg:w-64",
-        dark
-          ? "border-slate-800 bg-slate-950"
-          : "border-slate-200 bg-white",
-      ].join(" ")}
-    >
+    <>
       <div
+        aria-hidden="true"
+        onClick={onClose}
         className={[
-          "flex h-16 items-center px-5 text-base font-semibold tracking-tight",
-          dark
-            ? "border-b border-slate-800 text-white"
-            : "border-b border-slate-200 text-slate-900",
+          "fixed inset-0 z-40 transition-opacity lg:hidden",
+          open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+          dark ? "bg-slate-950/70" : "bg-slate-950/40",
+        ].join(" ")}
+      />
+
+      <aside
+        className={[
+          "fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] shrink-0 flex-col border-r shadow-xl transition-transform duration-300 lg:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full",
+          dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
         ].join(" ")}
       >
-        <span className="truncate">{title}</span>
-      </div>
+        <div
+          className={[
+            "flex h-16 items-center justify-between gap-3 px-5",
+            dark ? "border-b border-slate-800" : "border-b border-slate-200",
+          ].join(" ")}
+        >
+          <span
+            className={[
+              "truncate text-base font-semibold tracking-tight",
+              dark ? "text-white" : "text-slate-900",
+            ].join(" ")}
+          >
+            {title}
+          </span>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
-        {items.map((item) => (
-          <SidebarLink key={item.to} item={item} dark={dark} />
-        ))}
-      </nav>
-    </aside>
+          <button
+            type="button"
+            onClick={onClose}
+            className={[
+              "inline-flex h-9 w-9 items-center justify-center rounded-xl text-lg transition lg:hidden",
+              dark
+                ? "text-slate-300 hover:bg-slate-900 hover:text-white"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+            ].join(" ")}
+            aria-label="Tutup menu navigasi"
+          >
+            ×
+          </button>
+        </div>
+
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
+          {items.map((item) => (
+            <SidebarLink
+              key={item.to}
+              item={item}
+              dark={dark}
+              onClick={onClose}
+            />
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
 ```
@@ -22479,8 +22542,8 @@ export function AppSidebar({ title, items, dark = false }: AppSidebarProps) {
 
 <a id="file-srccomponentsnavigationapptopbartsx"></a>
 ### src\components\navigation\AppTopbar.tsx
-- SHA: `bc5c9573768c`  
-- Ukuran: 1 KB
+- SHA: `8d4ab188295e`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22491,11 +22554,13 @@ import { AppProfileMenu } from "./AppProfileMenu";
 interface AppTopbarProps {
   dark?: boolean;
   showOutletSwitcher?: boolean;
+  onMenuClick?: () => void;
 }
 
 export function AppTopbar({
   dark = false,
   showOutletSwitcher = true,
+  onMenuClick,
 }: AppTopbarProps) {
   return (
     <header
@@ -22507,8 +22572,24 @@ export function AppTopbar({
       ].join(" ")}
     >
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <AppBreadcrumbs dark={dark} />
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className={[
+              "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-lg transition lg:hidden",
+              dark
+                ? "border-slate-800 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+            ].join(" ")}
+            aria-label="Buka menu navigasi"
+          >
+            ☰
+          </button>
+
+          <div className="min-w-0">
+            <AppBreadcrumbs dark={dark} />
+          </div>
         </div>
 
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:gap-3">
@@ -22524,7 +22605,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `4312143fa3c7`  
+- SHA: `a91604d0f235`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22537,34 +22618,43 @@ export interface NavigationItem {
 
 export const adminNavigation: NavigationItem[] = [
   { label: "Dashboard", to: "/admin" },
+
   { label: "Users", to: "/admin/users", permission: "users.view" },
   { label: "Roles", to: "/admin/roles", permission: "roles.view" },
   { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
+
   { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
   { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
+
   { label: "Product Categories", to: "/admin/product-categories", permission: "product_categories.view" },
   { label: "Products", to: "/admin/products", permission: "products.view" },
   { label: "Product Variants", to: "/admin/product-variants", permission: "products.view" },
   { label: "Product Modifiers", to: "/admin/product-modifiers", permission: "products.view" },
   { label: "Product Bundles", to: "/admin/product-bundles", permission: "products.view" },
+
   { label: "Units", to: "/admin/units", permission: "units.view" },
   { label: "Raw Material Categories", to: "/admin/raw-material-categories", permission: "raw_material_categories.view" },
   { label: "Raw Materials", to: "/admin/raw-materials", permission: "raw_materials.view" },
   { label: "Outlet Material Stocks", to: "/admin/outlet-material-stocks", permission: "outlet_material_stocks.view" },
   { label: "Product BOM", to: "/admin/product-boms", permission: "product_boms.view" },
+
   { label: "Suppliers", to: "/admin/suppliers", permission: "suppliers.view" },
   { label: "Purchase Orders", to: "/admin/purchase-orders", permission: "purchase_orders.view" },
   { label: "Goods Receipts", to: "/admin/goods-receipts", permission: "goods_receipts.view" },
   { label: "Stock Movements", to: "/admin/stock-movements", permission: "stock_movements.view" },
+
   { label: "Customers", to: "/admin/customers", permission: "customers.view" },
   { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view" },
   { label: "Promotions", to: "/admin/promotions", permission: "promotions.view" },
+
   { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
   { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
   { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
+
   { label: "Notifications", to: "/admin/notifications", permission: "notifications.view" },
   { label: "Critical Alerts", to: "/admin/critical-alerts", permission: "notifications.view" },
   { label: "Activity Logs", to: "/admin/activity-logs", permission: "activity_logs.view" },
+
   { label: "Reports", to: "/admin/reports", permission: "reports.view" },
 ];
 
@@ -26336,14 +26426,12 @@ export const redirectByRole = (roles: string[] = []): string => {
 
 <a id="file-srcstylesindexcss"></a>
 ### src\styles\index.css
-- SHA: `306a326a693d`  
+- SHA: `2ae43f16c187`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   font-synthesis: none;
