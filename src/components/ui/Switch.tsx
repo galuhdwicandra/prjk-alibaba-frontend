@@ -14,25 +14,42 @@ export function Switch({
   disabled = false,
 }: SwitchProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4">
-      <div>
-        {label ? <div className="text-sm font-medium text-slate-900">{label}</div> : null}
-        {description ? <div className="text-xs text-slate-500">{description}</div> : null}
+    <div
+      className={[
+        "flex items-center justify-between gap-4 rounded-2xl border bg-white px-4 py-3 transition",
+        "border-slate-200",
+        disabled ? "opacity-60" : "hover:border-slate-300",
+      ].join(" ")}
+    >
+      <div className="min-w-0">
+        {label ? (
+          <div className="text-sm font-semibold leading-5 text-slate-900">
+            {label}
+          </div>
+        ) : null}
+        {description ? (
+          <div className="mt-0.5 text-xs leading-5 text-slate-500">
+            {description}
+          </div>
+        ) : null}
       </div>
 
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={[
-          "relative inline-flex h-7 w-12 items-center rounded-full transition",
+          "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2",
           checked ? "bg-slate-900" : "bg-slate-300",
-          disabled ? "opacity-50" : "",
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
         ].join(" ")}
       >
         <span
           className={[
-            "inline-block h-5 w-5 transform rounded-full bg-white transition",
+            "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200",
             checked ? "translate-x-6" : "translate-x-1",
           ].join(" ")}
         />

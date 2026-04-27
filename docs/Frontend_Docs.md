@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 15:44:33_  
+_Dihasilkan otomatis: 2026-04-27 16:11:48_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -22678,8 +22678,8 @@ export const ownerNavigation: NavigationItem[] = [
 
 <a id="file-srccomponentsnavigationpageheadertsx"></a>
 ### src\components\navigation\PageHeader.tsx
-- SHA: `4786b35663b5`  
-- Ukuran: 739 B
+- SHA: `e410e34a2175`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22699,15 +22699,41 @@ export function PageHeader({
   dark = false,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <h1 className={["text-2xl font-semibold", dark ? "text-slate-900" : "text-slate-900"].join(" ")}>
-          {title}
-        </h1>
-        {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
-      </div>
+    <div
+      className={[
+        "rounded-2xl border p-5 shadow-sm sm:p-6",
+        dark ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white",
+      ].join(" ")}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <h1
+            className={[
+              "text-xl font-semibold tracking-tight sm:text-2xl",
+              dark ? "text-white" : "text-slate-950",
+            ].join(" ")}
+          >
+            {title}
+          </h1>
 
-      {actions ? <div className="shrink-0">{actions}</div> : null}
+          {description ? (
+            <p
+              className={[
+                "mt-1 max-w-3xl text-sm leading-6",
+                dark ? "text-slate-300" : "text-slate-500",
+              ].join(" ")}
+            >
+              {description}
+            </p>
+          ) : null}
+        </div>
+
+        {actions ? (
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+            {actions}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -23450,8 +23476,8 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
 
 <a id="file-srccomponentsuiradiotsx"></a>
 ### src\components\ui\Radio.tsx
-- SHA: `5d879789fb35`  
-- Ukuran: 729 B
+- SHA: `4972e2b3160e`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23466,17 +23492,26 @@ export function Radio({ label, hint, id, ...props }: RadioProps) {
   const inputId = id ?? `${props.name}-${props.value}`;
 
   return (
-    <label htmlFor={inputId} className="flex cursor-pointer items-start gap-3">
+    <label
+      htmlFor={inputId}
+      className="group flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50 has-[:checked]:border-slate-900 has-[:checked]:bg-slate-50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+    >
       <input
         id={inputId}
         type="radio"
-        className="mt-1 h-4 w-4 border-slate-300 text-slate-900"
+        className="mt-0.5 h-4 w-4 shrink-0 border-slate-300 text-slate-900 accent-slate-900 focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:cursor-not-allowed"
         {...props}
       />
-      <div>
-        <div className="text-sm font-medium text-slate-800">{label}</div>
-        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
-      </div>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold leading-5 text-slate-900">
+          {label}
+        </span>
+        {hint ? (
+          <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+            {hint}
+          </span>
+        ) : null}
+      </span>
     </label>
   );
 }
@@ -23485,7 +23520,7 @@ export function Radio({ label, hint, id, ...props }: RadioProps) {
 
 <a id="file-srccomponentsuisearchfieldtsx"></a>
 ### src\components\ui\SearchField.tsx
-- SHA: `3b5f4d6e7869`  
+- SHA: `45794bcd7926`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -23501,12 +23536,12 @@ export function SearchField({ className, value, onClear, ...props }: SearchField
   const hasValue = typeof value === "string" ? value.length > 0 : Boolean(value);
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <input
         type="search"
         value={value}
         className={cn(
-          "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-12 text-sm leading-5 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200",
+          "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-14 text-sm leading-5 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 disabled:cursor-not-allowed disabled:bg-slate-100",
           className
         )}
         placeholder="Cari data..."
@@ -23517,7 +23552,7 @@ export function SearchField({ className, value, onClear, ...props }: SearchField
         <button
           type="button"
           onClick={onClear}
-          className="absolute right-2 top-1/2 inline-flex h-7 items-center justify-center rounded-lg px-2 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 -translate-y-1/2"
+          className="absolute right-2 top-1/2 inline-flex h-8 items-center justify-center rounded-lg px-3 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20 -translate-y-1/2"
         >
           Clear
         </button>
@@ -23620,8 +23655,8 @@ export function Select({
 
 <a id="file-srccomponentsuiskeletontsx"></a>
 ### src\components\ui\Skeleton.tsx
-- SHA: `af989f4926c3`  
-- Ukuran: 520 B
+- SHA: `cc96076c28a5`  
+- Ukuran: 737 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23630,16 +23665,22 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className = "h-4 w-full" }: SkeletonProps) {
-  return <div className={`animate-pulse rounded-xl bg-slate-200 ${className}`} />;
+  return (
+    <div
+      className={`relative overflow-hidden rounded-xl bg-slate-200 ${className}`}
+    >
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+    </div>
+  );
 }
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <Skeleton className="h-6 w-40" />
-      <Skeleton className="mt-3 h-4 w-full" />
-      <Skeleton className="mt-2 h-4 w-5/6" />
-      <Skeleton className="mt-6 h-10 w-32" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <Skeleton className="h-5 w-32" />
+      <Skeleton className="mt-4 h-4 w-full" />
+      <Skeleton className="mt-2 h-4 w-4/5" />
+      <Skeleton className="mt-6 h-10 w-28 rounded-lg" />
     </div>
   );
 }
@@ -23648,8 +23689,8 @@ export function SkeletonCard() {
 
 <a id="file-srccomponentsuiswitchtsx"></a>
 ### src\components\ui\Switch.tsx
-- SHA: `89c40b999d7f`  
-- Ukuran: 1 KB
+- SHA: `4b81b4948579`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23669,25 +23710,42 @@ export function Switch({
   disabled = false,
 }: SwitchProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4">
-      <div>
-        {label ? <div className="text-sm font-medium text-slate-900">{label}</div> : null}
-        {description ? <div className="text-xs text-slate-500">{description}</div> : null}
+    <div
+      className={[
+        "flex items-center justify-between gap-4 rounded-2xl border bg-white px-4 py-3 transition",
+        "border-slate-200",
+        disabled ? "opacity-60" : "hover:border-slate-300",
+      ].join(" ")}
+    >
+      <div className="min-w-0">
+        {label ? (
+          <div className="text-sm font-semibold leading-5 text-slate-900">
+            {label}
+          </div>
+        ) : null}
+        {description ? (
+          <div className="mt-0.5 text-xs leading-5 text-slate-500">
+            {description}
+          </div>
+        ) : null}
       </div>
 
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={[
-          "relative inline-flex h-7 w-12 items-center rounded-full transition",
+          "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2",
           checked ? "bg-slate-900" : "bg-slate-300",
-          disabled ? "opacity-50" : "",
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
         ].join(" ")}
       >
         <span
           className={[
-            "inline-block h-5 w-5 transform rounded-full bg-white transition",
+            "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200",
             checked ? "translate-x-6" : "translate-x-1",
           ].join(" ")}
         />
