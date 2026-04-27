@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 13:24:29_  
+_Dihasilkan otomatis: 2026-04-27 13:38:58_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -89,6 +89,7 @@ _Dihasilkan otomatis: 2026-04-27 13:24:29_
   - [src\modules\pos\components\PosPaymentModal.tsx](#file-srcmodulesposcomponentspospaymentmodaltsx)
   - [src\modules\pos\components\PosProductConfiguratorModal.tsx](#file-srcmodulesposcomponentsposproductconfiguratormodaltsx)
   - [src\modules\pos\hooks\usePosCartStore.ts](#file-srcmodulesposhooksuseposcartstorets)
+  - [src\modules\pos\hooks\usePosKeyboardShortcuts.ts](#file-srcmodulesposhooksuseposkeyboardshortcutsts)
   - [src\modules\pos\pages\PosOrdersPage.tsx](#file-srcmodulespospagesposorderspagetsx)
   - [src\modules\pos\pages\PosShiftsPage.tsx](#file-srcmodulespospagesposshiftspagetsx)
   - [src\modules\pos\services\pos.service.ts](#file-srcmodulesposservicesposservicets)
@@ -99,10 +100,13 @@ _Dihasilkan otomatis: 2026-04-27 13:24:29_
   - [src\modules\reporting\pages\ReportsPage.tsx](#file-srcmodulesreportingpagesreportspagetsx)
   - [src\modules\reporting\services\report.service.ts](#file-srcmodulesreportingservicesreportservicets)
 - [Components (src/components)](#components-src-components)
+  - [src\components\feedback\AppErrorBoundary.tsx](#file-srccomponentsfeedbackapperrorboundarytsx)
   - [src\components\feedback\AppLoader.tsx](#file-srccomponentsfeedbackapploadertsx)
   - [src\components\feedback\AppToaster.tsx](#file-srccomponentsfeedbackapptoastertsx)
+  - [src\components\feedback\NetworkStatusBanner.tsx](#file-srccomponentsfeedbacknetworkstatusbannertsx)
   - [src\components\feedback\PageEmptyState.tsx](#file-srccomponentsfeedbackpageemptystatetsx)
   - [src\components\feedback\PageErrorState.tsx](#file-srccomponentsfeedbackpageerrorstatetsx)
+  - [src\components\feedback\PageSkeleton.tsx](#file-srccomponentsfeedbackpageskeletontsx)
   - [src\components\feedback\PermissionDenied.tsx](#file-srccomponentsfeedbackpermissiondeniedtsx)
   - [src\components\feedback\RoutePlaceholder.tsx](#file-srccomponentsfeedbackrouteplaceholdertsx)
   - [src\components\navigation\AppBreadcrumbs.tsx](#file-srccomponentsnavigationappbreadcrumbstsx)
@@ -141,6 +145,9 @@ _Dihasilkan otomatis: 2026-04-27 13:24:29_
   - [src\services\storage\auth-storage.ts](#file-srcservicesstorageauth-storagets)
 - [Hooks (src/hooks)](#hooks-src-hooks)
   - [src\hooks\useActiveOutlet.ts](#file-srchooksuseactiveoutletts)
+  - [src\hooks\useDebouncedValue.ts](#file-srchooksusedebouncedvaluets)
+  - [src\hooks\useKeyboardShortcut.ts](#file-srchooksusekeyboardshortcutts)
+  - [src\hooks\useOnlineStatus.ts](#file-srchooksuseonlinestatusts)
   - [src\hooks\usePermission.ts](#file-srchooksusepermissionts)
   - [src\hooks\useToast.ts](#file-srchooksusetoastts)
 - [Types (src/types)](#types-src-types)
@@ -164,6 +171,9 @@ _Dihasilkan otomatis: 2026-04-27 13:24:29_
   - [src\types\stock-movement.ts](#file-srctypesstock-movementts)
   - [src\types\user.ts](#file-srctypesuserts)
 - [Utils (src/utils)](#utils-src-utils)
+  - [src\utils\error-message.ts](#file-srcutilserror-messagets)
+  - [src\utils\performance.ts](#file-srcutilsperformancets)
+  - [src\utils\print.ts](#file-srcutilsprintts)
   - [src\utils\redirect-by-role.ts](#file-srcutilsredirect-by-rolets)
 - [Styles (src/styles)](#styles-src-styles)
   - [src\styles\index.css](#file-srcstylesindexcss)
@@ -216,21 +226,26 @@ export const env = {
 
 <a id="file-srcappprovidersappproviderstsx"></a>
 ### src\app\providers\AppProviders.tsx
-- SHA: `d2ca483aa4bd`  
-- Ukuran: 321 B
+- SHA: `6f4deb457d89`  
+- Ukuran: 564 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import type { PropsWithChildren } from "react";
 import { QueryProvider } from "./QueryProvider";
 import { AppToaster } from "@/components/feedback/AppToaster";
+import { AppErrorBoundary } from "@/components/feedback/AppErrorBoundary";
+import { NetworkStatusBanner } from "@/components/feedback/NetworkStatusBanner";
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <QueryProvider>
-      {children}
-      <AppToaster />
-    </QueryProvider>
+    <AppErrorBoundary>
+      <QueryProvider>
+        <NetworkStatusBanner />
+        {children}
+        <AppToaster />
+      </QueryProvider>
+    </AppErrorBoundary>
   );
 }
 ```
@@ -238,19 +253,44 @@ export function AppProviders({ children }: PropsWithChildren) {
 
 <a id="file-srcappprovidersqueryprovidertsx"></a>
 ### src\app\providers\QueryProvider.tsx
-- SHA: `29e30273a6bd`  
-- Ukuran: 415 B
+- SHA: `ec21aca5629b`  
+- Ukuran: 970 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
+import { getAppErrorMessage } from "@/utils/error-message";
+
+const shouldRetryRequest = (failureCount: number, error: unknown) => {
+  const message = getAppErrorMessage(error).toLowerCase();
+
+  if (failureCount >= 2) {
+    return false;
+  }
+
+  if (
+    message.includes("unauthorized") ||
+    message.includes("forbidden") ||
+    message.includes("validasi") ||
+    message.includes("not found")
+  ) {
+    return false;
+  }
+
+  return true;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: shouldRetryRequest,
       refetchOnWindowFocus: false,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+    },
+    mutations: {
+      retry: false,
     },
   },
 });
@@ -18709,6 +18749,96 @@ export const usePosCartStore = create<PosCartState>((set, get) => ({
 ```
 </details>
 
+<a id="file-srcmodulesposhooksuseposkeyboardshortcutsts"></a>
+### src\modules\pos\hooks\usePosKeyboardShortcuts.ts
+- SHA: `d38b6b130689`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { useCallback } from "react";
+import { useKeyboardShortcut } from "@/hooks/useKeyboardShortcut";
+
+interface UsePosKeyboardShortcutsOptions {
+  enabled?: boolean;
+  onFocusSearch?: () => void;
+  onOpenPayment?: () => void;
+  onClearCart?: () => void;
+  onPrintReceipt?: () => void;
+  onHoldOrder?: () => void;
+}
+
+export function usePosKeyboardShortcuts({
+  enabled = true,
+  onFocusSearch,
+  onOpenPayment,
+  onClearCart,
+  onPrintReceipt,
+  onHoldOrder,
+}: UsePosKeyboardShortcutsOptions) {
+  const focusSearch = useCallback(() => {
+    onFocusSearch?.();
+  }, [onFocusSearch]);
+
+  const openPayment = useCallback(() => {
+    onOpenPayment?.();
+  }, [onOpenPayment]);
+
+  const clearCart = useCallback(() => {
+    onClearCart?.();
+  }, [onClearCart]);
+
+  const printReceipt = useCallback(() => {
+    onPrintReceipt?.();
+  }, [onPrintReceipt]);
+
+  const holdOrder = useCallback(() => {
+    onHoldOrder?.();
+  }, [onHoldOrder]);
+
+  useKeyboardShortcut({
+    key: "/",
+    enabled,
+    preventDefault: true,
+    onTrigger: focusSearch,
+  });
+
+  useKeyboardShortcut({
+    key: "Enter",
+    ctrlKey: true,
+    enabled,
+    allowInEditable: true,
+    preventDefault: true,
+    onTrigger: openPayment,
+  });
+
+  useKeyboardShortcut({
+    key: "Backspace",
+    ctrlKey: true,
+    enabled,
+    preventDefault: true,
+    onTrigger: clearCart,
+  });
+
+  useKeyboardShortcut({
+    key: "p",
+    ctrlKey: true,
+    enabled,
+    preventDefault: true,
+    onTrigger: printReceipt,
+  });
+
+  useKeyboardShortcut({
+    key: "h",
+    ctrlKey: true,
+    enabled,
+    preventDefault: true,
+    onTrigger: holdOrder,
+  });
+}
+```
+</details>
+
 <a id="file-srcmodulespospagesposorderspagetsx"></a>
 ### src\modules\pos\pages\PosOrdersPage.tsx
 - SHA: `285b7e7ec485`  
@@ -21464,6 +21594,81 @@ export const reportService = {
 
 ## Components (src/components)
 
+<a id="file-srccomponentsfeedbackapperrorboundarytsx"></a>
+### src\components\feedback\AppErrorBoundary.tsx
+- SHA: `838488b1fbd7`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { Button } from "@/components/ui";
+
+interface AppErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface AppErrorBoundaryState {
+  hasError: boolean;
+  message: string;
+}
+
+export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+  state: AppErrorBoundaryState = {
+    hasError: false,
+    message: "",
+  };
+
+  static getDerivedStateFromError(error: Error): AppErrorBoundaryState {
+    return {
+      hasError: true,
+      message: error.message,
+    };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Application error boundary:", error, errorInfo);
+  }
+
+  private reloadPage = () => {
+    window.location.reload();
+  };
+
+  render() {
+    if (!this.state.hasError) {
+      return this.props.children;
+    }
+
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
+            !
+          </div>
+
+          <h1 className="text-xl font-semibold text-slate-900">Aplikasi mengalami kendala</h1>
+
+          <p className="mt-2 text-sm text-slate-600">
+            Terjadi error pada antarmuka. Silakan muat ulang halaman untuk melanjutkan.
+          </p>
+
+          {this.state.message ? (
+            <div className="mt-4 rounded-xl bg-slate-100 p-3 text-left text-xs text-slate-600">
+              {this.state.message}
+            </div>
+          ) : null}
+
+          <div className="mt-5">
+            <Button onClick={this.reloadPage}>Muat Ulang</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+```
+</details>
+
 <a id="file-srccomponentsfeedbackapploadertsx"></a>
 ### src\components\feedback\AppLoader.tsx
 - SHA: `499a2808ebe9`  
@@ -21533,6 +21738,31 @@ export function AppToaster() {
 ```
 </details>
 
+<a id="file-srccomponentsfeedbacknetworkstatusbannertsx"></a>
+### src\components\feedback\NetworkStatusBanner.tsx
+- SHA: `b5a3ffd8765e`  
+- Ukuran: 399 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+
+export function NetworkStatusBanner() {
+  const online = useOnlineStatus();
+
+  if (online) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-[70] bg-amber-500 px-4 py-2 text-center text-sm font-medium text-white shadow">
+      Koneksi internet terputus. Beberapa data mungkin belum tersimpan.
+    </div>
+  );
+}
+```
+</details>
+
 <a id="file-srccomponentsfeedbackpageemptystatetsx"></a>
 ### src\components\feedback\PageEmptyState.tsx
 - SHA: `39531ec4a828`  
@@ -21591,6 +21821,65 @@ export function PageErrorState({
           Coba lagi
         </button>
       )}
+    </div>
+  );
+}
+```
+</details>
+
+<a id="file-srccomponentsfeedbackpageskeletontsx"></a>
+### src\components\feedback\PageSkeleton.tsx
+- SHA: `8250731084d3`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { Skeleton } from "@/components/ui";
+
+interface PageSkeletonProps {
+  rows?: number;
+  withHeader?: boolean;
+  withFilters?: boolean;
+}
+
+export function PageSkeleton({
+  rows = 6,
+  withHeader = true,
+  withFilters = true,
+}: PageSkeletonProps) {
+  return (
+    <div className="space-y-4">
+      {withHeader ? (
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-64" />
+          <Skeleton className="h-4 w-96 max-w-full" />
+        </div>
+      ) : null}
+
+      {withFilters ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      ) : null}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="space-y-3">
+          {Array.from({ length: rows }).map((_, index) => (
+            <div key={index} className="grid gap-3 md:grid-cols-5">
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -23476,38 +23765,76 @@ export const endpoints = {
 
 <a id="file-srcservicesapierror-parserts"></a>
 ### src\services\api\error-parser.ts
-- SHA: `aa9d90801560`  
-- Ukuran: 722 B
+- SHA: `c1a43d5954b0`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
-import type { ApiErrorResponse } from "@/types/api";
 import axios from "axios";
+import type { ApiErrorResponse } from "@/types/api";
+
+const DEFAULT_MESSAGE = "Terjadi kesalahan. Silakan coba lagi.";
+
+const STATUS_MESSAGE_MAP: Record<number, string> = {
+  400: "Permintaan tidak valid.",
+  401: "Sesi login sudah berakhir. Silakan login ulang.",
+  403: "Anda tidak memiliki akses untuk aksi ini.",
+  404: "Data tidak ditemukan.",
+  408: "Permintaan timeout. Silakan coba lagi.",
+  409: "Terjadi konflik data.",
+  422: "Validasi data gagal.",
+  429: "Terlalu banyak request. Coba lagi nanti.",
+  500: "Server mengalami kendala.",
+  502: "Gateway server bermasalah.",
+  503: "Layanan sedang tidak tersedia.",
+};
+
+const getFirstValidationError = (errors?: ApiErrorResponse["errors"]) => {
+  if (!errors) return null;
+
+  const firstEntry = Object.values(errors)[0];
+
+  if (Array.isArray(firstEntry)) {
+    return firstEntry[0] ?? null;
+  }
+
+  if (typeof firstEntry === "string") {
+    return firstEntry;
+  }
+
+  return null;
+};
 
 export const parseApiError = (error: unknown): string => {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    const data = error.response?.data;
+    const response = error.response;
+    const data = response?.data;
 
-    if (data?.errors) {
-      const firstEntry = Object.values(data.errors)[0];
+    const validationError = getFirstValidationError(data?.errors);
+    if (validationError) return validationError;
 
-      if (Array.isArray(firstEntry)) {
-        return firstEntry[0] ?? data.message ?? "Terjadi kesalahan pada permintaan.";
-      }
+    if (data?.message) return data.message;
 
-      if (typeof firstEntry === "string") {
-        return firstEntry;
-      }
+    if (response?.status && STATUS_MESSAGE_MAP[response.status]) {
+      return STATUS_MESSAGE_MAP[response.status];
     }
 
-    return data?.message ?? "Terjadi kesalahan pada permintaan.";
+    if (error.code === "ERR_NETWORK") {
+      return "Tidak dapat terhubung ke server. Periksa koneksi internet.";
+    }
+
+    return error.message || DEFAULT_MESSAGE;
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return error.message || DEFAULT_MESSAGE;
   }
 
-  return "Terjadi kesalahan yang tidak diketahui.";
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return DEFAULT_MESSAGE;
 };
 ```
 </details>
@@ -23574,6 +23901,167 @@ export const useActiveOutlet = () => {
     setActiveOutletId,
   };
 };
+```
+</details>
+
+<a id="file-srchooksusedebouncedvaluets"></a>
+### src\hooks\useDebouncedValue.ts
+- SHA: `cb695d7d9f00`  
+- Ukuran: 427 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { useEffect, useState } from "react";
+
+export function useDebouncedValue<TValue>(value: TValue, delay = 350): TValue {
+  const [debouncedValue, setDebouncedValue] = useState<TValue>(value);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+```
+</details>
+
+<a id="file-srchooksusekeyboardshortcutts"></a>
+### src\hooks\useKeyboardShortcut.ts
+- SHA: `54fb9be2c56e`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { useEffect } from "react";
+
+type ShortcutKey = string;
+
+interface KeyboardShortcutOptions {
+  key: ShortcutKey;
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  shiftKey?: boolean;
+  metaKey?: boolean;
+  enabled?: boolean;
+  allowInEditable?: boolean;
+  preventDefault?: boolean;
+  onTrigger: () => void;
+}
+
+const isEditableElement = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+
+  return (
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select" ||
+    target.isContentEditable
+  );
+};
+
+export function useKeyboardShortcut({
+  key,
+  ctrlKey = false,
+  altKey = false,
+  shiftKey = false,
+  metaKey = false,
+  enabled = true,
+  allowInEditable = false,
+  preventDefault = true,
+  onTrigger,
+}: KeyboardShortcutOptions) {
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isSameKey = event.key.toLowerCase() === key.toLowerCase();
+      const isSameCtrl = event.ctrlKey === ctrlKey;
+      const isSameAlt = event.altKey === altKey;
+      const isSameShift = event.shiftKey === shiftKey;
+      const isSameMeta = event.metaKey === metaKey;
+
+      if (!isSameKey || !isSameCtrl || !isSameAlt || !isSameShift || !isSameMeta) {
+        return;
+      }
+
+      if (!allowInEditable && isEditableElement(event.target)) {
+        return;
+      }
+
+      if (preventDefault) {
+        event.preventDefault();
+      }
+
+      onTrigger();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    key,
+    ctrlKey,
+    altKey,
+    shiftKey,
+    metaKey,
+    enabled,
+    allowInEditable,
+    preventDefault,
+    onTrigger,
+  ]);
+}
+```
+</details>
+
+<a id="file-srchooksuseonlinestatusts"></a>
+### src\hooks\useOnlineStatus.ts
+- SHA: `2551900c3d84`  
+- Ukuran: 682 B
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import { useEffect, useState } from "react";
+
+const getInitialOnlineStatus = () => {
+  if (typeof navigator === "undefined") {
+    return true;
+  }
+
+  return navigator.onLine;
+};
+
+export function useOnlineStatus() {
+  const [online, setOnline] = useState(getInitialOnlineStatus);
+
+  useEffect(() => {
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  return online;
+}
 ```
 </details>
 
@@ -25260,6 +25748,225 @@ export interface User {
 
 ## Utils (src/utils)
 
+<a id="file-srcutilserror-messagets"></a>
+### src\utils\error-message.ts
+- SHA: `afcae99c85d5`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+import axios from "axios";
+import type { ApiErrorResponse } from "@/types/api";
+
+const defaultMessage = "Terjadi kesalahan. Silakan coba lagi.";
+
+const statusMessageMap: Record<number, string> = {
+  400: "Permintaan tidak valid.",
+  401: "Sesi login sudah berakhir. Silakan login ulang.",
+  403: "Anda tidak memiliki akses untuk menjalankan aksi ini.",
+  404: "Data tidak ditemukan.",
+  408: "Request terlalu lama diproses. Silakan coba lagi.",
+  409: "Data konflik dengan kondisi terbaru.",
+  422: "Validasi data gagal.",
+  429: "Terlalu banyak request. Silakan coba beberapa saat lagi.",
+  500: "Server mengalami kendala.",
+  502: "Gateway server bermasalah.",
+  503: "Layanan sedang tidak tersedia.",
+};
+
+const getFirstValidationError = (errors: ApiErrorResponse["errors"]) => {
+  if (!errors) {
+    return null;
+  }
+
+  const firstEntry = Object.values(errors)[0];
+
+  if (Array.isArray(firstEntry)) {
+    return firstEntry[0] ?? null;
+  }
+
+  if (typeof firstEntry === "string") {
+    return firstEntry;
+  }
+
+  return null;
+};
+
+export function getAppErrorMessage(error: unknown): string {
+  if (axios.isAxiosError<ApiErrorResponse>(error)) {
+    const response = error.response;
+    const data = response?.data;
+
+    const validationError = getFirstValidationError(data?.errors);
+
+    if (validationError) {
+      return validationError;
+    }
+
+    if (data?.message) {
+      return data.message;
+    }
+
+    if (response?.status && statusMessageMap[response.status]) {
+      return statusMessageMap[response.status];
+    }
+
+    if (error.code === "ERR_NETWORK") {
+      return "Tidak dapat terhubung ke server. Periksa koneksi atau konfigurasi API.";
+    }
+
+    return error.message || defaultMessage;
+  }
+
+  if (error instanceof Error) {
+    return error.message || defaultMessage;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return defaultMessage;
+}
+```
+</details>
+
+<a id="file-srcutilsperformancets"></a>
+### src\utils\performance.ts
+- SHA: `8b05904086ef`  
+- Ukuran: 1 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export interface FrontendPerformanceSnapshot {
+  url: string;
+  userAgent: string;
+  navigationType: string;
+  domContentLoadedMs: number;
+  loadCompleteMs: number;
+  transferSizeKb: number;
+  recordedAt: string;
+}
+
+const roundNumber = (value: number) => Math.round(value * 100) / 100;
+
+export function getFrontendPerformanceSnapshot(): FrontendPerformanceSnapshot | null {
+  if (typeof performance === "undefined") {
+    return null;
+  }
+
+  const navigationEntry = performance.getEntriesByType("navigation")[0];
+
+  if (!(navigationEntry instanceof PerformanceNavigationTiming)) {
+    return null;
+  }
+
+  return {
+    url: window.location.href,
+    userAgent: window.navigator.userAgent,
+    navigationType: navigationEntry.type,
+    domContentLoadedMs: roundNumber(
+      navigationEntry.domContentLoadedEventEnd - navigationEntry.startTime
+    ),
+    loadCompleteMs: roundNumber(navigationEntry.loadEventEnd - navigationEntry.startTime),
+    transferSizeKb: roundNumber(navigationEntry.transferSize / 1024),
+    recordedAt: new Date().toISOString(),
+  };
+}
+
+export function logFrontendPerformanceSnapshot() {
+  const snapshot = getFrontendPerformanceSnapshot();
+
+  if (!snapshot) {
+    return;
+  }
+
+  console.table(snapshot);
+}
+```
+</details>
+
+<a id="file-srcutilsprintts"></a>
+### src\utils\print.ts
+- SHA: `073a21bd0b75`  
+- Ukuran: 2 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```ts
+export interface PrintHtmlOptions {
+  title?: string;
+  html: string;
+  width?: number;
+  height?: number;
+}
+
+const buildPrintableDocument = (title: string, html: string) => {
+  return `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+</head>
+<body>
+  ${html}
+</body>
+</html>
+`;
+};
+
+export function printHtml({ title = "Print", html, width = 420, height = 640 }: PrintHtmlOptions) {
+  const popup = window.open("", title, `width=${width},height=${height}`);
+
+  if (!popup) {
+    const iframe = document.createElement("iframe");
+
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+
+    document.body.appendChild(iframe);
+
+    const iframeDocument = iframe.contentWindow?.document;
+
+    if (!iframeDocument) {
+      iframe.remove();
+      return;
+    }
+
+    iframeDocument.open();
+    iframeDocument.write(buildPrintableDocument(title, html));
+    iframeDocument.close();
+
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      window.setTimeout(() => iframe.remove(), 500);
+    };
+
+    return;
+  }
+
+  popup.document.open();
+  popup.document.write(buildPrintableDocument(title, html));
+  popup.document.close();
+
+  popup.onload = () => {
+    popup.focus();
+    popup.print();
+  };
+}
+
+export function printCurrentPage() {
+  window.print();
+}
+```
+</details>
+
 <a id="file-srcutilsredirect-by-rolets"></a>
 ### src\utils\redirect-by-role.ts
 - SHA: `632c9f062ef4`  
@@ -25298,14 +26005,75 @@ export const redirectByRole = (roles: string[] = []): string => {
 
 <a id="file-srcstylesindexcss"></a>
 ### src\styles\index.css
-- SHA: `2d05991c511e`  
-- Ukuran: 58 B
+- SHA: `8d56327ede8e`  
+- Ukuran: 973 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background: #f8fafc;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #0f172a;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-page {
+    page-break-after: always;
+  }
+}
 ```
 </details>
 
