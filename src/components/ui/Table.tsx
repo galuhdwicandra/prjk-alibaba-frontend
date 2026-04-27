@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "./utils";
 
 export interface TableColumn<T> {
   key: string;
@@ -16,18 +17,19 @@ interface TableProps<T> {
 
 export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." }: TableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={[
-                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
-                    column.className ?? "",
-                  ].join(" ")}
+                  scope="col"
+                  className={cn(
+                    "whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
+                    column.className
+                  )}
                 >
                   {column.title}
                 </th>
@@ -35,12 +37,21 @@ export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." 
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 bg-white">
             {data.length > 0 ? (
               data.map((row, index) => (
-                <tr key={rowKey(row, index)} className="hover:bg-slate-50">
+                <tr
+                  key={rowKey(row, index)}
+                  className="transition-colors hover:bg-slate-50/80"
+                >
                   {columns.map((column) => (
-                    <td key={column.key} className="px-4 py-3 text-sm text-slate-700">
+                    <td
+                      key={column.key}
+                      className={cn(
+                        "px-4 py-3 align-middle text-sm text-slate-700",
+                        column.className
+                      )}
+                    >
                       {column.render(row, index)}
                     </td>
                   ))}
@@ -48,7 +59,10 @@ export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." 
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-slate-500">
+                <td
+                  colSpan={columns.length}
+                  className="px-4 py-12 text-center text-sm text-slate-500"
+                >
                   {emptyText}
                 </td>
               </tr>

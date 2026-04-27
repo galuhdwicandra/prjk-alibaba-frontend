@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 13:38:58_  
+_Dihasilkan otomatis: 2026-04-27 14:57:17_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -22457,8 +22457,8 @@ export function PermissionWrapper({
 
 <a id="file-srccomponentsuibadgetsx"></a>
 ### src\components\ui\Badge.tsx
-- SHA: `db81eea0a0d2`  
-- Ukuran: 811 B
+- SHA: `786c51bc50ba`  
+- Ukuran: 933 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22468,11 +22468,11 @@ import { cn } from "./utils";
 type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
 
 const variantClassMap: Record<BadgeVariant, string> = {
-  default: "bg-slate-100 text-slate-700",
-  success: "bg-emerald-100 text-emerald-700",
-  warning: "bg-amber-100 text-amber-700",
-  danger: "bg-red-100 text-red-700",
-  info: "bg-sky-100 text-sky-700",
+  default: "border-slate-200 bg-slate-50 text-slate-700",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  danger: "border-red-200 bg-red-50 text-red-700",
+  info: "border-sky-200 bg-sky-50 text-sky-700",
 };
 
 interface BadgeProps extends PropsWithChildren {
@@ -22484,7 +22484,7 @@ export function Badge({ children, variant = "default", className }: BadgeProps) 
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold leading-5 shadow-sm",
         variantClassMap[variant],
         className
       )}
@@ -22498,7 +22498,7 @@ export function Badge({ children, variant = "default", className }: BadgeProps) 
 
 <a id="file-srccomponentsuibuttontsx"></a>
 ### src\components\ui\Button.tsx
-- SHA: `1fa7cf10b18b`  
+- SHA: `bbe458888dbe`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22517,17 +22517,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, PropsWith
 }
 
 const variantClassMap: Record<ButtonVariant, string> = {
-  primary: "bg-slate-900 text-white hover:bg-slate-800",
-  secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-  outline: "border border-slate-300 bg-white text-slate-900 hover:bg-slate-50",
-  danger: "bg-red-600 text-white hover:bg-red-700",
-  ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
+  primary: "bg-slate-900 text-white shadow-sm hover:bg-slate-800 active:bg-slate-950",
+  secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300",
+  outline:
+    "border border-slate-300 bg-white text-slate-900 shadow-sm hover:bg-slate-50 active:bg-slate-100",
+  danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800",
+  ghost: "bg-transparent text-slate-700 hover:bg-slate-100 active:bg-slate-200",
 };
 
 const sizeClassMap: Record<ButtonSize, string> = {
-  sm: "px-3 py-2 text-sm",
-  md: "px-4 py-2 text-sm",
-  lg: "px-5 py-3 text-base",
+  sm: "min-h-9 px-3 py-1.5 text-xs",
+  md: "min-h-10 px-4 py-2 text-sm",
+  lg: "min-h-12 px-5 py-2.5 text-base",
 };
 
 export function Button({
@@ -22543,13 +22544,14 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-xl font-medium transition outline-none focus:ring-2 focus:ring-slate-300 disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold leading-none outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60",
         variantClassMap[variant],
         sizeClassMap[size],
         fullWidth && "w-full",
         className
       )}
       disabled={disabled || loading}
+      aria-busy={loading}
       {...props}
     >
       {loading ? "Memproses..." : children}
@@ -22561,8 +22563,8 @@ export function Button({
 
 <a id="file-srccomponentsuicardtsx"></a>
 ### src\components\ui\Card.tsx
-- SHA: `9401d0385591`  
-- Ukuran: 851 B
+- SHA: `de31dd5c25ee`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22578,18 +22580,34 @@ interface CardProps extends PropsWithChildren {
 
 export function Card({ title, description, actions, children, className }: CardProps) {
   return (
-    <div className={cn("rounded-2xl border border-slate-200 bg-white p-5", className)}>
+    <div
+      className={cn(
+        "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition",
+        className
+      )}
+    >
       {(title || actions) && (
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            {title ? <h3 className="text-base font-semibold text-slate-900">{title}</h3> : null}
-            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            {title ? (
+              <h3 className="text-base font-semibold leading-tight text-slate-900">
+                {title}
+              </h3>
+            ) : null}
+            {description ? (
+              <p className="text-sm leading-relaxed text-slate-500">
+                {description}
+              </p>
+            ) : null}
           </div>
-          {actions ? <div>{actions}</div> : null}
+
+          {actions ? (
+            <div className="flex shrink-0 items-center gap-2">{actions}</div>
+          ) : null}
         </div>
       )}
 
-      {children}
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
@@ -22598,32 +22616,39 @@ export function Card({ title, description, actions, children, className }: CardP
 
 <a id="file-srccomponentsuicheckboxtsx"></a>
 ### src\components\ui\Checkbox.tsx
-- SHA: `67aaf9b98c00`  
-- Ukuran: 729 B
+- SHA: `0a4e8742eea8`  
+- Ukuran: 1017 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import type { InputHTMLAttributes } from "react";
+import { cn } from "./utils";
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;
   hint?: string;
 }
 
-export function Checkbox({ label, hint, id, ...props }: CheckboxProps) {
+export function Checkbox({ label, hint, id, className, ...props }: CheckboxProps) {
   const inputId = id ?? props.name;
 
   return (
-    <label htmlFor={inputId} className="flex cursor-pointer items-start gap-3">
+    <label
+      htmlFor={inputId}
+      className="flex cursor-pointer items-start gap-3 rounded-lg p-2 transition hover:bg-slate-50"
+    >
       <input
         id={inputId}
         type="checkbox"
-        className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-900"
+        className={cn(
+          "mt-1 h-4 w-4 rounded border-slate-300 text-slate-900 shadow-sm transition focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1",
+          className
+        )}
         {...props}
       />
-      <div>
-        <div className="text-sm font-medium text-slate-800">{label}</div>
-        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
+      <div className="flex flex-col">
+        <span className="text-sm font-medium leading-5 text-slate-800">{label}</span>
+        {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
       </div>
     </label>
   );
@@ -22633,7 +22658,7 @@ export function Checkbox({ label, hint, id, ...props }: CheckboxProps) {
 
 <a id="file-srccomponentsuiconfirmdialogtsx"></a>
 ### src\components\ui\ConfirmDialog.tsx
-- SHA: `014675527a83`  
+- SHA: `4db9becd5828`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22671,17 +22696,23 @@ export function ConfirmDialog({
       description={description}
       onClose={onClose}
       footer={
-        <>
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" fullWidth className="sm:w-auto" onClick={onClose}>
             {cancelText}
           </Button>
-          <Button variant={confirmVariant} loading={loading} onClick={onConfirm}>
+          <Button
+            variant={confirmVariant}
+            loading={loading}
+            fullWidth
+            className="sm:w-auto"
+            onClick={onConfirm}
+          >
             {confirmText}
           </Button>
-        </>
+        </div>
       }
     >
-      <div className="text-sm text-slate-600">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
         Tindakan ini sebaiknya hanya dilakukan jika Anda sudah yakin terhadap data yang dipilih.
       </div>
     </Modal>
@@ -22692,8 +22723,8 @@ export function ConfirmDialog({
 
 <a id="file-srccomponentsuidatagridtsx"></a>
 ### src\components\ui\DataGrid.tsx
-- SHA: `bd6277512dd2`  
-- Ukuran: 623 B
+- SHA: `82eb7ea23fec`  
+- Ukuran: 1013 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22718,14 +22749,30 @@ export function DataGrid({
   actions,
 }: DataGridProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {(title || description || actions) && (
-        <Card title={title} description={description} actions={actions} />
+        <Card
+          title={title}
+          description={description}
+          actions={<div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        />
       )}
 
-      {filters ? <Card>{filters}</Card> : null}
-      {table}
-      {pagination}
+      {filters ? (
+        <Card>
+          <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
+            {filters}
+          </div>
+        </Card>
+      ) : null}
+
+      <Card>
+        <div className="overflow-x-auto">{table}</div>
+      </Card>
+
+      {pagination ? (
+        <div className="flex justify-end">{pagination}</div>
+      ) : null}
     </div>
   );
 }
@@ -22734,8 +22781,8 @@ export function DataGrid({
 
 <a id="file-srccomponentsuidrawertsx"></a>
 ### src\components\ui\Drawer.tsx
-- SHA: `3e0dd2c84136`  
-- Ukuran: 1 KB
+- SHA: `3f82450de5a3`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22767,29 +22814,40 @@ export function Drawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/50">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm">
       <div
         className={[
-          "absolute top-0 h-full w-full bg-white shadow-xl sm:w-[520px]",
+          "absolute top-0 h-full w-full overflow-hidden bg-white shadow-2xl ring-1 ring-slate-950/10 sm:w-[520px]",
           widthClassName,
           side === "right" ? "right-0" : "left-0",
         ].join(" ")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
       >
-        <div className="flex h-full flex-col p-6">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-              {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+        <div className="flex h-full flex-col">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+            <div className="min-w-0">
+              <h2 id="drawer-title" className="text-base font-semibold text-slate-950 sm:text-lg">
+                {title}
+              </h2>
+              {description ? (
+                <p className="mt-1 max-w-prose text-sm leading-6 text-slate-500">
+                  {description}
+                </p>
+              ) : null}
             </div>
 
-            <Button variant="ghost" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose}>
               Tutup
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto py-5">{children}</div>
+          <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
 
-          {footer ? <div className="border-t border-slate-200 pt-4">{footer}</div> : null}
+          {footer ? (
+            <div className="border-t border-slate-200 bg-white px-5 py-4 sm:px-6">{footer}</div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -22800,8 +22858,8 @@ export function Drawer({
 
 <a id="file-srccomponentsuifileuploadfieldtsx"></a>
 ### src\components\ui\FileUploadField.tsx
-- SHA: `0f14b5817246`  
-- Ukuran: 2 KB
+- SHA: `6db36a8be324`  
+- Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22831,12 +22889,12 @@ export function FileUploadField({
 
   return (
     <div className="space-y-2">
-      <div>
-        <div className="text-sm font-medium text-slate-700">{label}</div>
-        {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
+      <div className="space-y-1">
+        <div className="text-sm font-semibold text-slate-800">{label}</div>
+        {hint ? <div className="text-xs leading-5 text-slate-500">{hint}</div> : null}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 shadow-sm transition hover:border-slate-400 hover:bg-slate-50/60">
         <input
           ref={inputRef}
           type="file"
@@ -22849,32 +22907,39 @@ export function FileUploadField({
           }}
         />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-slate-600">
-            {files?.length ? `${files.length} file dipilih.` : "Belum ada file dipilih."}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <div className="text-sm font-medium text-slate-800">
+              {files?.length ? `${files.length} file dipilih` : "Belum ada file dipilih"}
+            </div>
+            <div className="text-xs text-slate-500">
+              Klik tombol untuk memilih {multiple ? "satu atau beberapa file" : "file"} dari perangkat.
+            </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => inputRef.current?.click()}
-          >
+          <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
             Pilih File
           </Button>
         </div>
 
         {files?.length ? (
-          <ul className="mt-4 space-y-2 text-sm text-slate-700">
+          <ul className="mt-4 max-h-44 space-y-2 overflow-auto pr-1 text-sm text-slate-700">
             {files.map((file) => (
-              <li key={`${file.name}-${file.size}`} className="rounded-xl bg-slate-50 px-3 py-2">
-                {file.name}
+              <li
+                key={`${file.name}-${file.size}`}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
+              >
+                <span className="min-w-0 truncate font-medium text-slate-700">{file.name}</span>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {(file.size / 1024).toFixed(1)} KB
+                </span>
               </li>
             ))}
           </ul>
         ) : null}
       </div>
 
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="text-xs font-medium text-red-600">{error}</p> : null}
     </div>
   );
 }
@@ -22912,7 +22977,7 @@ export * from "./FileUploadField";
 
 <a id="file-srccomponentsuiinputtsx"></a>
 ### src\components\ui\Input.tsx
-- SHA: `98c50405fb80`  
+- SHA: `1e77fc6f46a7`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22932,7 +22997,10 @@ export function Input({ label, hint, error, className, id, ...props }: InputProp
   return (
     <div className="space-y-1.5">
       {label ? (
-        <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-slate-700"
+        >
           {label}
         </label>
       ) : null}
@@ -22940,17 +23008,21 @@ export function Input({ label, hint, error, className, id, ...props }: InputProp
       <input
         id={inputId}
         className={cn(
-          "w-full rounded-xl border px-3 py-2 text-sm outline-none transition",
+          "w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition duration-150 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-300 focus:ring-offset-0",
           error
-            ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400"
-            : "border-slate-300 bg-white text-slate-900 focus:border-slate-500",
+            ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400 focus:ring-red-200"
+            : "border-slate-300 bg-white text-slate-900 focus:border-slate-400",
           className
         )}
+        aria-invalid={Boolean(error)}
         {...props}
       />
 
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
-      {!error && hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
+      {error ? (
+        <p className="text-xs font-medium text-red-600">{error}</p>
+      ) : hint ? (
+        <p className="text-xs text-slate-500">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -22959,7 +23031,7 @@ export function Input({ label, hint, error, className, id, ...props }: InputProp
 
 <a id="file-srccomponentsuimodaltsx"></a>
 ### src\components\ui\Modal.tsx
-- SHA: `4841b04c5467`  
+- SHA: `2101cab7a090`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22988,22 +23060,30 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-      <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-xl">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+          <div className="space-y-1">
             <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+            {description ? (
+              <p className="text-sm text-slate-500">{description}</p>
+            ) : null}
           </div>
 
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose}>
             Tutup
           </Button>
         </div>
 
-        <div className="mt-5">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
+          {children}
+        </div>
 
-        {footer ? <div className="mt-6 flex justify-end gap-3">{footer}</div> : null}
+        {footer ? (
+          <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -23013,8 +23093,8 @@ export function Modal({
 
 <a id="file-srccomponentsuipaginationtsx"></a>
 ### src\components\ui\Pagination.tsx
-- SHA: `73b6df0984d6`  
-- Ukuran: 1 KB
+- SHA: `4b69e13c55e0`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23035,23 +23115,35 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-slate-500">
-        Halaman <span className="font-medium text-slate-900">{currentPage}</span> dari{" "}
-        <span className="font-medium text-slate-900">{lastPage}</span>
-      </p>
+    <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="text-sm text-slate-500">
+        Halaman{" "}
+        <span className="font-semibold text-slate-900">{currentPage}</span>{" "}
+        dari{" "}
+        <span className="font-semibold text-slate-900">{lastPage}</span>
+      </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         <Button
           variant="outline"
+          size="sm"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
         >
           Sebelumnya
         </Button>
 
+        <div className="hidden items-center gap-1 sm:flex">
+          <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+            {currentPage}
+          </span>
+          <span className="text-xs text-slate-400">/</span>
+          <span className="text-xs text-slate-500">{lastPage}</span>
+        </div>
+
         <Button
           variant="outline"
+          size="sm"
           disabled={currentPage >= lastPage}
           onClick={() => onPageChange(currentPage + 1)}
         >
@@ -23101,7 +23193,7 @@ export function Radio({ label, hint, id, ...props }: RadioProps) {
 
 <a id="file-srccomponentsuisearchfieldtsx"></a>
 ### src\components\ui\SearchField.tsx
-- SHA: `d2505c4d5034`  
+- SHA: `3b5f4d6e7869`  
 - Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -23122,7 +23214,7 @@ export function SearchField({ className, value, onClear, ...props }: SearchField
         type="search"
         value={value}
         className={cn(
-          "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-10 text-sm outline-none transition focus:border-slate-500",
+          "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 pr-12 text-sm leading-5 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200",
           className
         )}
         placeholder="Cari data..."
@@ -23133,7 +23225,7 @@ export function SearchField({ className, value, onClear, ...props }: SearchField
         <button
           type="button"
           onClick={onClear}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+          className="absolute right-2 top-1/2 inline-flex h-7 items-center justify-center rounded-lg px-2 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 -translate-y-1/2"
         >
           Clear
         </button>
@@ -23146,8 +23238,8 @@ export function SearchField({ className, value, onClear, ...props }: SearchField
 
 <a id="file-srccomponentsuiselecttsx"></a>
 ### src\components\ui\Select.tsx
-- SHA: `9c02bc593449`  
-- Ukuran: 1 KB
+- SHA: `12f8792f5023`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23188,25 +23280,43 @@ export function Select({
         </label>
       ) : null}
 
-      <select
-        id={selectId}
-        name={name}
-        className={cn(
-          "w-full rounded-xl border px-3 py-2 text-sm outline-none transition",
-          error
-            ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400"
-            : "border-slate-300 bg-white text-slate-900 focus:border-slate-500",
-          className
-        )}
-        {...props}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={`${option.value}`} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id={selectId}
+          name={name}
+          className={cn(
+            "w-full appearance-none rounded-xl border px-3 py-2.5 pr-10 text-sm leading-5 outline-none transition duration-150",
+            "focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
+            error
+              ? "border-red-300 bg-red-50 text-slate-900 focus:border-red-400"
+              : "border-slate-300 bg-white text-slate-900 hover:border-slate-400 focus:border-slate-500",
+            className
+          )}
+          {...props}
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={`${option.value}`} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </span>
+      </div>
 
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
       {!error && hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
@@ -23298,12 +23408,13 @@ export function Switch({
 
 <a id="file-srccomponentsuitabletsx"></a>
 ### src\components\ui\Table.tsx
-- SHA: `4db10a677b7b`  
+- SHA: `52f17f592fcf`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import type { ReactNode } from "react";
+import { cn } from "./utils";
 
 export interface TableColumn<T> {
   key: string;
@@ -23321,18 +23432,19 @@ interface TableProps<T> {
 
 export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." }: TableProps<T>) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={[
-                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
-                    column.className ?? "",
-                  ].join(" ")}
+                  scope="col"
+                  className={cn(
+                    "whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500",
+                    column.className
+                  )}
                 >
                   {column.title}
                 </th>
@@ -23340,12 +23452,21 @@ export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." 
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 bg-white">
             {data.length > 0 ? (
               data.map((row, index) => (
-                <tr key={rowKey(row, index)} className="hover:bg-slate-50">
+                <tr
+                  key={rowKey(row, index)}
+                  className="transition-colors hover:bg-slate-50/80"
+                >
                   {columns.map((column) => (
-                    <td key={column.key} className="px-4 py-3 text-sm text-slate-700">
+                    <td
+                      key={column.key}
+                      className={cn(
+                        "px-4 py-3 align-middle text-sm text-slate-700",
+                        column.className
+                      )}
+                    >
                       {column.render(row, index)}
                     </td>
                   ))}
@@ -23353,7 +23474,10 @@ export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." 
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-slate-500">
+                <td
+                  colSpan={columns.length}
+                  className="px-4 py-12 text-center text-sm text-slate-500"
+                >
                   {emptyText}
                 </td>
               </tr>
@@ -23369,8 +23493,8 @@ export function Table<T>({ columns, data, rowKey, emptyText = "Belum ada data." 
 
 <a id="file-srccomponentsuitabstsx"></a>
 ### src\components\ui\Tabs.tsx
-- SHA: `b7bb62e3a472`  
-- Ukuran: 1 KB
+- SHA: `324190f19a4c`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -23396,7 +23520,7 @@ export function Tabs({ items, defaultTab }: TabsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-1">
         {items.map((item) => {
           const active = item.key === current?.key;
 
@@ -23406,19 +23530,24 @@ export function Tabs({ items, defaultTab }: TabsProps) {
               type="button"
               onClick={() => setActiveTab(item.key)}
               className={cn(
-                "rounded-xl px-4 py-2 text-sm font-medium transition",
+                "relative inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2",
                 active
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               )}
             >
               {item.label}
+              {active && (
+                <span className="absolute inset-x-2 -bottom-[6px] h-[2px] rounded-full bg-slate-900" />
+              )}
             </button>
           );
         })}
       </div>
 
-      <div>{current?.content}</div>
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        {current?.content}
+      </div>
     </div>
   );
 }
@@ -26005,8 +26134,8 @@ export const redirectByRole = (roles: string[] = []): string => {
 
 <a id="file-srcstylesindexcss"></a>
 ### src\styles\index.css
-- SHA: `8d56327ede8e`  
-- Ukuran: 973 B
+- SHA: `306a326a693d`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```css
@@ -26019,6 +26148,19 @@ export const redirectByRole = (roles: string[] = []): string => {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --color-bg: #f8fafc;
+  --color-bg-white: #ffffff;
+  --color-text: #0f172a;
+  --color-border: #e2e8f0;
+  --color-muted: #64748b;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 html {
@@ -26027,7 +26169,14 @@ html {
 
 body {
   min-width: 320px;
-  background: #f8fafc;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+* {
+  border-color: var(--color-border);
 }
 
 button,
@@ -26037,13 +26186,52 @@ textarea {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #0f172a;
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
+}
+
+::selection {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5f5;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26059,7 +26247,7 @@ textarea:focus-visible {
 
 @media print {
   body {
-    background: #ffffff;
+    background: var(--color-bg-white);
   }
 
   .no-print {

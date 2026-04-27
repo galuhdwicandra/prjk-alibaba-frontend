@@ -31,17 +31,23 @@ export function ConfirmDialog({
       description={description}
       onClose={onClose}
       footer={
-        <>
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" fullWidth className="sm:w-auto" onClick={onClose}>
             {cancelText}
           </Button>
-          <Button variant={confirmVariant} loading={loading} onClick={onConfirm}>
+          <Button
+            variant={confirmVariant}
+            loading={loading}
+            fullWidth
+            className="sm:w-auto"
+            onClick={onConfirm}
+          >
             {confirmText}
           </Button>
-        </>
+        </div>
       }
     >
-      <div className="text-sm text-slate-600">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
         Tindakan ini sebaiknya hanya dilakukan jika Anda sudah yakin terhadap data yang dipilih.
       </div>
     </Modal>

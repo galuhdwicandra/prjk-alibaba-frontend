@@ -10,18 +10,34 @@ interface CardProps extends PropsWithChildren {
 
 export function Card({ title, description, actions, children, className }: CardProps) {
   return (
-    <div className={cn("rounded-2xl border border-slate-200 bg-white p-5", className)}>
+    <div
+      className={cn(
+        "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition",
+        className
+      )}
+    >
       {(title || actions) && (
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            {title ? <h3 className="text-base font-semibold text-slate-900">{title}</h3> : null}
-            {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            {title ? (
+              <h3 className="text-base font-semibold leading-tight text-slate-900">
+                {title}
+              </h3>
+            ) : null}
+            {description ? (
+              <p className="text-sm leading-relaxed text-slate-500">
+                {description}
+              </p>
+            ) : null}
           </div>
-          {actions ? <div>{actions}</div> : null}
+
+          {actions ? (
+            <div className="flex shrink-0 items-center gap-2">{actions}</div>
+          ) : null}
         </div>
       )}
 
-      {children}
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
