@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-27 14:57:17_  
+_Dihasilkan otomatis: 2026-04-27 15:32:50_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -538,8 +538,8 @@ export const router = createBrowserRouter([
 
 <a id="file-srclayoutsadminlayouttsx"></a>
 ### src\layouts\AdminLayout.tsx
-- SHA: `b283e67b5614`  
-- Ukuran: 245 B
+- SHA: `d618484bb117`  
+- Ukuran: 296 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -547,15 +547,21 @@ import { AppShell } from "@/components/navigation/AppShell";
 import { adminNavigation } from "@/components/navigation/navigation.config";
 
 export function AdminLayout() {
-  return <AppShell appTitle="Admin Panel" navItems={adminNavigation} />;
+  return (
+    <AppShell
+      appTitle="Admin Panel"
+      navItems={adminNavigation}
+      showOutletSwitcher
+    />
+  );
 }
 ```
 </details>
 
 <a id="file-srclayoutsauthlayouttsx"></a>
 ### src\layouts\AuthLayout.tsx
-- SHA: `ffef65384647`  
-- Ukuran: 368 B
+- SHA: `ba844ad01f30`  
+- Ukuran: 727 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -563,9 +569,16 @@ import { Outlet } from "react-router-dom";
 
 export function AuthLayout() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto flex min-h-screen max-w-md items-center px-4">
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+      <div className="mx-auto flex min-h-screen w-full max-w-md items-center justify-center px-4 sm:px-6">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-6 text-center">
+            <h1 className="text-lg font-semibold text-slate-900">Welcome Back</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Silakan login untuk melanjutkan ke sistem
+            </p>
+          </div>
+
           <Outlet />
         </div>
       </div>
@@ -577,8 +590,8 @@ export function AuthLayout() {
 
 <a id="file-srclayoutskitchenlayouttsx"></a>
 ### src\layouts\KitchenLayout.tsx
-- SHA: `625e8c06a9e6`  
-- Ukuran: 259 B
+- SHA: `a13883196cf1`  
+- Ukuran: 324 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -586,15 +599,22 @@ import { AppShell } from "@/components/navigation/AppShell";
 import { kitchenNavigation } from "@/components/navigation/navigation.config";
 
 export function KitchenLayout() {
-  return <AppShell appTitle="Kitchen Screen" navItems={kitchenNavigation} dark />;
+  return (
+    <AppShell
+      appTitle="Kitchen Screen"
+      navItems={kitchenNavigation}
+      dark
+      showOutletSwitcher={false}
+    />
+  );
 }
 ```
 </details>
 
 <a id="file-srclayoutsownerlayouttsx"></a>
 ### src\layouts\OwnerLayout.tsx
-- SHA: `43924c2080ec`  
-- Ukuran: 249 B
+- SHA: `d3cf8b845dc2`  
+- Ukuran: 300 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -602,15 +622,21 @@ import { AppShell } from "@/components/navigation/AppShell";
 import { ownerNavigation } from "@/components/navigation/navigation.config";
 
 export function OwnerLayout() {
-  return <AppShell appTitle="Owner Dashboard" navItems={ownerNavigation} />;
+  return (
+    <AppShell
+      appTitle="Owner Dashboard"
+      navItems={ownerNavigation}
+      showOutletSwitcher
+    />
+  );
 }
 ```
 </details>
 
 <a id="file-srclayoutsposlayouttsx"></a>
 ### src\layouts\PosLayout.tsx
-- SHA: `688094f7dc88`  
-- Ukuran: 235 B
+- SHA: `97c35d24cefd`  
+- Ukuran: 286 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -618,7 +644,13 @@ import { AppShell } from "@/components/navigation/AppShell";
 import { posNavigation } from "@/components/navigation/navigation.config";
 
 export function PosLayout() {
-  return <AppShell appTitle="POS App" navItems={posNavigation} />;
+  return (
+    <AppShell
+      appTitle="POS App"
+      navItems={posNavigation}
+      showOutletSwitcher
+    />
+  );
 }
 ```
 </details>
@@ -21596,7 +21628,7 @@ export const reportService = {
 
 <a id="file-srccomponentsfeedbackapperrorboundarytsx"></a>
 ### src\components\feedback\AppErrorBoundary.tsx
-- SHA: `838488b1fbd7`  
+- SHA: `3a174b89eebf`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -21640,26 +21672,30 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-md">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-lg font-bold text-red-600 shadow-sm">
             !
           </div>
 
-          <h1 className="text-xl font-semibold text-slate-900">Aplikasi mengalami kendala</h1>
+          <h1 className="text-lg font-semibold text-slate-900">
+            Terjadi Kesalahan Sistem
+          </h1>
 
           <p className="mt-2 text-sm text-slate-600">
-            Terjadi error pada antarmuka. Silakan muat ulang halaman untuk melanjutkan.
+            Aplikasi mengalami gangguan saat memuat halaman. Silakan coba muat ulang untuk melanjutkan.
           </p>
 
           {this.state.message ? (
-            <div className="mt-4 rounded-xl bg-slate-100 p-3 text-left text-xs text-slate-600">
+            <div className="mt-4 max-h-32 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs text-slate-600">
               {this.state.message}
             </div>
           ) : null}
 
-          <div className="mt-5">
-            <Button onClick={this.reloadPage}>Muat Ulang</Button>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={this.reloadPage}>
+              Muat Ulang Halaman
+            </Button>
           </div>
         </div>
       </div>
@@ -21671,15 +21707,20 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
 <a id="file-srccomponentsfeedbackapploadertsx"></a>
 ### src\components\feedback\AppLoader.tsx
-- SHA: `499a2808ebe9`  
-- Ukuran: 174 B
+- SHA: `67a9faa40cbe`  
+- Ukuran: 487 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 export function AppLoader() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-sm text-slate-600">
-      Memuat aplikasi...
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-transparent text-sm text-slate-500">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900" />
+
+      <div className="text-center">
+        <div className="font-medium text-slate-700">Memuat aplikasi...</div>
+        <div className="text-xs text-slate-400">Mohon tunggu sebentar</div>
+      </div>
     </div>
   );
 }
@@ -21688,8 +21729,8 @@ export function AppLoader() {
 
 <a id="file-srccomponentsfeedbackapptoastertsx"></a>
 ### src\components\feedback\AppToaster.tsx
-- SHA: `f69c47fc1d35`  
-- Ukuran: 1 KB
+- SHA: `025e28eed190`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -21707,25 +21748,34 @@ export function AppToaster() {
   const removeToast = useToastStore((state) => state.removeToast);
 
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-full max-w-sm flex-col gap-3">
+    <div className="pointer-events-none fixed right-3 top-3 z-[60] flex w-full max-w-sm flex-col gap-3 sm:right-4 sm:top-4">
       {items.map((item) => (
         <div
           key={item.id}
           className={[
-            "pointer-events-auto rounded-2xl border px-4 py-3 shadow-lg",
+            "pointer-events-auto w-full rounded-2xl border px-4 py-3 shadow-lg backdrop-blur",
+            "transition-all duration-200 ease-out",
+            "animate-in slide-in-from-top-2 fade-in",
             variantClassMap[item.variant],
           ].join(" ")}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold">{item.title}</div>
-              {item.description ? <div className="mt-1 text-xs">{item.description}</div> : null}
+          <div className="flex items-start gap-3">
+            <div className="flex-1 space-y-1">
+              <div className="text-sm font-semibold leading-tight">
+                {item.title}
+              </div>
+
+              {item.description ? (
+                <div className="text-xs leading-relaxed opacity-90">
+                  {item.description}
+                </div>
+              ) : null}
             </div>
 
             <button
               type="button"
               onClick={() => removeToast(item.id)}
-              className="rounded-lg px-2 py-1 text-xs hover:bg-white/50"
+              className="shrink-0 rounded-lg px-2 py-1 text-xs font-medium transition hover:bg-white/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
             >
               Tutup
             </button>
@@ -21740,8 +21790,8 @@ export function AppToaster() {
 
 <a id="file-srccomponentsfeedbacknetworkstatusbannertsx"></a>
 ### src\components\feedback\NetworkStatusBanner.tsx
-- SHA: `b5a3ffd8765e`  
-- Ukuran: 399 B
+- SHA: `b5ea2a498aea`  
+- Ukuran: 688 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -21755,8 +21805,17 @@ export function NetworkStatusBanner() {
   }
 
   return (
-    <div className="fixed inset-x-0 top-0 z-[70] bg-amber-500 px-4 py-2 text-center text-sm font-medium text-white shadow">
-      Koneksi internet terputus. Beberapa data mungkin belum tersimpan.
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-x-0 top-0 z-[70] flex items-center justify-center bg-amber-500/95 px-4 py-2.5 text-sm font-medium text-white shadow-md backdrop-blur"
+    >
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+        <span className="truncate">
+          Koneksi internet terputus. Beberapa data mungkin belum tersimpan.
+        </span>
+      </div>
     </div>
   );
 }
@@ -21765,8 +21824,8 @@ export function NetworkStatusBanner() {
 
 <a id="file-srccomponentsfeedbackpageemptystatetsx"></a>
 ### src\components\feedback\PageEmptyState.tsx
-- SHA: `39531ec4a828`  
-- Ukuran: 510 B
+- SHA: `57749f7717ab`  
+- Ukuran: 752 B
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -21780,9 +21839,14 @@ export function PageEmptyState({
   description = "Belum ada data yang dapat ditampilkan pada halaman ini.",
 }: PageEmptyStateProps) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+        <span className="text-lg text-slate-400">—</span>
+      </div>
+
+      <h3 className="text-sm font-semibold text-slate-900 sm:text-base">{title}</h3>
+
+      <p className="mt-2 max-w-md text-sm text-slate-500">{description}</p>
     </div>
   );
 }
@@ -21791,8 +21855,8 @@ export function PageEmptyState({
 
 <a id="file-srccomponentsfeedbackpageerrorstatetsx"></a>
 ### src\components\feedback\PageErrorState.tsx
-- SHA: `748f33e75ec8`  
-- Ukuran: 763 B
+- SHA: `ca7bb72225a1`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -21808,15 +21872,22 @@ export function PageErrorState({
   onRetry,
 }: PageErrorStateProps) {
   return (
-    <div className="rounded-2xl border border-red-200 bg-white p-8 text-center">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-white px-6 py-10 text-center shadow-sm">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <span className="text-lg font-bold text-red-600">!</span>
+      </div>
+
       <h3 className="text-base font-semibold text-red-700">{title}</h3>
-      <p className="mt-2 text-sm text-slate-600">{description}</p>
+
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-600">
+        {description}
+      </p>
 
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+          className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
         >
           Coba lagi
         </button>
@@ -21944,8 +22015,8 @@ export function RoutePlaceholder({
 
 <a id="file-srccomponentsnavigationappbreadcrumbstsx"></a>
 ### src\components\navigation\AppBreadcrumbs.tsx
-- SHA: `035cdb7a2229`  
-- Ukuran: 1 KB
+- SHA: `42a474f32184`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -21984,29 +22055,59 @@ export function AppBreadcrumbs({ dark = false }: { dark?: boolean }) {
   });
 
   return (
-    <div
+    <nav
+      aria-label="Breadcrumb"
       className={[
-        "flex flex-wrap items-center gap-2 text-sm",
+        "flex min-w-0 flex-wrap items-center gap-1.5 text-xs sm:text-sm",
         dark ? "text-slate-400" : "text-slate-500",
       ].join(" ")}
     >
-      <Link to="/" className="hover:underline">
+      <Link
+        to="/"
+        className={[
+          "rounded-md px-1.5 py-1 font-medium transition",
+          dark
+            ? "hover:bg-slate-900 hover:text-white"
+            : "hover:bg-slate-100 hover:text-slate-900",
+        ].join(" ")}
+      >
         Home
       </Link>
 
       {crumbs.map((item) => (
-        <span key={item.href} className="flex items-center gap-2">
-          <span>/</span>
+        <span key={item.href} className="flex min-w-0 items-center gap-1.5">
+          <span aria-hidden="true" className={dark ? "text-slate-600" : "text-slate-300"}>
+            /
+          </span>
+
           {item.isLast ? (
-            <span className={dark ? "text-white" : "text-slate-900"}>{item.label}</span>
+            <span
+              aria-current="page"
+              className={[
+                "max-w-[180px] truncate rounded-md px-1.5 py-1 font-semibold sm:max-w-none",
+                dark ? "text-white" : "text-slate-900",
+              ].join(" ")}
+              title={item.label}
+            >
+              {item.label}
+            </span>
           ) : (
-            <Link to={item.href} className="hover:underline">
+            <Link
+              to={item.href}
+              className={[
+                "max-w-[160px] truncate rounded-md px-1.5 py-1 font-medium transition sm:max-w-none",
+                dark
+                  ? "hover:bg-slate-900 hover:text-white"
+                  : "hover:bg-slate-100 hover:text-slate-900",
+              ].join(" ")}
+              title={item.label}
+            >
               {item.label}
             </Link>
           )}
         </span>
       ))}
-    </div>
+    </nav>
   );
 }
 ```
@@ -22014,8 +22115,8 @@ export function AppBreadcrumbs({ dark = false }: { dark?: boolean }) {
 
 <a id="file-srccomponentsnavigationappoutletswitchertsx"></a>
 ### src\components\navigation\AppOutletSwitcher.tsx
-- SHA: `62a55a4f9590`  
-- Ukuran: 1 KB
+- SHA: `df14c7e60fcb`  
+- Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22033,36 +22134,48 @@ export function AppOutletSwitcher({ dark = false }: AppOutletSwitcherProps) {
   }
 
   return (
-    <div className="min-w-[220px]">
+    <div className="w-full min-w-0 sm:w-auto sm:min-w-[240px]">
       <label
         className={[
-          "mb-1 block text-xs font-medium",
+          "mb-1.5 block text-xs font-semibold uppercase tracking-wide",
           dark ? "text-slate-400" : "text-slate-500",
         ].join(" ")}
       >
         Outlet Aktif
       </label>
 
-      <select
-        value={activeOutletId ?? ""}
-        onChange={(event) => {
-          const value = event.target.value ? Number(event.target.value) : null;
-          setActiveOutletId(value);
-        }}
-        className={[
-          "w-full rounded-xl border px-3 py-2 text-sm outline-none",
-          dark
-            ? "border-slate-700 bg-slate-900 text-white"
-            : "border-slate-300 bg-white text-slate-900",
-        ].join(" ")}
-      >
-        {outlets.map((item) => (
-          <option key={item.outlet_id} value={item.outlet_id}>
-            {item.outlet_name ?? `Outlet #${item.outlet_id}`}{" "}
-            {item.outlet_code ? `(${item.outlet_code})` : ""}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          value={activeOutletId ?? ""}
+          onChange={(event) => {
+            const value = event.target.value ? Number(event.target.value) : null;
+            setActiveOutletId(value);
+          }}
+          className={[
+            "h-10 w-full appearance-none rounded-xl border px-3 pr-9 text-sm font-medium shadow-sm outline-none transition",
+            "focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10",
+            dark
+              ? "border-slate-700 bg-slate-900 text-white shadow-none focus:border-slate-500 focus:ring-slate-500/20"
+              : "border-slate-200 bg-white text-slate-900 hover:border-slate-300",
+          ].join(" ")}
+        >
+          {outlets.map((item) => (
+            <option key={item.outlet_id} value={item.outlet_id}>
+              {item.outlet_name ?? `Outlet #${item.outlet_id}`}{" "}
+              {item.outlet_code ? `(${item.outlet_code})` : ""}
+            </option>
+          ))}
+        </select>
+
+        <span
+          className={[
+            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs",
+            dark ? "text-slate-400" : "text-slate-500",
+          ].join(" ")}
+        >
+          ▾
+        </span>
+      </div>
     </div>
   );
 }
@@ -22071,8 +22184,8 @@ export function AppOutletSwitcher({ dark = false }: AppOutletSwitcherProps) {
 
 <a id="file-srccomponentsnavigationappprofilemenutsx"></a>
 ### src\components\navigation\AppProfileMenu.tsx
-- SHA: `9e8be6917282`  
-- Ukuran: 3 KB
+- SHA: `65d10f22a6bd`  
+- Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22099,6 +22212,10 @@ export function AppProfileMenu({ dark = false }: AppProfileMenuProps) {
     return user?.roles?.join(", ") || "No role";
   }, [user?.roles]);
 
+  const userInitial = useMemo(() => {
+    return (user?.name?.trim()?.charAt(0) || "U").toUpperCase();
+  }, [user?.name]);
+
   const handleLogout = async () => {
     try {
       setLoading(true);
@@ -22118,43 +22235,101 @@ export function AppProfileMenu({ dark = false }: AppProfileMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
+        aria-haspopup="menu"
+        aria-expanded={open}
         className={[
-          "rounded-xl border px-3 py-2 text-left",
+          "flex max-w-[240px] items-center gap-3 rounded-2xl border px-3 py-2 text-left transition",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           dark
-            ? "border-slate-700 bg-slate-900 text-white"
-            : "border-slate-300 bg-white text-slate-900",
+            ? "border-slate-700 bg-slate-900 text-white hover:bg-slate-800 focus-visible:ring-slate-600"
+            : "border-slate-200 bg-white text-slate-900 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-900",
         ].join(" ")}
       >
-        <div className="text-sm font-semibold">{user?.name ?? "Unknown User"}</div>
-        <div className={["text-xs", dark ? "text-slate-400" : "text-slate-500"].join(" ")}>
-          {userRoleLabel}
-        </div>
+        <span
+          className={[
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+            dark ? "bg-slate-800 text-slate-100" : "bg-slate-900 text-white",
+          ].join(" ")}
+        >
+          {userInitial}
+        </span>
+
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold">
+            {user?.name ?? "Unknown User"}
+          </span>
+          <span
+            className={[
+              "block truncate text-xs",
+              dark ? "text-slate-400" : "text-slate-500",
+            ].join(" ")}
+          >
+            {userRoleLabel}
+          </span>
+        </span>
       </button>
 
       {open && (
         <div
+          role="menu"
           className={[
-            "absolute right-0 z-20 mt-2 w-64 rounded-2xl border p-3 shadow-lg",
+            "absolute right-0 z-20 mt-2 w-72 overflow-hidden rounded-2xl border shadow-xl",
             dark
               ? "border-slate-800 bg-slate-950 text-white"
               : "border-slate-200 bg-white text-slate-900",
           ].join(" ")}
         >
-          <div className="border-b border-slate-200 pb-3 dark:border-slate-800">
-            <div className="text-sm font-semibold">{user?.name}</div>
-            <div className={["mt-1 text-xs", dark ? "text-slate-400" : "text-slate-500"].join(" ")}>
-              {user?.email || user?.username || user?.phone || "-"}
+          <div
+            className={[
+              "flex items-start gap-3 border-b p-4",
+              dark ? "border-slate-800" : "border-slate-100",
+            ].join(" ")}
+          >
+            <span
+              className={[
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold",
+                dark ? "bg-slate-800 text-slate-100" : "bg-slate-900 text-white",
+              ].join(" ")}
+            >
+              {userInitial}
+            </span>
+
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">{user?.name ?? "-"}</div>
+              <div
+                className={[
+                  "mt-1 truncate text-xs",
+                  dark ? "text-slate-400" : "text-slate-500",
+                ].join(" ")}
+              >
+                {user?.email || user?.username || user?.phone || "-"}
+              </div>
+              <div
+                className={[
+                  "mt-2 inline-flex max-w-full rounded-full px-2.5 py-1 text-xs font-medium",
+                  dark ? "bg-slate-900 text-slate-300" : "bg-slate-100 text-slate-700",
+                ].join(" ")}
+              >
+                <span className="truncate">{userRoleLabel}</span>
+              </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loading}
-            className="mt-3 w-full rounded-xl bg-red-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-          >
-            {loading ? "Memproses..." : "Logout"}
-          </button>
+          <div className="p-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={loading}
+              role="menuitem"
+              className={[
+                "w-full rounded-xl px-3 py-2.5 text-sm font-semibold text-white transition",
+                "bg-red-600 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2",
+              ].join(" ")}
+            >
+              {loading ? "Memproses..." : "Logout"}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -22165,8 +22340,8 @@ export function AppProfileMenu({ dark = false }: AppProfileMenuProps) {
 
 <a id="file-srccomponentsnavigationappshelltsx"></a>
 ### src\components\navigation\AppShell.tsx
-- SHA: `871a8a002d63`  
-- Ukuran: 853 B
+- SHA: `07532a59759b`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22189,14 +22364,29 @@ export function AppShell({
   showOutletSwitcher = true,
 }: AppShellProps) {
   return (
-    <div className={["min-h-screen lg:flex", dark ? "bg-slate-950" : "bg-slate-100"].join(" ")}>
+    <div
+      className={[
+        "min-h-screen lg:flex",
+        dark
+          ? "bg-slate-950 text-slate-100"
+          : "bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 text-slate-950",
+      ].join(" ")}
+    >
       <AppSidebar title={appTitle} items={navItems} dark={dark} />
 
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <AppTopbar dark={dark} showOutletSwitcher={showOutletSwitcher} />
 
-        <main className="flex-1 p-4 lg:p-6">
-          <Outlet />
+        <main
+          className={[
+            "flex-1 min-w-0",
+            "px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6 xl:px-8",
+            dark ? "bg-slate-950" : "bg-transparent",
+          ].join(" ")}
+        >
+          <div className="mx-auto w-full max-w-[1600px]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
@@ -22207,7 +22397,7 @@ export function AppShell({
 
 <a id="file-srccomponentsnavigationappsidebartsx"></a>
 ### src\components\navigation\AppSidebar.tsx
-- SHA: `509afce80f98`  
+- SHA: `9ff2ebdc42cb`  
 - Ukuran: 2 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -22235,18 +22425,22 @@ function SidebarLink({ item, dark = false }: { item: NavigationItem; dark?: bool
       end={item.to.split("/").length <= 3}
       className={({ isActive }) =>
         [
-          "block rounded-xl px-3 py-2 text-sm font-medium transition",
+          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          dark
+            ? "focus-visible:ring-slate-600"
+            : "focus-visible:ring-slate-900",
           dark
             ? isActive
-              ? "bg-slate-800 text-white"
+              ? "bg-slate-800 text-white shadow-sm"
               : "text-slate-300 hover:bg-slate-900 hover:text-white"
             : isActive
-              ? "bg-slate-900 text-white"
-              : "text-slate-700 hover:bg-slate-100",
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
         ].join(" ")
       }
     >
-      {item.label}
+      <span className="truncate">{item.label}</span>
     </NavLink>
   );
 }
@@ -22255,20 +22449,24 @@ export function AppSidebar({ title, items, dark = false }: AppSidebarProps) {
   return (
     <aside
       className={[
-        "w-full shrink-0 border-r lg:w-64",
-        dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
+        "flex w-full shrink-0 flex-col border-r lg:w-64",
+        dark
+          ? "border-slate-800 bg-slate-950"
+          : "border-slate-200 bg-white",
       ].join(" ")}
     >
       <div
         className={[
-          "border-b px-5 py-4 text-lg font-semibold",
-          dark ? "border-slate-800 text-white" : "border-slate-200 text-slate-900",
+          "flex h-16 items-center px-5 text-base font-semibold tracking-tight",
+          dark
+            ? "border-b border-slate-800 text-white"
+            : "border-b border-slate-200 text-slate-900",
         ].join(" ")}
       >
-        {title}
+        <span className="truncate">{title}</span>
       </div>
 
-      <nav className="space-y-1 p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {items.map((item) => (
           <SidebarLink key={item.to} item={item} dark={dark} />
         ))}
@@ -22281,8 +22479,8 @@ export function AppSidebar({ title, items, dark = false }: AppSidebarProps) {
 
 <a id="file-srccomponentsnavigationapptopbartsx"></a>
 ### src\components\navigation\AppTopbar.tsx
-- SHA: `cedeb8180028`  
-- Ukuran: 885 B
+- SHA: `bc5c9573768c`  
+- Ukuran: 1 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -22302,14 +22500,18 @@ export function AppTopbar({
   return (
     <header
       className={[
-        "border-b px-4 py-4 lg:px-6",
-        dark ? "border-slate-800 bg-slate-950" : "border-slate-200 bg-white",
+        "sticky top-0 z-30 border-b px-4 py-3 backdrop-blur lg:px-6",
+        dark
+          ? "border-slate-800 bg-slate-950/95"
+          : "border-slate-200 bg-white/95 shadow-sm shadow-slate-200/50",
       ].join(" ")}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <AppBreadcrumbs dark={dark} />
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <AppBreadcrumbs dark={dark} />
+        </div>
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end lg:gap-3">
           {showOutletSwitcher ? <AppOutletSwitcher dark={dark} /> : null}
           <AppProfileMenu dark={dark} />
         </div>

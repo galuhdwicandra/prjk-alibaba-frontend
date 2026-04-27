@@ -37,26 +37,30 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 px-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-md">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-lg font-bold text-red-600 shadow-sm">
             !
           </div>
 
-          <h1 className="text-xl font-semibold text-slate-900">Aplikasi mengalami kendala</h1>
+          <h1 className="text-lg font-semibold text-slate-900">
+            Terjadi Kesalahan Sistem
+          </h1>
 
           <p className="mt-2 text-sm text-slate-600">
-            Terjadi error pada antarmuka. Silakan muat ulang halaman untuk melanjutkan.
+            Aplikasi mengalami gangguan saat memuat halaman. Silakan coba muat ulang untuk melanjutkan.
           </p>
 
           {this.state.message ? (
-            <div className="mt-4 rounded-xl bg-slate-100 p-3 text-left text-xs text-slate-600">
+            <div className="mt-4 max-h-32 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3 text-left text-xs text-slate-600">
               {this.state.message}
             </div>
           ) : null}
 
-          <div className="mt-5">
-            <Button onClick={this.reloadPage}>Muat Ulang</Button>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={this.reloadPage}>
+              Muat Ulang Halaman
+            </Button>
           </div>
         </div>
       </div>

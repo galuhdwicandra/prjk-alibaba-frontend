@@ -33,28 +33,58 @@ export function AppBreadcrumbs({ dark = false }: { dark?: boolean }) {
   });
 
   return (
-    <div
+    <nav
+      aria-label="Breadcrumb"
       className={[
-        "flex flex-wrap items-center gap-2 text-sm",
+        "flex min-w-0 flex-wrap items-center gap-1.5 text-xs sm:text-sm",
         dark ? "text-slate-400" : "text-slate-500",
       ].join(" ")}
     >
-      <Link to="/" className="hover:underline">
+      <Link
+        to="/"
+        className={[
+          "rounded-md px-1.5 py-1 font-medium transition",
+          dark
+            ? "hover:bg-slate-900 hover:text-white"
+            : "hover:bg-slate-100 hover:text-slate-900",
+        ].join(" ")}
+      >
         Home
       </Link>
 
       {crumbs.map((item) => (
-        <span key={item.href} className="flex items-center gap-2">
-          <span>/</span>
+        <span key={item.href} className="flex min-w-0 items-center gap-1.5">
+          <span aria-hidden="true" className={dark ? "text-slate-600" : "text-slate-300"}>
+            /
+          </span>
+
           {item.isLast ? (
-            <span className={dark ? "text-white" : "text-slate-900"}>{item.label}</span>
+            <span
+              aria-current="page"
+              className={[
+                "max-w-[180px] truncate rounded-md px-1.5 py-1 font-semibold sm:max-w-none",
+                dark ? "text-white" : "text-slate-900",
+              ].join(" ")}
+              title={item.label}
+            >
+              {item.label}
+            </span>
           ) : (
-            <Link to={item.href} className="hover:underline">
+            <Link
+              to={item.href}
+              className={[
+                "max-w-[160px] truncate rounded-md px-1.5 py-1 font-medium transition sm:max-w-none",
+                dark
+                  ? "hover:bg-slate-900 hover:text-white"
+                  : "hover:bg-slate-100 hover:text-slate-900",
+              ].join(" ")}
+              title={item.label}
+            >
               {item.label}
             </Link>
           )}
         </span>
       ))}
-    </div>
+    </nav>
   );
 }
