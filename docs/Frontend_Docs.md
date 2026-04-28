@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-28 13:48:32_  
+_Dihasilkan otomatis: 2026-04-28 14:40:16_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -11122,8 +11122,8 @@ export default function RawMaterialCategoriesPage() {
 
 <a id="file-srcmodulesadminpagesrawmaterialspagetsx"></a>
 ### src\modules\admin\pages\RawMaterialsPage.tsx
-- SHA: `c13838884093`  
-- Ukuran: 19 KB
+- SHA: `9c7e3b60fcaf`  
+- Ukuran: 21 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -11165,6 +11165,35 @@ const formatNumber = (value: number | string | null | undefined) =>
 
 const selectClassName =
   "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100";
+
+const normalizeIdentityText = (value: string) =>
+  value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const getNextRawMaterialNumber = (rawMaterials: RawMaterial[]) => {
+  const numbers = rawMaterials
+    .flatMap((item) => [item.code, item.sku])
+    .map((value) => String(value ?? "").match(/(\d+)$/)?.[1])
+    .filter(Boolean)
+    .map((value) => Number(value));
+
+  const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1;
+
+  return String(nextNumber).padStart(3, "0");
+};
+
+const generateRawMaterialIdentity = (name: string, rawMaterials: RawMaterial[]) => {
+  const number = getNextRawMaterialNumber(rawMaterials);
+  const normalizedName = normalizeIdentityText(name);
+
+  return {
+    code: normalizedName ? `RM-${normalizedName}-${number}` : `RM-${number}`,
+    sku: `SKU-RM-${number}`,
+  };
+};
 
 export default function RawMaterialsPage() {
   const toast = useToast();
@@ -11237,6 +11266,7 @@ export default function RawMaterialsPage() {
     setEditingRawMaterial(null);
     setForm({
       ...initialForm,
+      ...generateRawMaterialIdentity("", rawMaterials),
       outlet_stocks: outlets.map((outlet) => ({
         outlet_id: outlet.id,
         qty_on_hand: 0,
@@ -11276,6 +11306,14 @@ export default function RawMaterialsPage() {
     setOpenModal(true);
   };
 
+  const handleNameChange = (name: string) => {
+    setForm((prev) => ({
+      ...prev,
+      name,
+      ...(!editingRawMaterial ? generateRawMaterialIdentity(name, rawMaterials) : {}),
+    }));
+  };
+
   const updateStock = (
     outletId: number,
     field: "qty_on_hand" | "qty_reserved",
@@ -11287,17 +11325,17 @@ export default function RawMaterialsPage() {
 
       const nextStocks = exists
         ? currentStocks.map((item) =>
-            item.outlet_id === outletId ? { ...item, [field]: value } : item
-          )
+          item.outlet_id === outletId ? { ...item, [field]: value } : item
+        )
         : [
-            ...currentStocks,
-            {
-              outlet_id: outletId,
-              qty_on_hand: field === "qty_on_hand" ? value : 0,
-              qty_reserved: field === "qty_reserved" ? value : 0,
-              last_movement_at: null,
-            },
-          ];
+          ...currentStocks,
+          {
+            outlet_id: outletId,
+            qty_on_hand: field === "qty_on_hand" ? value : 0,
+            qty_reserved: field === "qty_reserved" ? value : 0,
+            last_movement_at: null,
+          },
+        ];
 
       return {
         ...prev,
@@ -11534,6 +11572,8 @@ export default function RawMaterialsPage() {
                 <Input
                   label="Kode"
                   value={form.code ?? ""}
+                  readOnly={!editingRawMaterial}
+                  placeholder="Otomatis dibuat sistem"
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, code: event.target.value }))
                   }
@@ -11542,6 +11582,8 @@ export default function RawMaterialsPage() {
                 <Input
                   label="SKU"
                   value={form.sku ?? ""}
+                  readOnly={!editingRawMaterial}
+                  placeholder="Otomatis dibuat sistem"
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, sku: event.target.value }))
                   }
@@ -11550,9 +11592,7 @@ export default function RawMaterialsPage() {
                 <Input
                   label="Nama Bahan Baku"
                   value={form.name}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, name: event.target.value }))
-                  }
+                  onChange={(event) => handleNameChange(event.target.value)}
                 />
 
                 <Input
@@ -26421,7 +26461,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `433e57bdd5fb`  
+- SHA: `1d6fdacb3857`  
 - Ukuran: 4 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -26435,6 +26475,7 @@ export interface NavigationItem {
 
 export const adminNavigation: NavigationItem[] = [
   { label: "Dashboard", to: "/admin", section: "Utama" },
+  { label: "POS", to: "/pos", section: "Utama" },
   { label: "Reports", to: "/admin/reports", permission: "reports.view", section: "Utama" },
 
   { label: "Products", to: "/admin/products", permission: "products.view", section: "Katalog" },

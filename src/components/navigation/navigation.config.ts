@@ -7,6 +7,7 @@ export interface NavigationItem {
 
 export const adminNavigation: NavigationItem[] = [
   { label: "Dashboard", to: "/admin", section: "Utama" },
+  { label: "POS", to: "/pos", section: "Utama" },
   { label: "Reports", to: "/admin/reports", permission: "reports.view", section: "Utama" },
 
   { label: "Products", to: "/admin/products", permission: "products.view", section: "Katalog" },
