@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-28 10:35:53_  
+_Dihasilkan otomatis: 2026-04-28 11:30:06_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -86,10 +86,13 @@ _Dihasilkan otomatis: 2026-04-28 10:35:53_
   - [src\modules\kitchen\services\kitchen.service.ts](#file-srcmoduleskitchenserviceskitchenservicets)
   - [src\modules\pos\components\PosCartPanel.tsx](#file-srcmodulesposcomponentsposcartpaneltsx)
   - [src\modules\pos\components\PosCheckoutSuccessModal.tsx](#file-srcmodulesposcomponentsposcheckoutsuccessmodaltsx)
+  - [src\modules\pos\components\PosDebtPaymentModal.tsx](#file-srcmodulesposcomponentsposdebtpaymentmodaltsx)
   - [src\modules\pos\components\PosPaymentModal.tsx](#file-srcmodulesposcomponentspospaymentmodaltsx)
   - [src\modules\pos\components\PosProductConfiguratorModal.tsx](#file-srcmodulesposcomponentsposproductconfiguratormodaltsx)
   - [src\modules\pos\hooks\usePosCartStore.ts](#file-srcmodulesposhooksuseposcartstorets)
   - [src\modules\pos\hooks\usePosKeyboardShortcuts.ts](#file-srcmodulesposhooksuseposkeyboardshortcutsts)
+  - [src\modules\pos\pages\PosHomePage.tsx](#file-srcmodulespospagesposhomepagetsx)
+  - [src\modules\pos\pages\PosOrderHistoryPage.tsx](#file-srcmodulespospagesposorderhistorypagetsx)
   - [src\modules\pos\pages\PosOrdersPage.tsx](#file-srcmodulespospagesposorderspagetsx)
   - [src\modules\pos\pages\PosShiftsPage.tsx](#file-srcmodulespospagesposshiftspagetsx)
   - [src\modules\pos\services\pos.service.ts](#file-srcmodulesposservicesposservicets)
@@ -386,7 +389,7 @@ export function PermissionGuard({ permission, children }: PermissionGuardProps) 
 
 <a id="file-srcrouterindextsx"></a>
 ### src\router\index.tsx
-- SHA: `b1a357b8ecf1`  
+- SHA: `acdb36987a56`  
 - Ukuran: 7 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -402,7 +405,7 @@ import { GuestGuard } from "@/router/guards/GuestGuard";
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import UnauthorizedPage from "@/modules/auth/pages/UnauthorizedPage";
 import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
-import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
+import PosHomePage from "@/modules/pos/pages/PosHomePage";
 import UsersPage from "@/modules/admin/pages/UsersPage";
 import RolesPage from "@/modules/admin/pages/RolesPage";
 import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
@@ -438,6 +441,7 @@ import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
+import PosOrderHistoryPage from "@/modules/pos/pages/PosOrderHistoryPage";
 
 export const router = createBrowserRouter([
   {
@@ -500,8 +504,9 @@ export const router = createBrowserRouter([
         path: "/pos",
         element: <PosLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="POS Home" /> },
+          { index: true, element: <PosHomePage /> },
           { path: "orders", element: <PosOrdersPage /> },
+          { path: "order-history", element: <PosOrderHistoryPage /> },
           { path: "shifts", element: <PosShiftsPage /> },
         ],
       },
@@ -19272,6 +19277,212 @@ export function PosCheckoutSuccessModal({
 ```
 </details>
 
+<a id="file-srcmodulesposcomponentsposdebtpaymentmodaltsx"></a>
+### src\modules\pos\components\PosDebtPaymentModal.tsx
+- SHA: `92dda0fc3881`  
+- Ukuran: 6 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useEffect, useMemo, useState } from "react";
+import { Button, Input, Modal } from "@/components/ui";
+import type { PosPaymentMethodOption } from "@/modules/pos/types/pos";
+import type { PosOrderResponse } from "@/modules/pos/services/pos.service";
+
+interface PosDebtPaymentModalProps {
+  open: boolean;
+  order: PosOrderResponse | null;
+  paymentMethods: PosPaymentMethodOption[];
+  loading?: boolean;
+  submitting?: boolean;
+  onClose: () => void;
+  onSubmit: (payload: {
+    payment_method_id: number;
+    amount: number;
+    reference_number: string | null;
+    notes: string | null;
+  }) => void;
+}
+
+const formatCurrency = (value: number | string | null | undefined) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value ?? 0));
+
+export function PosDebtPaymentModal({
+  open,
+  order,
+  paymentMethods,
+  loading = false,
+  submitting = false,
+  onClose,
+  onSubmit,
+}: PosDebtPaymentModalProps) {
+  const remainingAmount = useMemo(() => {
+    if (!order) {
+      return 0;
+    }
+
+    return Math.max(0, Number(order.grand_total ?? 0) - Number(order.paid_total ?? 0));
+  }, [order]);
+
+  const [paymentMethodId, setPaymentMethodId] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(0);
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const selectedPaymentMethod = paymentMethods.find(
+    (method) => Number(method.id) === Number(paymentMethodId)
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setPaymentMethodId(0);
+      setAmount(0);
+      setReferenceNumber("");
+      setNotes("");
+      return;
+    }
+
+    const defaultMethod =
+      paymentMethods.find((method) => method.code === "cash" || method.type === "cash") ??
+      paymentMethods[0];
+
+    setPaymentMethodId(defaultMethod?.id ?? 0);
+    setAmount(remainingAmount);
+    setReferenceNumber("");
+    setNotes("");
+  }, [open, paymentMethods, remainingAmount]);
+
+  const canSubmit =
+    Boolean(order) &&
+    Number(paymentMethodId) > 0 &&
+    Number(amount) > 0 &&
+    Number(amount) <= remainingAmount &&
+    (!selectedPaymentMethod?.requires_reference || referenceNumber.trim() !== "");
+
+  return (
+    <Modal
+      open={open}
+      title="Pelunasan Piutang"
+      description="Catat pembayaran tambahan untuk order yang masih unpaid atau partial."
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            Batal
+          </Button>
+          <Button
+            loading={submitting}
+            disabled={!canSubmit || loading}
+            onClick={() =>
+              onSubmit({
+                payment_method_id: Number(paymentMethodId),
+                amount: Number(amount),
+                reference_number: referenceNumber.trim() || null,
+                notes: notes.trim() || null,
+              })
+            }
+          >
+            Simpan Pembayaran
+          </Button>
+        </>
+      }
+    >
+      {!order ? (
+        <div className="text-sm text-slate-500">Order belum dipilih.</div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-3 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 text-sm md:grid-cols-2">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Nomor Order
+              </div>
+              <div className="mt-1 font-semibold text-slate-950">{order.order_number}</div>
+            </div>
+
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Status Bayar
+              </div>
+              <div className="mt-1 font-semibold text-slate-950">{order.payment_status}</div>
+            </div>
+
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Grand Total
+              </div>
+              <div className="mt-1 font-semibold text-slate-950">
+                {formatCurrency(order.grand_total)}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Sisa Tagihan
+              </div>
+              <div className="mt-1 font-semibold text-[var(--brand-brick)]">
+                {formatCurrency(remainingAmount)}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Metode Pembayaran
+            </label>
+            <select
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+              value={paymentMethodId || ""}
+              onChange={(event) => setPaymentMethodId(Number(event.target.value || 0))}
+            >
+              <option value="">Pilih metode pembayaran</option>
+              {paymentMethods.map((method) => (
+                <option key={method.id} value={method.id}>
+                  {method.name} ({method.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Input
+            label="Nominal Bayar"
+            type="number"
+            value={String(amount)}
+            onChange={(event) => setAmount(Number(event.target.value || 0))}
+          />
+
+          <Input
+            label={
+              selectedPaymentMethod?.requires_reference
+                ? "Nomor Referensi / Bukti Transfer"
+                : "Nomor Referensi (Opsional)"
+            }
+            value={referenceNumber}
+            onChange={(event) => setReferenceNumber(event.target.value)}
+          />
+
+          <Input
+            label="Catatan"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+          />
+
+          {Number(amount) > remainingAmount ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Nominal bayar tidak boleh lebih besar dari sisa tagihan.
+            </div>
+          ) : null}
+        </div>
+      )}
+    </Modal>
+  );
+}
+```
+</details>
+
 <a id="file-srcmodulesposcomponentspospaymentmodaltsx"></a>
 ### src\modules\pos\components\PosPaymentModal.tsx
 - SHA: `3cdd1317b5ba`  
@@ -20417,6 +20628,952 @@ export function usePosKeyboardShortcuts({
     preventDefault: true,
     onTrigger: holdOrder,
   });
+}
+```
+</details>
+
+<a id="file-srcmodulespospagesposhomepagetsx"></a>
+### src\modules\pos\pages\PosHomePage.tsx
+- SHA: `1f97766d50b7`  
+- Ukuran: 20 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Badge, Button, Card } from "@/components/ui";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import { useAuthStore } from "@/modules/auth/store/auth.store";
+import { posService } from "@/modules/pos/services/pos.service";
+import { shiftService } from "@/modules/pos/services/shift.service";
+import type { CashMovement, CashierShift } from "@/types/cashier-shift";
+import type { PosOrderResponse } from "@/modules/pos/services/pos.service";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+    new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(Number(value ?? 0));
+
+const formatDateTime = (value?: string | null) => {
+    if (!value) {
+        return "-";
+    }
+
+    return new Intl.DateTimeFormat("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    }).format(new Date(value));
+};
+
+const getShiftMovements = (shift: CashierShift | null): CashMovement[] => {
+    if (!shift) {
+        return [];
+    }
+
+    return shift.cash_movements ?? shift.cashMovements ?? [];
+};
+
+const getOrderStatusVariant = (status: string) => {
+    if (status === "completed") return "success";
+    if (status === "cancelled") return "danger";
+    if (status === "ready") return "info";
+    if (status === "preparing") return "warning";
+    if (status === "confirmed") return "info";
+
+    return "warning";
+};
+
+const getPaymentStatusVariant = (status: string) => {
+    if (status === "paid") return "success";
+    if (status === "partial") return "warning";
+    if (status === "cancelled" || status === "refunded") return "danger";
+
+    return "warning";
+};
+
+const sumGrandTotal = (orders: PosOrderResponse[]) =>
+    orders.reduce((total, order) => total + Number(order.grand_total ?? 0), 0);
+
+const countByStatus = (orders: PosOrderResponse[], status: string) =>
+    orders.filter((order) => order.order_status === status).length;
+
+export default function PosHomePage() {
+    const user = useAuthStore((state) => state.user);
+    const { activeOutlet } = useActiveOutlet();
+
+    const activeOutletId = activeOutlet?.outlet_id ?? null;
+    const activeOutletName = activeOutlet
+        ? `${activeOutlet.outlet_name ?? `Outlet #${activeOutlet.outlet_id}`}${activeOutlet.outlet_code ? ` (${activeOutlet.outlet_code})` : ""
+        }`
+        : "Outlet belum dipilih";
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const shiftsQuery = useQuery({
+        queryKey: ["pos-home-open-shift", activeOutletId],
+        enabled: Boolean(activeOutletId),
+        queryFn: () =>
+            shiftService.getCashierShifts({
+                outlet_id: activeOutletId ?? "",
+                status: "open",
+                per_page: 1,
+            }),
+    });
+
+    const currentShift = shiftsQuery.data?.items?.[0] ?? null;
+
+    const shiftDetailQuery = useQuery({
+        queryKey: ["pos-home-open-shift-detail", currentShift?.id],
+        enabled: Boolean(currentShift?.id),
+        queryFn: () => shiftService.getCashierShift(Number(currentShift?.id)),
+    });
+
+    const ordersQuery = useQuery({
+        queryKey: ["pos-home-today-orders", activeOutletId, today],
+        enabled: Boolean(activeOutletId),
+        queryFn: () =>
+            posService.getOrders({
+                outlet_id: activeOutletId ?? "",
+                ordered_from: `${today} 00:00:00`,
+                ordered_until: `${today} 23:59:59`,
+                per_page: 50,
+            }),
+    });
+
+    const currentShiftDetail = shiftDetailQuery.data?.data ?? currentShift;
+    const todayOrders = (ordersQuery.data?.items ?? []).filter((order) =>
+        ["pos", "dine_in", "takeaway"].includes(order.order_channel)
+    );
+    const shiftMovements = getShiftMovements(currentShiftDetail);
+
+    const cashInTotal = useMemo(
+        () =>
+            shiftMovements
+                .filter((movement) => movement.movement_type === "cash_in")
+                .reduce((total, movement) => total + Number(movement.amount || 0), 0),
+        [shiftMovements]
+    );
+
+    const cashOutTotal = useMemo(
+        () =>
+            shiftMovements
+                .filter((movement) => movement.movement_type === "cash_out")
+                .reduce((total, movement) => total + Number(movement.amount || 0), 0),
+        [shiftMovements]
+    );
+
+    const openingCash = Number(currentShiftDetail?.opening_cash ?? 0);
+    const expectedCash = Number(currentShiftDetail?.expected_cash ?? 0);
+
+    const grossSalesToday = sumGrandTotal(todayOrders);
+    const completedOrders = countByStatus(todayOrders, "completed");
+    const activeOrders = todayOrders.filter((order) =>
+        ["draft", "confirmed", "preparing", "ready"].includes(order.order_status)
+    ).length;
+
+    const isLoading = shiftsQuery.isLoading || ordersQuery.isLoading;
+    const isError = shiftsQuery.isError || ordersQuery.isError;
+
+    return (
+        <PermissionWrapper permission="orders.view">
+            <div className="space-y-5">
+                <PageHeader
+                    title="POS Home"
+                    description="Ringkasan kerja kasir, status shift, transaksi hari ini, dan akses cepat ke fitur POS."
+                    actions={
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                            <Link to="/pos/orders">
+                                <Button>Mulai Transaksi</Button>
+                            </Link>
+                            <Link to="/pos/shifts">
+                                <Button variant="outline">Kelola Shift</Button>
+                            </Link>
+                        </div>
+                    }
+                />
+
+                {isError ? (
+                    <PageErrorState
+                        onRetry={() => {
+                            void shiftsQuery.refetch();
+                            void ordersQuery.refetch();
+                            void shiftDetailQuery.refetch();
+                        }}
+                    />
+                ) : (
+                    <>
+                        <Card>
+                            <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr] lg:items-center">
+                                <div>
+                                    <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-[var(--brand-brick)]">
+                                        Chicken Alibaba POS
+                                    </div>
+
+                                    <h2 className="mt-3 text-xl font-semibold text-slate-950">
+                                        Selamat bekerja, {user?.name ?? "Kasir"}
+                                    </h2>
+
+                                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                                        Outlet aktif: <span className="font-semibold text-slate-900">{activeOutletName}</span>.
+                                        Gunakan halaman ini untuk memantau shift dan langsung masuk ke transaksi kasir.
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4">
+                                    <div className="text-xs font-semibold uppercase tracking-wide text-[var(--brand-brick)]">
+                                        Status Shift
+                                    </div>
+
+                                    <div className="mt-2 flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-lg font-semibold text-slate-950">
+                                                {currentShiftDetail ? currentShiftDetail.shift_number : "Belum ada shift open"}
+                                            </div>
+                                            <div className="mt-1 text-sm text-slate-600">
+                                                Dibuka: {formatDateTime(currentShiftDetail?.opened_at)}
+                                            </div>
+                                        </div>
+
+                                        <Badge variant={currentShiftDetail ? "success" : "warning"}>
+                                            {currentShiftDetail ? "Open" : "Perlu Buka Shift"}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            <Card>
+                                <div className="text-sm font-medium text-slate-500">Penjualan Hari Ini</div>
+                                <div className="mt-2 text-2xl font-semibold text-slate-950">
+                                    {isLoading ? "..." : formatCurrency(grossSalesToday)}
+                                </div>
+                                <div className="mt-1 text-xs text-slate-500">
+                                    Berdasarkan transaksi kasir channel POS, dine in, dan takeaway hari ini.
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <div className="text-sm font-medium text-slate-500">Order Hari Ini</div>
+                                <div className="mt-2 text-2xl font-semibold text-slate-950">
+                                    {isLoading ? "..." : todayOrders.length.toLocaleString("id-ID")}
+                                </div>
+                                <div className="mt-1 text-xs text-slate-500">
+                                    {completedOrders.toLocaleString("id-ID")} order selesai.
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <div className="text-sm font-medium text-slate-500">Order Aktif</div>
+                                <div className="mt-2 text-2xl font-semibold text-slate-950">
+                                    {isLoading ? "..." : activeOrders.toLocaleString("id-ID")}
+                                </div>
+                                <div className="mt-1 text-xs text-slate-500">
+                                    Draft, confirmed, preparing, atau ready.
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <div className="text-sm font-medium text-slate-500">Estimasi Kas Shift</div>
+                                <div className="mt-2 text-2xl font-semibold text-slate-950">
+                                    {isLoading ? "..." : formatCurrency(expectedCash)}
+                                </div>
+                                <div className="mt-1 text-xs text-slate-500">
+                                    Modal awal + kas masuk - kas keluar + penjualan tunai.
+                                </div>
+                            </Card>
+                        </div>
+
+                        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+                            <Card
+                                title="Akses Cepat POS"
+                                description="Shortcut kerja utama kasir."
+                            >
+                                <div className="grid gap-3 sm:grid-cols-3">
+                                    <Link
+                                        to="/pos/orders"
+                                        className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 transition hover:border-[var(--brand-brick)] hover:bg-orange-50"
+                                    >
+                                        <div className="text-sm font-semibold text-slate-950">Transaksi Baru</div>
+                                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                                            Input produk, customer, voucher, dan pembayaran.
+                                        </p>
+                                    </Link>
+
+                                    <Link
+                                        to="/pos/order-history"
+                                        className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-[var(--brand-brick)] hover:bg-orange-50/40"
+                                    >
+                                        <div className="text-sm font-semibold text-slate-950">Riwayat Order</div>
+                                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                                            Cek transaksi, status pembayaran, dan cetak ulang struk.
+                                        </p>
+                                    </Link>
+
+                                    <Link
+                                        to="/pos/shifts"
+                                        className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-[var(--brand-brick)] hover:bg-orange-50/40"
+                                    >
+                                        <div className="text-sm font-semibold text-slate-950">Shift Kasir</div>
+                                        <p className="mt-1 text-xs leading-5 text-slate-600">
+                                            Buka shift, catat kas masuk/keluar, dan tutup shift.
+                                        </p>
+                                    </Link>
+                                </div>
+                            </Card>
+
+                            <Card
+                                title="Ringkasan Kas Shift"
+                                description="Data diambil dari cashier shift aktif."
+                            >
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
+                                        <span className="text-slate-500">Modal Awal</span>
+                                        <span className="font-semibold text-slate-950">{formatCurrency(openingCash)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
+                                        <span className="text-slate-500">Kas Masuk</span>
+                                        <span className="font-semibold text-slate-950">{formatCurrency(cashInTotal)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3">
+                                        <span className="text-slate-500">Kas Keluar</span>
+                                        <span className="font-semibold text-slate-950">{formatCurrency(cashOutTotal)}</span>
+                                    </div>
+
+                                    <div className="flex justify-between gap-4 rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3">
+                                        <span className="font-medium text-[var(--brand-brick)]">Expected Cash</span>
+                                        <span className="font-semibold text-slate-950">{formatCurrency(expectedCash)}</span>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+
+                        <Card
+                            title="Order POS Terbaru"
+                            description="Menampilkan transaksi POS terbaru pada outlet aktif hari ini."
+                            actions={
+                                <Link to="/pos/order-history">
+                                    <Button variant="outline">Lihat Semua</Button>
+                                </Link>
+                            }
+                        >
+                            {!todayOrders.length ? (
+                                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                                    <div className="text-sm font-semibold text-slate-900">Belum ada order hari ini</div>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Mulai transaksi pertama dari halaman POS Orders.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-slate-200 text-sm">
+                                        <thead>
+                                            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                <th className="px-3 py-3">Order</th>
+                                                <th className="px-3 py-3">Waktu</th>
+                                                <th className="px-3 py-3">Status Order</th>
+                                                <th className="px-3 py-3">Status Bayar</th>
+                                                <th className="px-3 py-3 text-right">Grand Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {todayOrders.map((order) => (
+                                                <tr key={order.id}>
+                                                    <td className="whitespace-nowrap px-3 py-3 font-medium text-slate-900">
+                                                        {order.order_number}
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-3 py-3 text-slate-600">
+                                                        {formatDateTime(order.ordered_at)}
+                                                    </td>
+                                                    <td className="px-3 py-3">
+                                                        <Badge variant={getOrderStatusVariant(order.order_status)}>
+                                                            {order.order_status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-3 py-3">
+                                                        <Badge variant={getPaymentStatusVariant(order.payment_status)}>
+                                                            {order.payment_status}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-3 py-3 text-right font-semibold text-slate-900">
+                                                        {formatCurrency(order.grand_total)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </Card>
+                    </>
+                )}
+            </div>
+        </PermissionWrapper>
+    );
+}
+```
+</details>
+
+<a id="file-srcmodulespospagesposorderhistorypagetsx"></a>
+### src\modules\pos\pages\PosOrderHistoryPage.tsx
+- SHA: `faa7b6dbfec0`  
+- Ukuran: 26 KB
+<details><summary><strong>Lihat Kode Lengkap</strong></summary>
+
+```tsx
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Badge, Button, Card, Input, Modal, Pagination } from "@/components/ui";
+import { PageHeader } from "@/components/navigation/PageHeader";
+import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
+import { PageEmptyState } from "@/components/feedback/PageEmptyState";
+import { PageErrorState } from "@/components/feedback/PageErrorState";
+import { useActiveOutlet } from "@/hooks/useActiveOutlet";
+import { posService, type PosOrderQuery, type PosOrderResponse } from "@/modules/pos/services/pos.service";
+import type { PosOrderChannel } from "@/modules/pos/types/pos";
+import { parseApiError } from "@/services/api/error-parser";
+import { useToast } from "@/hooks/useToast";
+import { PosDebtPaymentModal } from "@/modules/pos/components/PosDebtPaymentModal";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+    new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(Number(value ?? 0));
+
+const formatDateTime = (value: string | null | undefined) => {
+    if (!value) {
+        return "-";
+    }
+
+    return new Intl.DateTimeFormat("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+    }).format(new Date(value));
+};
+
+const orderStatusVariant = (status: string) => {
+    if (status === "completed") return "success";
+    if (status === "cancelled") return "danger";
+    if (status === "ready") return "info";
+    if (status === "preparing") return "warning";
+    if (status === "confirmed") return "info";
+    return "warning";
+};
+
+const paymentStatusVariant = (status: string) => {
+    if (status === "paid") return "success";
+    if (status === "partial") return "warning";
+    if (status === "cancelled" || status === "refunded") return "danger";
+    return "warning";
+};
+
+const channelLabel: Record<PosOrderChannel, string> = {
+    pos: "POS",
+    dine_in: "Dine In",
+    takeaway: "Takeaway",
+    pickup: "Pickup",
+    delivery: "Delivery",
+    website: "Website",
+};
+
+export default function PosOrderHistoryPage() {
+    const { activeOutletId } = useActiveOutlet();
+    const toast = useToast();
+    const queryClient = useQueryClient();
+
+    const [filters, setFilters] = useState<PosOrderQuery>({
+        page: 1,
+        per_page: 10,
+        search: "",
+        outlet_id: "",
+        order_channel: "",
+        order_status: "",
+        payment_status: "",
+        ordered_from: "",
+        ordered_until: "",
+    });
+
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [paymentOrder, setPaymentOrder] = useState<PosOrderResponse | null>(null);
+
+    const queryParams = useMemo<PosOrderQuery>(
+        () => ({
+            ...filters,
+            outlet_id: filters.outlet_id || activeOutletId || "",
+            search: filters.search || undefined,
+            order_channel: filters.order_channel || undefined,
+            order_status: filters.order_status || undefined,
+            payment_status: filters.payment_status || undefined,
+            ordered_from: filters.ordered_from || undefined,
+            ordered_until: filters.ordered_until || undefined,
+        }),
+        [activeOutletId, filters]
+    );
+
+    const ordersQuery = useQuery({
+        queryKey: ["pos-order-history", queryParams],
+        queryFn: () => posService.getOrders(queryParams),
+    });
+
+    const detailQuery = useQuery({
+        queryKey: ["pos-order-detail", selectedOrderId],
+        queryFn: () => posService.getOrder(Number(selectedOrderId)),
+        enabled: Boolean(selectedOrderId),
+    });
+
+    const paymentMethodsQuery = useQuery({
+        queryKey: ["pos-history-payment-methods"],
+        queryFn: () => posService.getPaymentMethods({ per_page: 100 }),
+    });
+
+    const paymentMutation = useMutation({
+        mutationFn: (payload: {
+            order_id: number;
+            payment_method_id: number;
+            amount: number;
+            reference_number: string | null;
+            notes: string | null;
+        }) =>
+            posService.createPayment({
+                order_id: payload.order_id,
+                payment_method_id: payload.payment_method_id,
+                amount: payload.amount,
+                reference_number: payload.reference_number,
+                paid_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+                status: "paid",
+                notes: payload.notes,
+            }),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            setPaymentOrder(null);
+
+            void queryClient.invalidateQueries({ queryKey: ["pos-order-history"] });
+            void queryClient.invalidateQueries({ queryKey: ["pos-order-detail"] });
+            void queryClient.invalidateQueries({ queryKey: ["pos-home-open-shift"] });
+            void queryClient.invalidateQueries({ queryKey: ["pos-home-open-shift-detail"] });
+        },
+        onError: (error) => {
+            toast.error("Gagal menyimpan pembayaran", parseApiError(error));
+        },
+    });
+
+    const orders = ordersQuery.data?.items ?? [];
+    const selectedOrder = detailQuery.data?.data ?? null;
+
+    const resetFilters = () => {
+        setFilters({
+            page: 1,
+            per_page: 10,
+            search: "",
+            outlet_id: "",
+            order_channel: "",
+            order_status: "",
+            payment_status: "",
+            ordered_from: "",
+            ordered_until: "",
+        });
+    };
+
+    return (
+        <PermissionWrapper permission="orders.view">
+            <div className="space-y-5">
+                <PageHeader
+                    title="Riwayat Pesanan POS"
+                    description="Daftar transaksi POS berdasarkan outlet aktif, status order, status pembayaran, tanggal, dan nomor order."
+                    actions={
+                        <Button variant="outline" onClick={() => void ordersQuery.refetch()}>
+                            Refresh
+                        </Button>
+                    }
+                />
+
+                <Card>
+                    <div className="grid gap-4 lg:grid-cols-6">
+                        <Input
+                            label="Cari Pesanan"
+                            placeholder="Nomor order, nomor antrean, customer..."
+                            value={filters.search ?? ""}
+                            onChange={(event) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    page: 1,
+                                    search: event.target.value,
+                                }))
+                            }
+                        />
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Channel
+                            </label>
+                            <select
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                                value={filters.order_channel ?? ""}
+                                onChange={(event) =>
+                                    setFilters((prev) => ({
+                                        ...prev,
+                                        page: 1,
+                                        order_channel: event.target.value as PosOrderChannel | "",
+                                    }))
+                                }
+                            >
+                                <option value="">Semua channel</option>
+                                <option value="pos">POS</option>
+                                <option value="dine_in">Dine In</option>
+                                <option value="takeaway">Takeaway</option>
+                                <option value="pickup">Pickup</option>
+                                <option value="delivery">Delivery</option>
+                                <option value="website">Website</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Status Order
+                            </label>
+                            <select
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                                value={filters.order_status ?? ""}
+                                onChange={(event) =>
+                                    setFilters((prev) => ({
+                                        ...prev,
+                                        page: 1,
+                                        order_status: event.target.value,
+                                    }))
+                                }
+                            >
+                                <option value="">Semua status</option>
+                                <option value="draft">draft</option>
+                                <option value="pending">pending</option>
+                                <option value="confirmed">confirmed</option>
+                                <option value="preparing">preparing</option>
+                                <option value="ready">ready</option>
+                                <option value="completed">completed</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Status Bayar
+                            </label>
+                            <select
+                                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
+                                value={filters.payment_status ?? ""}
+                                onChange={(event) =>
+                                    setFilters((prev) => ({
+                                        ...prev,
+                                        page: 1,
+                                        payment_status: event.target.value,
+                                    }))
+                                }
+                            >
+                                <option value="">Semua status</option>
+                                <option value="unpaid">unpaid</option>
+                                <option value="partial">partial</option>
+                                <option value="paid">paid</option>
+                                <option value="refunded">refunded</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </div>
+
+                        <Input
+                            label="Dari Tanggal"
+                            type="date"
+                            value={filters.ordered_from ?? ""}
+                            onChange={(event) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    page: 1,
+                                    ordered_from: event.target.value,
+                                }))
+                            }
+                        />
+
+                        <Input
+                            label="Sampai Tanggal"
+                            type="date"
+                            value={filters.ordered_until ?? ""}
+                            onChange={(event) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    page: 1,
+                                    ordered_until: event.target.value,
+                                }))
+                            }
+                        />
+
+                        <div className="flex items-end gap-2 lg:col-span-6">
+                            <Button loading={ordersQuery.isFetching} onClick={() => void ordersQuery.refetch()}>
+                                Terapkan Filter
+                            </Button>
+                            <Button variant="outline" onClick={resetFilters}>
+                                Reset
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+
+                {ordersQuery.isLoading ? (
+                    <Card>Memuat riwayat pesanan...</Card>
+                ) : ordersQuery.isError ? (
+                    <PageErrorState onRetry={() => void ordersQuery.refetch()} />
+                ) : !orders.length ? (
+                    <PageEmptyState
+                        title="Belum ada riwayat pesanan"
+                        description="Transaksi POS yang sudah tersimpan akan muncul di halaman ini."
+                    />
+                ) : (
+                    <Card>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-slate-200 text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <th className="px-3 py-3">Waktu</th>
+                                        <th className="px-3 py-3">Order</th>
+                                        <th className="px-3 py-3">Outlet</th>
+                                        <th className="px-3 py-3">Customer</th>
+                                        <th className="px-3 py-3">Channel</th>
+                                        <th className="px-3 py-3">Status</th>
+                                        <th className="px-3 py-3">Pembayaran</th>
+                                        <th className="px-3 py-3 text-right">Total</th>
+                                        <th className="px-3 py-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {orders.map((order) => (
+                                        <tr key={order.id} className="align-top">
+                                            <td className="whitespace-nowrap px-3 py-3 text-slate-700">
+                                                {formatDateTime(order.ordered_at)}
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="font-semibold text-slate-900">
+                                                    {order.order_number}
+                                                </div>
+                                                <div className="text-xs text-slate-500">
+                                                    Antrean: {order.queue_number ?? "-"}
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3 text-slate-700">
+                                                {order.outlet?.name ?? "-"}
+                                            </td>
+                                            <td className="px-3 py-3 text-slate-700">
+                                                {order.customer?.name ?? "Umum"}
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <Badge variant="info">
+                                                    {channelLabel[order.order_channel] ?? order.order_channel}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <Badge variant={orderStatusVariant(order.order_status)}>
+                                                    {order.order_status}
+                                                </Badge>
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <Badge variant={paymentStatusVariant(order.payment_status)}>
+                                                    {order.payment_status}
+                                                </Badge>
+                                            </td>
+                                            <td className="whitespace-nowrap px-3 py-3 text-right font-semibold text-slate-900">
+                                                {formatCurrency(order.grand_total)}
+                                            </td>
+                                            <td className="px-3 py-3">
+                                                <div className="flex justify-end gap-2">
+                                                    {["unpaid", "partial"].includes(order.payment_status) ? (
+                                                        <Button onClick={() => setPaymentOrder(order)}>
+                                                            Bayar
+                                                        </Button>
+                                                    ) : null}
+
+                                                    <Button variant="outline" onClick={() => setSelectedOrderId(order.id)}>
+                                                        Detail
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                <Pagination
+                    meta={ordersQuery.data?.meta}
+                    onPageChange={(nextPage) =>
+                        setFilters((prev) => ({
+                            ...prev,
+                            page: nextPage,
+                        }))
+                    }
+                />
+
+                <Modal
+                    open={Boolean(selectedOrderId)}
+                    title="Detail Pesanan"
+                    description={selectedOrder ? selectedOrder.order_number : "Memuat detail pesanan..."}
+                    onClose={() => setSelectedOrderId(null)}
+                    footer={
+                        <Button variant="outline" onClick={() => setSelectedOrderId(null)}>
+                            Tutup
+                        </Button>
+                    }
+                >
+                    {detailQuery.isLoading ? (
+                        <div className="text-sm text-slate-500">Memuat detail...</div>
+                    ) : selectedOrder ? (
+                        <OrderDetailContent order={selectedOrder} />
+                    ) : (
+                        <div className="text-sm text-slate-500">Detail pesanan tidak tersedia.</div>
+                    )}
+                </Modal>
+            </div>
+            <PosDebtPaymentModal
+                open={Boolean(paymentOrder)}
+                order={paymentOrder}
+                paymentMethods={paymentMethodsQuery.data?.items ?? []}
+                loading={paymentMethodsQuery.isLoading}
+                submitting={paymentMutation.isPending}
+                onClose={() => setPaymentOrder(null)}
+                onSubmit={(payload) => {
+                    if (!paymentOrder) {
+                        return;
+                    }
+
+                    paymentMutation.mutate({
+                        order_id: paymentOrder.id,
+                        ...payload,
+                    });
+                }}
+            />
+        </PermissionWrapper>
+    );
+}
+
+function OrderDetailContent({ order }: { order: PosOrderResponse }) {
+    return (
+        <div className="space-y-5 text-sm">
+            <div className="grid gap-3 md:grid-cols-2">
+                <InfoBox label="Outlet" value={order.outlet?.name ?? "-"} />
+                <InfoBox label="Kasir" value={order.creator?.name ?? "-"} />
+                <InfoBox label="Customer" value={order.customer?.name ?? "Umum"} />
+                <InfoBox label="Waktu Order" value={formatDateTime(order.ordered_at)} />
+                <InfoBox label="Status Order" value={order.order_status} />
+                <InfoBox label="Status Pembayaran" value={order.payment_status} />
+            </div>
+
+            <div className="rounded-2xl border border-slate-200">
+                <div className="border-b border-slate-100 px-4 py-3">
+                    <h3 className="font-semibold text-slate-900">Item Pesanan</h3>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                    {(order.items ?? []).length ? (
+                        order.items?.map((item) => (
+                            <div key={item.id} className="px-4 py-3">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div>
+                                        <div className="font-semibold text-slate-900">
+                                            {item.product_name_snapshot}
+                                        </div>
+                                        <div className="text-xs text-slate-500">
+                                            SKU: {item.sku_snapshot ?? "-"} • Qty: {Number(item.qty).toLocaleString("id-ID")}
+                                        </div>
+
+                                        {item.variants?.length ? (
+                                            <div className="mt-2 text-xs text-slate-500">
+                                                Variant:{" "}
+                                                {item.variants
+                                                    .map((variant) => variant.variant_option_name_snapshot)
+                                                    .join(", ")}
+                                            </div>
+                                        ) : null}
+
+                                        {item.modifiers?.length ? (
+                                            <div className="mt-1 text-xs text-slate-500">
+                                                Modifier:{" "}
+                                                {item.modifiers
+                                                    .map((modifier) => modifier.modifier_option_name_snapshot)
+                                                    .join(", ")}
+                                            </div>
+                                        ) : null}
+
+                                        {item.notes ? (
+                                            <div className="mt-1 text-xs text-slate-500">Catatan: {item.notes}</div>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="text-right">
+                                        <div className="font-semibold text-slate-900">
+                                            {formatCurrency(item.line_total)}
+                                        </div>
+                                        <div className="text-xs text-slate-500">
+                                            @ {formatCurrency(item.unit_price)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="px-4 py-3 text-slate-500">Item pesanan tidak tersedia.</div>
+                    )}
+                </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="space-y-2">
+                    <SummaryRow label="Subtotal" value={formatCurrency(order.subtotal)} />
+                    <SummaryRow label="Diskon" value={formatCurrency(order.discount_amount)} />
+                    <SummaryRow label="Pajak" value={formatCurrency(order.tax_amount)} />
+                    <SummaryRow label="Service Charge" value={formatCurrency(order.service_charge_amount)} />
+                    <SummaryRow label="Grand Total" value={formatCurrency(order.grand_total)} strong />
+                    <SummaryRow label="Dibayar" value={formatCurrency(order.paid_total)} />
+                    <SummaryRow label="Kembalian" value={formatCurrency(order.change_amount)} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function InfoBox({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="rounded-xl bg-slate-50 p-3">
+            <div className="text-xs text-slate-500">{label}</div>
+            <div className="mt-1 font-medium text-slate-900">{value}</div>
+        </div>
+    );
+}
+
+function SummaryRow({
+    label,
+    value,
+    strong = false,
+}: {
+    label: string;
+    value: string;
+    strong?: boolean;
+}) {
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <span className={strong ? "font-semibold text-slate-900" : "text-slate-600"}>
+                {label}
+            </span>
+            <span className={strong ? "font-bold text-slate-950" : "font-medium text-slate-800"}>
+                {value}
+            </span>
+        </div>
+    );
 }
 ```
 </details>
@@ -21907,8 +23064,8 @@ export default function PosShiftsPage() {
 
 <a id="file-srcmodulesposservicesposservicets"></a>
 ### src\modules\pos\services\pos.service.ts
-- SHA: `b62228c88105`  
-- Ukuran: 15 KB
+- SHA: `4206b61d2a49`  
+- Ukuran: 17 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -21929,6 +23086,8 @@ import type {
   PosVoucher,
   PosVoucherEvaluationResult,
 } from "@/modules/pos/types/pos";
+import type { Outlet } from "@/types/outlet";
+import type { User } from "@/types/user";
 
 export interface PosPaginationQuery {
   page?: number;
@@ -21948,6 +23107,52 @@ export interface PosCustomerQuery extends PosPaginationQuery {
 
 export interface PosVoucherQuery extends PosPaginationQuery {
   discount_type?: "percent" | "fixed" | "";
+}
+
+export interface PosOrderQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  outlet_id?: number | "";
+  cashier_shift_id?: number | "";
+  customer_id?: number | "";
+  order_channel?: PosOrderChannel | "";
+  order_status?: string;
+  payment_status?: string;
+  ordered_from?: string;
+  ordered_until?: string;
+}
+
+export interface PosOrderItemVariantResponse {
+  id: number;
+  order_item_id: number;
+  variant_group_name_snapshot: string;
+  variant_option_name_snapshot: string;
+  price_adjustment: number | string;
+}
+
+export interface PosOrderItemModifierResponse {
+  id: number;
+  order_item_id: number;
+  modifier_group_name_snapshot: string;
+  modifier_option_name_snapshot: string;
+  qty: number | string;
+  price: number | string;
+}
+
+export interface PosOrderItemResponse {
+  id: number;
+  order_id: number;
+  product_id: number | null;
+  product_name_snapshot: string;
+  sku_snapshot: string | null;
+  qty: number | string;
+  unit_price: number | string;
+  discount_amount: number | string;
+  line_total: number | string;
+  notes: string | null;
+  variants?: PosOrderItemVariantResponse[];
+  modifiers?: PosOrderItemModifierResponse[];
 }
 
 export interface PosPaginatedResult<T> {
@@ -22020,6 +23225,13 @@ export interface PosOrderResponse {
   change_amount: number | string;
   notes: string | null;
   ordered_at: string;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  outlet?: Outlet | null;
+  customer?: Customer | null;
+  creator?: User | null;
+  items?: PosOrderItemResponse[];
+  payments?: PosPaymentResponse[];
 }
 
 export interface PosPaymentResponse {
@@ -22336,6 +23548,23 @@ export const posService = {
       discount_amount: discountAmount,
       voucher,
     };
+  },
+
+  async getOrders(params: PosOrderQuery = {}) {
+    const response = await apiClient.get<ApiResponse<PosOrderResponse[]>>(
+      endpoints.orders.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getOrder(id: number) {
+    const response = await apiClient.get<ApiResponse<PosOrderResponse>>(
+      endpoints.orders.show(id)
+    );
+
+    return response.data;
   },
 
   async createOrder(payload: PosCreateOrderPayload) {
@@ -24426,7 +25655,7 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `a91604d0f235`  
+- SHA: `a04eccd61520`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -24481,7 +25710,8 @@ export const adminNavigation: NavigationItem[] = [
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "Orders", to: "/pos/orders", permission: "orders.view" },
+  { label: "Checkout", to: "/pos/orders", permission: "orders.create" },
+  { label: "Riwayat Pesanan", to: "/pos/order-history", permission: "orders.view" },
   { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 

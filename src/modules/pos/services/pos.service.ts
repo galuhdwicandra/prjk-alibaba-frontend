@@ -15,6 +15,8 @@ import type {
   PosVoucher,
   PosVoucherEvaluationResult,
 } from "@/modules/pos/types/pos";
+import type { Outlet } from "@/types/outlet";
+import type { User } from "@/types/user";
 
 export interface PosPaginationQuery {
   page?: number;
@@ -34,6 +36,52 @@ export interface PosCustomerQuery extends PosPaginationQuery {
 
 export interface PosVoucherQuery extends PosPaginationQuery {
   discount_type?: "percent" | "fixed" | "";
+}
+
+export interface PosOrderQuery {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  outlet_id?: number | "";
+  cashier_shift_id?: number | "";
+  customer_id?: number | "";
+  order_channel?: PosOrderChannel | "";
+  order_status?: string;
+  payment_status?: string;
+  ordered_from?: string;
+  ordered_until?: string;
+}
+
+export interface PosOrderItemVariantResponse {
+  id: number;
+  order_item_id: number;
+  variant_group_name_snapshot: string;
+  variant_option_name_snapshot: string;
+  price_adjustment: number | string;
+}
+
+export interface PosOrderItemModifierResponse {
+  id: number;
+  order_item_id: number;
+  modifier_group_name_snapshot: string;
+  modifier_option_name_snapshot: string;
+  qty: number | string;
+  price: number | string;
+}
+
+export interface PosOrderItemResponse {
+  id: number;
+  order_id: number;
+  product_id: number | null;
+  product_name_snapshot: string;
+  sku_snapshot: string | null;
+  qty: number | string;
+  unit_price: number | string;
+  discount_amount: number | string;
+  line_total: number | string;
+  notes: string | null;
+  variants?: PosOrderItemVariantResponse[];
+  modifiers?: PosOrderItemModifierResponse[];
 }
 
 export interface PosPaginatedResult<T> {
@@ -106,6 +154,13 @@ export interface PosOrderResponse {
   change_amount: number | string;
   notes: string | null;
   ordered_at: string;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  outlet?: Outlet | null;
+  customer?: Customer | null;
+  creator?: User | null;
+  items?: PosOrderItemResponse[];
+  payments?: PosPaymentResponse[];
 }
 
 export interface PosPaymentResponse {
@@ -422,6 +477,23 @@ export const posService = {
       discount_amount: discountAmount,
       voucher,
     };
+  },
+
+  async getOrders(params: PosOrderQuery = {}) {
+    const response = await apiClient.get<ApiResponse<PosOrderResponse[]>>(
+      endpoints.orders.index,
+      { params }
+    );
+
+    return unwrapPaginated(response.data);
+  },
+
+  async getOrder(id: number) {
+    const response = await apiClient.get<ApiResponse<PosOrderResponse>>(
+      endpoints.orders.show(id)
+    );
+
+    return response.data;
   },
 
   async createOrder(payload: PosCreateOrderPayload) {

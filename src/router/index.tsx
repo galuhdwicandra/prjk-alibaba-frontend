@@ -9,7 +9,7 @@ import { GuestGuard } from "@/router/guards/GuestGuard";
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import UnauthorizedPage from "@/modules/auth/pages/UnauthorizedPage";
 import NotFoundPage from "@/modules/auth/pages/NotFoundPage";
-import { RoutePlaceholder } from "@/components/feedback/RoutePlaceholder";
+import PosHomePage from "@/modules/pos/pages/PosHomePage";
 import UsersPage from "@/modules/admin/pages/UsersPage";
 import RolesPage from "@/modules/admin/pages/RolesPage";
 import PermissionsPage from "@/modules/admin/pages/PermissionsPage";
@@ -45,6 +45,7 @@ import PosOrdersPage from "@/modules/pos/pages/PosOrdersPage";
 import PosShiftsPage from "@/modules/pos/pages/PosShiftsPage";
 import KitchenTicketsPage from "@/modules/kitchen/pages/KitchenTicketsPage";
 import ReadyQueuePage from "@/modules/kitchen/pages/ReadyQueuePage";
+import PosOrderHistoryPage from "@/modules/pos/pages/PosOrderHistoryPage";
 
 export const router = createBrowserRouter([
   {
@@ -107,8 +108,9 @@ export const router = createBrowserRouter([
         path: "/pos",
         element: <PosLayout />,
         children: [
-          { index: true, element: <RoutePlaceholder title="POS Home" /> },
+          { index: true, element: <PosHomePage /> },
           { path: "orders", element: <PosOrdersPage /> },
+          { path: "order-history", element: <PosOrderHistoryPage /> },
           { path: "shifts", element: <PosShiftsPage /> },
         ],
       },

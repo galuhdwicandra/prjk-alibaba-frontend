@@ -48,7 +48,8 @@ export const adminNavigation: NavigationItem[] = [
 
 export const posNavigation: NavigationItem[] = [
   { label: "POS Home", to: "/pos" },
-  { label: "Orders", to: "/pos/orders", permission: "orders.view" },
+  { label: "Checkout", to: "/pos/orders", permission: "orders.create" },
+  { label: "Riwayat Pesanan", to: "/pos/order-history", permission: "orders.view" },
   { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
 ];
 
