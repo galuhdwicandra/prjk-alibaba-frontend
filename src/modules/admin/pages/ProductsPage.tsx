@@ -40,6 +40,26 @@ const initialForm: ProductPayload = {
   bundle_items: [],
 };
 
+const createProductSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const createProductIdentity = (payload: ProductPayload) => {
+  const slug = createProductSlug(payload.name || "produk");
+  const timestamp = Date.now().toString().slice(-6);
+
+  return {
+    sku: `SKU-${timestamp}`,
+    code: `PRD-${timestamp}`,
+    slug: slug ? `${slug}-${timestamp}` : `produk-${timestamp}`,
+  };
+};
+
 const createEmptyPrice = (): ProductPricePayload => ({
   outlet_id: 0,
   price: 0,
@@ -132,8 +152,16 @@ export default function ProductsPage() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (payload: ProductPayload) =>
-      editing ? catalogService.updateProduct(editing.id, payload) : catalogService.createProduct(payload),
+    mutationFn: (payload: ProductPayload) => {
+      if (editing) {
+        return catalogService.updateProduct(editing.id, payload);
+      }
+
+      return catalogService.createProduct({
+        ...payload,
+        ...createProductIdentity(payload),
+      });
+    },
     onSuccess: (response) => {
       toast.success(response.message);
       setOpen(false);
@@ -570,21 +598,21 @@ export default function ProductsPage() {
                 />
 
                 <Input
-                  label="SKU"
-                  value={form.sku ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
+                  label="Harga Dasar"
+                  type="number"
+                  value={String(form.base_price ?? 0)}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      base_price: Number(e.target.value || 0),
+                    }))
+                  }
                 />
 
                 <Input
-                  label="Code"
-                  value={form.code ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
-                />
-
-                <Input
-                  label="Slug"
-                  value={form.slug ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+                  label="Image URL"
+                  value={form.image_url ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
                 />
 
                 <Input

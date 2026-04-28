@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Badge, Button, Card, Input } from "@/components/ui";
+import { Badge, Button, Card, Modal, Input } from "@/components/ui";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
 import { PageEmptyState } from "@/components/feedback/PageEmptyState";
@@ -250,6 +250,7 @@ export default function PosOrdersPage() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<PosVoucher | null>(null);
@@ -622,7 +623,7 @@ export default function PosOrdersPage() {
           title="POS Checkout & Payment"
           description="Katalog cepat, cart interaktif, voucher, split payment, dan receipt print."
           actions={
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant={openShiftQuery.data?.id ? "success" : "danger"}>
                 Shift: {openShiftQuery.data?.id ? "Open" : "Belum Open"}
               </Badge>
@@ -630,6 +631,19 @@ export default function PosOrdersPage() {
               <Badge variant="success">
                 Mode: Backend Orders + Payments
               </Badge>
+
+              <Button
+                type="button"
+                className="relative bg-orange-600 text-white hover:bg-orange-700"
+                onClick={() => setCartOpen(true)}
+              >
+                🛒 Keranjang
+                {totalQty > 0 ? (
+                  <span className="ml-2 rounded-full bg-yellow-300 px-2 py-0.5 text-xs font-bold text-slate-950">
+                    {totalQty}
+                  </span>
+                ) : null}
+              </Button>
             </div>
           }
         />
@@ -642,7 +656,7 @@ export default function PosOrdersPage() {
           </Card>
         ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-[1.6fr_0.9fr]">
+        <div className="grid gap-4">
           <div className="space-y-4">
             <Card>
               <div className="grid gap-3 md:grid-cols-[1fr_auto]">
@@ -734,30 +748,39 @@ export default function PosOrdersPage() {
             )}
           </div>
 
-          <PosCartPanel
-            items={items}
-            customer={customer}
-            customerSearch={customerSearch}
-            onCustomerSearchChange={setCustomerSearch}
-            customerResults={customerOptions}
-            canSearchCustomer={canViewCustomers}
-            loadingCustomers={customersQuery.isFetching}
-            orderChannel={orderChannel}
-            onOrderChannelChange={setOrderChannel}
-            onPickCustomer={handlePickCustomer}
-            onClearCustomer={() => setCustomer(null)}
-            onUpdateQty={updateQty}
-            onUpdateNotes={updateNotes}
-            onRemoveItem={removeItem}
-            onClearCart={handleClearCart}
-            onHoldOrder={handleHoldOrder}
-            onRestoreHeldOrder={handleRestoreHeld}
-            onDiscardHeldOrder={handleDiscardHeld}
-            hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
-            onSubmitOrder={handleSubmitOrder}
-            subtotal={subtotal}
-            totalQty={totalQty}
-          />
+          <Modal
+            open={cartOpen}
+            title="Cart & Checkout"
+            description="Ringkasan pesanan dan proses checkout"
+            onClose={() => setCartOpen(false)}
+          >
+            <div className="max-h-[75vh] overflow-y-auto pr-1">
+              <PosCartPanel
+                items={items}
+                customer={customer}
+                customerSearch={customerSearch}
+                onCustomerSearchChange={setCustomerSearch}
+                customerResults={customerOptions}
+                canSearchCustomer={canViewCustomers}
+                loadingCustomers={customersQuery.isFetching}
+                orderChannel={orderChannel}
+                onOrderChannelChange={setOrderChannel}
+                onPickCustomer={handlePickCustomer}
+                onClearCustomer={() => setCustomer(null)}
+                onUpdateQty={updateQty}
+                onUpdateNotes={updateNotes}
+                onRemoveItem={removeItem}
+                onClearCart={handleClearCart}
+                onHoldOrder={handleHoldOrder}
+                onRestoreHeldOrder={handleRestoreHeld}
+                onDiscardHeldOrder={handleDiscardHeld}
+                hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
+                onSubmitOrder={handleSubmitOrder}
+                subtotal={subtotal}
+                totalQty={totalQty}
+              />
+            </div>
+          </Modal>
         </div>
 
         <PosProductConfiguratorModal

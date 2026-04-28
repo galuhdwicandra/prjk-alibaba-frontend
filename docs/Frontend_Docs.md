@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-28 13:12:39_  
+_Dihasilkan otomatis: 2026-04-28 13:48:32_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -8231,7 +8231,7 @@ export default function ProductModifiersPage() {
 
 <a id="file-srcmodulesadminpagesproductspagetsx"></a>
 ### src\modules\admin\pages\ProductsPage.tsx
-- SHA: `04319c62c1e5`  
+- SHA: `644a8944f162`  
 - Ukuran: 60 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -8276,6 +8276,26 @@ const initialForm: ProductPayload = {
   variant_groups: [],
   modifier_groups: [],
   bundle_items: [],
+};
+
+const createProductSlug = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const createProductIdentity = (payload: ProductPayload) => {
+  const slug = createProductSlug(payload.name || "produk");
+  const timestamp = Date.now().toString().slice(-6);
+
+  return {
+    sku: `SKU-${timestamp}`,
+    code: `PRD-${timestamp}`,
+    slug: slug ? `${slug}-${timestamp}` : `produk-${timestamp}`,
+  };
 };
 
 const createEmptyPrice = (): ProductPricePayload => ({
@@ -8370,8 +8390,16 @@ export default function ProductsPage() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (payload: ProductPayload) =>
-      editing ? catalogService.updateProduct(editing.id, payload) : catalogService.createProduct(payload),
+    mutationFn: (payload: ProductPayload) => {
+      if (editing) {
+        return catalogService.updateProduct(editing.id, payload);
+      }
+
+      return catalogService.createProduct({
+        ...payload,
+        ...createProductIdentity(payload),
+      });
+    },
     onSuccess: (response) => {
       toast.success(response.message);
       setOpen(false);
@@ -8808,21 +8836,21 @@ export default function ProductsPage() {
                 />
 
                 <Input
-                  label="SKU"
-                  value={form.sku ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, sku: e.target.value }))}
+                  label="Harga Dasar"
+                  type="number"
+                  value={String(form.base_price ?? 0)}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      base_price: Number(e.target.value || 0),
+                    }))
+                  }
                 />
 
                 <Input
-                  label="Code"
-                  value={form.code ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, code: e.target.value }))}
-                />
-
-                <Input
-                  label="Slug"
-                  value={form.slug ?? ""}
-                  onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
+                  label="Image URL"
+                  value={form.image_url ?? ""}
+                  onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
                 />
 
                 <Input
@@ -19429,8 +19457,8 @@ export const kitchenService = {
 
 <a id="file-srcmodulesposcomponentsposcartpaneltsx"></a>
 ### src\modules\pos\components\PosCartPanel.tsx
-- SHA: `2e3554a7e459`  
-- Ukuran: 10 KB
+- SHA: `814d63bddc3a`  
+- Ukuran: 9 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
@@ -19511,196 +19539,194 @@ export function PosCartPanel({
   totalQty,
 }: PosCartPanelProps) {
   return (
-    <Card title="Cart & Checkout" description="Ringkasan order kasir dan aksi checkout.">
-      <div className="space-y-4">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">Order Channel</label>
-          <select
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            value={orderChannel}
-            onChange={(event) => onOrderChannelChange(event.target.value as PosOrderChannel)}
-          >
-            <option value="pos">pos</option>
-            <option value="takeaway">takeaway</option>
-            <option value="pickup">pickup</option>
-            <option value="dine_in">dine_in</option>
-            <option value="delivery">delivery</option>
-            <option value="website">website</option>
-          </select>
-        </div>
+    <div className="space-y-4">
+      <div>
+        <label className="mb-2 block text-sm font-medium text-slate-700">Order Channel</label>
+        <select
+          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+          value={orderChannel}
+          onChange={(event) => onOrderChannelChange(event.target.value as PosOrderChannel)}
+        >
+          <option value="pos">pos</option>
+          <option value="takeaway">takeaway</option>
+          <option value="pickup">pickup</option>
+          <option value="dine_in">dine_in</option>
+          <option value="delivery">delivery</option>
+          <option value="website">website</option>
+        </select>
+      </div>
 
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-sm font-semibold text-slate-900">Customer</div>
-            {customer ? (
-              <Button variant="outline" onClick={onClearCustomer}>
-                Lepas Customer
-              </Button>
-            ) : null}
-          </div>
-
+      <div className="rounded-2xl border border-slate-200 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-sm font-semibold text-slate-900">Customer</div>
           {customer ? (
-            <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
-              <div className="font-semibold text-slate-900">{customer.name}</div>
-              <div>{customer.phone ?? "-"}</div>
-              <div>{customer.email ?? "-"}</div>
-            </div>
-          ) : canSearchCustomer ? (
-            <div className="space-y-3">
-              <Input
-                placeholder="Cari customer minimal 2 huruf..."
-                value={customerSearch}
-                onChange={(event) => onCustomerSearchChange(event.target.value)}
-              />
-
-              {loadingCustomers ? (
-                <div className="text-sm text-slate-500">Mencari customer...</div>
-              ) : customerSearch.trim().length >= 2 && customerResults.length ? (
-                <div className="space-y-2">
-                  {customerResults.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      className="w-full rounded-xl border border-slate-200 p-3 text-left hover:bg-slate-50"
-                      onClick={() => onPickCustomer(entry)}
-                    >
-                      <div className="font-medium text-slate-900">{entry.name}</div>
-                      <div className="text-xs text-slate-500">
-                        {entry.phone ?? "-"} · {entry.email ?? "-"}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : customerSearch.trim().length >= 2 ? (
-                <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
-              ) : (
-                <div className="text-sm text-slate-500">
-                  Customer opsional. Bisa lanjut tanpa customer.
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-sm text-slate-500">
-              User ini tidak memiliki permission untuk mencari customer.
-            </div>
-          )}
+            <Button variant="outline" onClick={onClearCustomer}>
+              Lepas Customer
+            </Button>
+          ) : null}
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Button variant="outline" onClick={onHoldOrder}>
-            Hold Order
-          </Button>
-          <Button variant="outline" onClick={onRestoreHeldOrder} disabled={!hasHeldOrder}>
-            Restore Held
-          </Button>
-          <Button variant="danger" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
-            Hapus Held
-          </Button>
-        </div>
+        {customer ? (
+          <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700">
+            <div className="font-semibold text-slate-900">{customer.name}</div>
+            <div>{customer.phone ?? "-"}</div>
+            <div>{customer.email ?? "-"}</div>
+          </div>
+        ) : canSearchCustomer ? (
+          <div className="space-y-3">
+            <Input
+              placeholder="Cari customer minimal 2 huruf..."
+              value={customerSearch}
+              onChange={(event) => onCustomerSearchChange(event.target.value)}
+            />
 
-        {!items.length ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
-            Cart masih kosong.
+            {loadingCustomers ? (
+              <div className="text-sm text-slate-500">Mencari customer...</div>
+            ) : customerSearch.trim().length >= 2 && customerResults.length ? (
+              <div className="space-y-2">
+                {customerResults.map((entry) => (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    className="w-full rounded-xl border border-slate-200 p-3 text-left hover:bg-slate-50"
+                    onClick={() => onPickCustomer(entry)}
+                  >
+                    <div className="font-medium text-slate-900">{entry.name}</div>
+                    <div className="text-xs text-slate-500">
+                      {entry.phone ?? "-"} · {entry.email ?? "-"}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : customerSearch.trim().length >= 2 ? (
+              <div className="text-sm text-slate-500">Customer tidak ditemukan.</div>
+            ) : (
+              <div className="text-sm text-slate-500">
+                Customer opsional. Bisa lanjut tanpa customer.
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {items.map((item) => {
-              const unitPrice = getItemUnitPrice(item);
-              const lineTotal = getItemLineTotal(item);
-
-              return (
-                <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-semibold text-slate-900">{item.product_name}</div>
-                      <div className="text-xs text-slate-500">{formatCurrency(unitPrice)} / item</div>
-                    </div>
-
-                    <Badge variant={item.product_type === "bundle" ? "warning" : "info"}>
-                      {item.product_type}
-                    </Badge>
-                  </div>
-
-                  {item.selected_variants?.length ? (
-                    <div className="mt-3 space-y-1 text-xs text-slate-600">
-                      {item.selected_variants.map((entry, index) => (
-                        <div key={`${item.id}-variant-${index}`}>
-                          Variant: {entry.group_name} - {entry.option_name}
-                          {Number(entry.price_adjustment) > 0
-                            ? ` (+${formatCurrency(entry.price_adjustment)})`
-                            : ""}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {item.selected_modifiers?.length ? (
-                    <div className="mt-3 space-y-1 text-xs text-slate-600">
-                      {item.selected_modifiers.map((entry, index) => (
-                        <div key={`${item.id}-modifier-${index}`}>
-                          Modifier: {entry.group_name} - {entry.option_name} x{entry.qty}
-                          {Number(entry.price) > 0 ? ` (+${formatCurrency(entry.price)})` : ""}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  <div className="mt-3 grid gap-3">
-                    <div className="grid grid-cols-[90px_1fr_auto] items-center gap-3">
-                      <Input
-                        label="Qty"
-                        type="number"
-                        value={String(item.qty)}
-                        onChange={(event) =>
-                          onUpdateQty(item.id, Math.max(0, Number(event.target.value || 0)))
-                        }
-                      />
-
-                      <Input
-                        label="Catatan"
-                        value={item.notes}
-                        onChange={(event) => onUpdateNotes(item.id, event.target.value)}
-                        placeholder="Catatan item..."
-                      />
-
-                      <div className="pt-7">
-                        <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
-                          Hapus
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="text-right text-sm font-semibold text-slate-900">
-                      Line Total: {formatCurrency(lineTotal)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="text-sm text-slate-500">
+            User ini tidak memiliki permission untuk mencari customer.
           </div>
         )}
+      </div>
 
-        <div className="rounded-2xl bg-slate-900 p-4 text-white">
-          <div className="flex items-center justify-between text-sm">
-            <span>Total Item</span>
-            <span>{totalQty}</span>
-          </div>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-sm">Subtotal</span>
-            <span className="text-xl font-bold">{formatCurrency(subtotal)}</span>
-          </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <Button variant="outline" onClick={onHoldOrder}>
+          Hold Order
+        </Button>
+        <Button variant="outline" onClick={onRestoreHeldOrder} disabled={!hasHeldOrder}>
+          Restore Held
+        </Button>
+        <Button variant="danger" onClick={onDiscardHeldOrder} disabled={!hasHeldOrder}>
+          Hapus Held
+        </Button>
+      </div>
+
+      {!items.length ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">
+          Cart masih kosong.
         </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item) => {
+            const unitPrice = getItemUnitPrice(item);
+            const lineTotal = getItemLineTotal(item);
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="danger" onClick={onClearCart} disabled={!items.length}>
-            Clear Cart
-          </Button>
-          <Button onClick={onSubmitOrder} disabled={!items.length}>
-            Checkout & Payment
-          </Button>
+            return (
+              <div key={item.id} className="rounded-2xl border border-slate-200 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-slate-900">{item.product_name}</div>
+                    <div className="text-xs text-slate-500">{formatCurrency(unitPrice)} / item</div>
+                  </div>
+
+                  <Badge variant={item.product_type === "bundle" ? "warning" : "info"}>
+                    {item.product_type}
+                  </Badge>
+                </div>
+
+                {item.selected_variants?.length ? (
+                  <div className="mt-3 space-y-1 text-xs text-slate-600">
+                    {item.selected_variants.map((entry, index) => (
+                      <div key={`${item.id}-variant-${index}`}>
+                        Variant: {entry.group_name} - {entry.option_name}
+                        {Number(entry.price_adjustment) > 0
+                          ? ` (+${formatCurrency(entry.price_adjustment)})`
+                          : ""}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {item.selected_modifiers?.length ? (
+                  <div className="mt-3 space-y-1 text-xs text-slate-600">
+                    {item.selected_modifiers.map((entry, index) => (
+                      <div key={`${item.id}-modifier-${index}`}>
+                        Modifier: {entry.group_name} - {entry.option_name} x{entry.qty}
+                        {Number(entry.price) > 0 ? ` (+${formatCurrency(entry.price)})` : ""}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="mt-3 grid gap-3">
+                  <div className="grid grid-cols-[90px_1fr_auto] items-center gap-3">
+                    <Input
+                      label="Qty"
+                      type="number"
+                      value={String(item.qty)}
+                      onChange={(event) =>
+                        onUpdateQty(item.id, Math.max(0, Number(event.target.value || 0)))
+                      }
+                    />
+
+                    <Input
+                      label="Catatan"
+                      value={item.notes}
+                      onChange={(event) => onUpdateNotes(item.id, event.target.value)}
+                      placeholder="Catatan item..."
+                    />
+
+                    <div className="pt-7">
+                      <Button variant="danger" onClick={() => onRemoveItem(item.id)}>
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="text-right text-sm font-semibold text-slate-900">
+                    Line Total: {formatCurrency(lineTotal)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-slate-900 p-4 text-white">
+        <div className="flex items-center justify-between text-sm">
+          <span>Total Item</span>
+          <span>{totalQty}</span>
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-sm">Subtotal</span>
+          <span className="text-xl font-bold">{formatCurrency(subtotal)}</span>
         </div>
       </div>
-    </Card>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button variant="danger" onClick={onClearCart} disabled={!items.length}>
+          Clear Cart
+        </Button>
+        <Button onClick={onSubmitOrder} disabled={!items.length}>
+          Checkout & Payment
+        </Button>
+      </div>
+    </div>
   );
 }
 ```
@@ -22188,15 +22214,15 @@ function SummaryRow({
 
 <a id="file-srcmodulespospagesposorderspagetsx"></a>
 ### src\modules\pos\pages\PosOrdersPage.tsx
-- SHA: `bdf3a19fc668`  
-- Ukuran: 26 KB
+- SHA: `5f8204dc33e3`  
+- Ukuran: 27 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Badge, Button, Card, Input } from "@/components/ui";
+import { Badge, Button, Card, Modal, Input } from "@/components/ui";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
 import { PageEmptyState } from "@/components/feedback/PageEmptyState";
@@ -22445,6 +22471,7 @@ export default function PosOrdersPage() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [configProduct, setConfigProduct] = useState<Product | null>(null);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<PosVoucher | null>(null);
@@ -22817,7 +22844,7 @@ export default function PosOrdersPage() {
           title="POS Checkout & Payment"
           description="Katalog cepat, cart interaktif, voucher, split payment, dan receipt print."
           actions={
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant={openShiftQuery.data?.id ? "success" : "danger"}>
                 Shift: {openShiftQuery.data?.id ? "Open" : "Belum Open"}
               </Badge>
@@ -22825,6 +22852,19 @@ export default function PosOrdersPage() {
               <Badge variant="success">
                 Mode: Backend Orders + Payments
               </Badge>
+
+              <Button
+                type="button"
+                className="relative bg-orange-600 text-white hover:bg-orange-700"
+                onClick={() => setCartOpen(true)}
+              >
+                🛒 Keranjang
+                {totalQty > 0 ? (
+                  <span className="ml-2 rounded-full bg-yellow-300 px-2 py-0.5 text-xs font-bold text-slate-950">
+                    {totalQty}
+                  </span>
+                ) : null}
+              </Button>
             </div>
           }
         />
@@ -22837,7 +22877,7 @@ export default function PosOrdersPage() {
           </Card>
         ) : null}
 
-        <div className="grid gap-4 xl:grid-cols-[1.6fr_0.9fr]">
+        <div className="grid gap-4">
           <div className="space-y-4">
             <Card>
               <div className="grid gap-3 md:grid-cols-[1fr_auto]">
@@ -22929,30 +22969,39 @@ export default function PosOrdersPage() {
             )}
           </div>
 
-          <PosCartPanel
-            items={items}
-            customer={customer}
-            customerSearch={customerSearch}
-            onCustomerSearchChange={setCustomerSearch}
-            customerResults={customerOptions}
-            canSearchCustomer={canViewCustomers}
-            loadingCustomers={customersQuery.isFetching}
-            orderChannel={orderChannel}
-            onOrderChannelChange={setOrderChannel}
-            onPickCustomer={handlePickCustomer}
-            onClearCustomer={() => setCustomer(null)}
-            onUpdateQty={updateQty}
-            onUpdateNotes={updateNotes}
-            onRemoveItem={removeItem}
-            onClearCart={handleClearCart}
-            onHoldOrder={handleHoldOrder}
-            onRestoreHeldOrder={handleRestoreHeld}
-            onDiscardHeldOrder={handleDiscardHeld}
-            hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
-            onSubmitOrder={handleSubmitOrder}
-            subtotal={subtotal}
-            totalQty={totalQty}
-          />
+          <Modal
+            open={cartOpen}
+            title="Cart & Checkout"
+            description="Ringkasan pesanan dan proses checkout"
+            onClose={() => setCartOpen(false)}
+          >
+            <div className="max-h-[75vh] overflow-y-auto pr-1">
+              <PosCartPanel
+                items={items}
+                customer={customer}
+                customerSearch={customerSearch}
+                onCustomerSearchChange={setCustomerSearch}
+                customerResults={customerOptions}
+                canSearchCustomer={canViewCustomers}
+                loadingCustomers={customersQuery.isFetching}
+                orderChannel={orderChannel}
+                onOrderChannelChange={setOrderChannel}
+                onPickCustomer={handlePickCustomer}
+                onClearCustomer={() => setCustomer(null)}
+                onUpdateQty={updateQty}
+                onUpdateNotes={updateNotes}
+                onRemoveItem={removeItem}
+                onClearCart={handleClearCart}
+                onHoldOrder={handleHoldOrder}
+                onRestoreHeldOrder={handleRestoreHeld}
+                onDiscardHeldOrder={handleDiscardHeld}
+                hasHeldOrder={Boolean(usePosCartStore.getState().heldCartMeta)}
+                onSubmitOrder={handleSubmitOrder}
+                subtotal={subtotal}
+                totalQty={totalQty}
+              />
+            </div>
+          </Modal>
         </div>
 
         <PosProductConfiguratorModal
@@ -26093,12 +26142,13 @@ export function AppShell({
 
 <a id="file-srccomponentsnavigationappsidebartsx"></a>
 ### src\components\navigation\AppSidebar.tsx
-- SHA: `3ca607cd9f18`  
-- Ukuran: 4 KB
+- SHA: `1e209aa19c4a`  
+- Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
-import { NavLink } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import type { NavigationItem } from "./navigation.config";
 import { usePermission } from "@/hooks/usePermission";
 
@@ -26108,6 +26158,14 @@ interface AppSidebarProps {
   dark?: boolean;
   open?: boolean;
   onClose?: () => void;
+}
+
+function groupNavigationItems(items: NavigationItem[]) {
+  return items.reduce<Record<string, NavigationItem[]>>((groups, item) => {
+    const section = item.section ?? "Menu";
+    groups[section] = [...(groups[section] ?? []), item];
+    return groups;
+  }, {});
 }
 
 function SidebarLink({
@@ -26132,21 +26190,18 @@ function SidebarLink({
       onClick={onClick}
       className={({ isActive }) =>
         [
-          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          dark ? "focus-visible:ring-slate-600" : "focus-visible:ring-[var(--brand-brick)]",
-
+          "block rounded-xl px-3 py-2 text-sm font-medium transition",
           dark
             ? isActive
-              ? "bg-slate-800 text-white shadow-sm ring-1 ring-slate-700"
+              ? "bg-slate-800 text-white"
               : "text-slate-300 hover:bg-slate-900 hover:text-white"
             : isActive
-              ? "bg-[var(--brand-brick)] text-white shadow-sm ring-1 ring-[var(--brand-brick-dark)]"
-              : "text-white/90 hover:bg-[var(--brand-brick-soft)] hover:text-[var(--brand-brick)]",
+              ? "bg-[var(--brand-brick)] text-white shadow-sm"
+              : "text-slate-700 hover:bg-[var(--brand-brick-soft)] hover:text-[var(--brand-brick)]",
         ].join(" ")
       }
     >
-      <span className="truncate">{item.label}</span>
+      {item.label}
     </NavLink>
   );
 }
@@ -26158,6 +26213,29 @@ export function AppSidebar({
   open = false,
   onClose,
 }: AppSidebarProps) {
+  const location = useLocation();
+  const groupedItems = useMemo(() => groupNavigationItems(items), [items]);
+
+  const defaultOpenSections = useMemo(() => {
+    return Object.entries(groupedItems)
+      .filter(([, sectionItems]) =>
+        sectionItems.some(
+          (item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+        )
+      )
+      .map(([section]) => section);
+  }, [groupedItems, location.pathname]);
+
+  const [openSections, setOpenSections] = useState<string[]>(defaultOpenSections);
+
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) =>
+      prev.includes(section)
+        ? prev.filter((item) => item !== section)
+        : [...prev, section]
+    );
+  };
+
   return (
     <>
       <div
@@ -26183,14 +26261,24 @@ export function AppSidebar({
             dark ? "border-b border-slate-800" : "border-b border-[var(--color-border)]",
           ].join(" ")}
         >
-          <span
-            className={[
-              "truncate text-base font-semibold tracking-tight",
-              dark ? "text-white" : "text-[var(--color-text)]",
-            ].join(" ")}
-          >
-            {title}
-          </span>
+          <div className="min-w-0">
+            <p
+              className={[
+                "truncate text-base font-bold tracking-tight",
+                dark ? "text-white" : "text-[var(--brand-brick)]",
+              ].join(" ")}
+            >
+              Chicken Alibaba
+            </p>
+            <p
+              className={[
+                "mt-0.5 truncate text-xs",
+                dark ? "text-slate-400" : "text-slate-500",
+              ].join(" ")}
+            >
+              {title}
+            </p>
+          </div>
 
           <button
             type="button"
@@ -26199,7 +26287,7 @@ export function AppSidebar({
               "inline-flex h-9 w-9 items-center justify-center rounded-xl text-lg transition lg:hidden",
               dark
                 ? "text-slate-300 hover:bg-slate-900 hover:text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                : "text-slate-500 hover:bg-orange-50 hover:text-[var(--brand-brick)]",
             ].join(" ")}
             aria-label="Tutup menu navigasi"
           >
@@ -26207,15 +26295,59 @@ export function AppSidebar({
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {items.map((item) => (
-            <SidebarLink
-              key={item.to}
-              item={item}
-              dark={dark}
-              onClick={onClose}
-            />
-          ))}
+        <nav className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+          <div className="space-y-2">
+            {Object.entries(groupedItems).map(([section, sectionItems]) => {
+              const expanded = openSections.includes(section);
+
+              return (
+                <div
+                  key={section}
+                  className={[
+                    "rounded-2xl border",
+                    dark
+                      ? "border-slate-800 bg-slate-950"
+                      : "border-orange-100 bg-orange-50/30",
+                  ].join(" ")}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section)}
+                    className={[
+                      "flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm font-semibold transition",
+                      dark
+                        ? "text-slate-100 hover:bg-slate-900"
+                        : "text-slate-900 hover:bg-orange-50",
+                    ].join(" ")}
+                  >
+                    <span>{section}</span>
+                    <span
+                      className={[
+                        "text-xs transition-transform",
+                        expanded ? "rotate-180" : "rotate-0",
+                        dark ? "text-slate-400" : "text-[var(--brand-brick)]",
+                      ].join(" ")}
+                    >
+                      ▼
+                    </span>
+                  </button>
+
+                  {expanded ? (
+                    <div className="space-y-1 px-2 pb-3">
+                      {sectionItems.map((item) => (
+                        <SidebarLink
+                          key={item.to}
+                          item={item}
+                          dark={dark}
+                          onClick={onClose}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         </nav>
       </aside>
     </>
@@ -26289,8 +26421,8 @@ export function AppTopbar({
 
 <a id="file-srccomponentsnavigationnavigationconfigts"></a>
 ### src\components\navigation\navigation.config.ts
-- SHA: `a04eccd61520`  
-- Ukuran: 3 KB
+- SHA: `433e57bdd5fb`  
+- Ukuran: 4 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```ts
@@ -26298,65 +26430,63 @@ export interface NavigationItem {
   label: string;
   to: string;
   permission?: string;
+  section?: string;
 }
 
 export const adminNavigation: NavigationItem[] = [
-  { label: "Dashboard", to: "/admin" },
+  { label: "Dashboard", to: "/admin", section: "Utama" },
+  { label: "Reports", to: "/admin/reports", permission: "reports.view", section: "Utama" },
 
-  { label: "Users", to: "/admin/users", permission: "users.view" },
-  { label: "Roles", to: "/admin/roles", permission: "roles.view" },
-  { label: "Permissions", to: "/admin/permissions", permission: "permissions.view" },
+  { label: "Products", to: "/admin/products", permission: "products.view", section: "Katalog" },
+  { label: "Product Categories", to: "/admin/product-categories", permission: "product_categories.view", section: "Katalog" },
+  { label: "Product Variants", to: "/admin/product-variants", permission: "products.view", section: "Katalog" },
+  { label: "Product Modifiers", to: "/admin/product-modifiers", permission: "products.view", section: "Katalog" },
+  { label: "Product Bundles", to: "/admin/product-bundles", permission: "products.view", section: "Katalog" },
 
-  { label: "Outlets", to: "/admin/outlets", permission: "outlets.view" },
-  { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view" },
+  { label: "Customers", to: "/admin/customers", permission: "customers.view", section: "Penjualan" },
+  { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view", section: "Penjualan" },
+  { label: "Promotions", to: "/admin/promotions", permission: "promotions.view", section: "Penjualan" },
+  { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view", section: "Penjualan" },
 
-  { label: "Product Categories", to: "/admin/product-categories", permission: "product_categories.view" },
-  { label: "Products", to: "/admin/products", permission: "products.view" },
-  { label: "Product Variants", to: "/admin/product-variants", permission: "products.view" },
-  { label: "Product Modifiers", to: "/admin/product-modifiers", permission: "products.view" },
-  { label: "Product Bundles", to: "/admin/product-bundles", permission: "products.view" },
+  { label: "Units", to: "/admin/units", permission: "units.view", section: "Inventori" },
+  { label: "Raw Material Categories", to: "/admin/raw-material-categories", permission: "raw_material_categories.view", section: "Inventori" },
+  { label: "Raw Materials", to: "/admin/raw-materials", permission: "raw_materials.view", section: "Inventori" },
+  { label: "Outlet Material Stocks", to: "/admin/outlet-material-stocks", permission: "outlet_material_stocks.view", section: "Inventori" },
+  { label: "Product BOM", to: "/admin/product-boms", permission: "product_boms.view", section: "Inventori" },
+  { label: "Stock Movements", to: "/admin/stock-movements", permission: "stock_movements.view", section: "Inventori" },
 
-  { label: "Units", to: "/admin/units", permission: "units.view" },
-  { label: "Raw Material Categories", to: "/admin/raw-material-categories", permission: "raw_material_categories.view" },
-  { label: "Raw Materials", to: "/admin/raw-materials", permission: "raw_materials.view" },
-  { label: "Outlet Material Stocks", to: "/admin/outlet-material-stocks", permission: "outlet_material_stocks.view" },
-  { label: "Product BOM", to: "/admin/product-boms", permission: "product_boms.view" },
+  { label: "Suppliers", to: "/admin/suppliers", permission: "suppliers.view", section: "Pembelian" },
+  { label: "Purchase Orders", to: "/admin/purchase-orders", permission: "purchase_orders.view", section: "Pembelian" },
+  { label: "Goods Receipts", to: "/admin/goods-receipts", permission: "goods_receipts.view", section: "Pembelian" },
 
-  { label: "Suppliers", to: "/admin/suppliers", permission: "suppliers.view" },
-  { label: "Purchase Orders", to: "/admin/purchase-orders", permission: "purchase_orders.view" },
-  { label: "Goods Receipts", to: "/admin/goods-receipts", permission: "goods_receipts.view" },
-  { label: "Stock Movements", to: "/admin/stock-movements", permission: "stock_movements.view" },
+  { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view", section: "Operasional" },
+  { label: "Expenses", to: "/admin/expenses", permission: "expenses.view", section: "Operasional" },
+  { label: "Notifications", to: "/admin/notifications", permission: "notifications.view", section: "Operasional" },
+  { label: "Critical Alerts", to: "/admin/critical-alerts", permission: "notifications.view", section: "Operasional" },
+  { label: "Activity Logs", to: "/admin/activity-logs", permission: "activity_logs.view", section: "Operasional" },
 
-  { label: "Customers", to: "/admin/customers", permission: "customers.view" },
-  { label: "Vouchers", to: "/admin/vouchers", permission: "vouchers.view" },
-  { label: "Promotions", to: "/admin/promotions", permission: "promotions.view" },
-
-  { label: "Expense Categories", to: "/admin/expense-categories", permission: "expense_categories.view" },
-  { label: "Expenses", to: "/admin/expenses", permission: "expenses.view" },
-  { label: "Cash Movements", to: "/admin/cash-movements", permission: "cash_movements.view" },
-
-  { label: "Notifications", to: "/admin/notifications", permission: "notifications.view" },
-  { label: "Critical Alerts", to: "/admin/critical-alerts", permission: "notifications.view" },
-  { label: "Activity Logs", to: "/admin/activity-logs", permission: "activity_logs.view" },
-
-  { label: "Reports", to: "/admin/reports", permission: "reports.view" },
+  { label: "Outlets", to: "/admin/outlets", permission: "outlets.view", section: "Pengaturan" },
+  { label: "Users", to: "/admin/users", permission: "users.view", section: "Pengaturan" },
+  { label: "Roles", to: "/admin/roles", permission: "roles.view", section: "Pengaturan" },
+  { label: "Permissions", to: "/admin/permissions", permission: "permissions.view", section: "Pengaturan" },
+  { label: "System Settings", to: "/admin/system-settings", permission: "system_settings.view", section: "Pengaturan" },
 ];
 
 export const posNavigation: NavigationItem[] = [
-  { label: "POS Home", to: "/pos" },
-  { label: "Checkout", to: "/pos/orders", permission: "orders.create" },
-  { label: "Riwayat Pesanan", to: "/pos/order-history", permission: "orders.view" },
-  { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view" },
+  { label: "POS Home", to: "/pos", section: "Kasir" },
+  { label: "Checkout", to: "/pos/orders", permission: "orders.create", section: "Kasir" },
+  { label: "Riwayat Pesanan", to: "/pos/order-history", permission: "orders.view", section: "Kasir" },
+  { label: "Shifts", to: "/pos/shifts", permission: "cashier_shifts.view", section: "Kasir" },
 ];
 
 export const kitchenNavigation: NavigationItem[] = [
-  { label: "Kitchen Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view" },
-  { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view" },
+  { label: "Kitchen Tickets", to: "/kitchen/tickets", permission: "kitchen_tickets.view", section: "Dapur" },
+  { label: "Ready Queue", to: "/kitchen/ready", permission: "kitchen_tickets.view", section: "Dapur" },
 ];
 
 export const ownerNavigation: NavigationItem[] = [
-  { label: "Overview", to: "/owner/overview", permission: "reports.view" },
-  { label: "Reports", to: "/owner/reports", permission: "reports.view" },
+  { label: "Overview", to: "/owner/overview", permission: "reports.view", section: "Owner" },
+  { label: "Reports", to: "/owner/reports", permission: "reports.view", section: "Owner" },
 ];
 ```
 </details>
