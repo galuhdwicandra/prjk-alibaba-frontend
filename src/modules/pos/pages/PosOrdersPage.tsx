@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { PageHeader } from "@/components/navigation/PageHeader";
 import { PermissionWrapper } from "@/components/navigation/PermissionWrapper";
@@ -11,6 +11,7 @@ import { usePermission } from "@/hooks/usePermission";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
 import { posService } from "@/modules/pos/services/pos.service";
+import { parseApiError } from "@/services/api/error-parser";
 import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
 import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
 import { PosPaymentModal } from "@/modules/pos/components/PosPaymentModal";
@@ -287,7 +288,37 @@ export default function PosOrdersPage() {
     retry: 0,
   });
 
-  const paymentMethods = useMemo(() => posService.getPaymentMethods(), []);
+  const paymentMethodsQuery = useQuery({
+    queryKey: ["pos-payment-methods"],
+    queryFn: () => posService.getPaymentMethods({ per_page: 100, is_active: true }),
+  });
+
+  const openShiftQuery = useQuery({
+    queryKey: ["pos-open-cashier-shift", activeOutletId],
+    queryFn: () => posService.getOpenCashierShift(Number(activeOutletId)),
+    enabled: Boolean(activeOutletId),
+  });
+
+  const checkoutMutation = useMutation({
+    mutationFn: posService.submitBackendCheckout,
+    onSuccess: (result) => {
+      setLatestReceipt(result.receipt);
+      setPaymentOpen(false);
+      setSuccessOpen(true);
+
+      clearCart();
+      setVoucherCode("");
+      setAppliedVoucher(null);
+      setVoucherDiscount(0);
+
+      toast.success("Checkout selesai", result.message);
+    },
+    onError: (error) => {
+      toast.error("Checkout gagal", parseApiError(error));
+    },
+  });
+
+  const paymentMethods = paymentMethodsQuery.data?.items ?? [];
 
   const categoryOptions = categoriesQuery.data?.items ?? [];
   const rawProducts = productsQuery.data?.items ?? [];
@@ -483,8 +514,23 @@ export default function PosOrdersPage() {
       return;
     }
 
+    if (!items.length) {
+      toast.warning("Cart kosong", "Tambahkan produk dulu sebelum checkout.");
+      return;
+    }
+
+    if (!paymentMethods.length) {
+      toast.warning(
+        "Metode pembayaran kosong",
+        "Data metode pembayaran belum tersedia dari backend."
+      );
+      return;
+    }
+
     const hasInvalidReference = payload.payments.some((payment) => {
-      const method = paymentMethods.find((entry) => entry.code === payment.payment_method_code);
+      const method = paymentMethods.find(
+        (entry) => entry.code === payment.payment_method_code
+      );
 
       if (!method?.requires_reference) {
         return false;
@@ -496,53 +542,42 @@ export default function PosOrdersPage() {
     if (hasInvalidReference) {
       toast.warning(
         "Reference number wajib",
-        "QRIS atau transfer harus memiliki reference number."
+        "QRIS, transfer, atau e-wallet harus memiliki reference number."
       );
       return;
     }
 
-    const paymentStatus = payload.totals.remaining > 0 ? "pending" : "success";
+    const hasCashPayment = payload.payments.some((payment) => {
+      const method = paymentMethods.find(
+        (entry) => entry.code === payment.payment_method_code
+      );
 
-    const result = posService.submitCheckoutDraft({
+      return method?.type === "cash" || method?.code === "cash";
+    });
+
+    if (hasCashPayment && !openShiftQuery.data?.id) {
+      toast.warning(
+        "Shift kasir belum dibuka",
+        "Pembayaran tunai wajib memakai shift kasir dengan status open."
+      );
+      return;
+    }
+
+    checkoutMutation.mutate({
+      outlet_id: Number(activeOutletId),
+      cashier_shift_id: openShiftQuery.data?.id ?? null,
+      customer_id: customer?.id ?? null,
+      customer_name: customer?.name ?? null,
+      customer_phone: customer?.phone ?? null,
       outlet_name: currentOutletName,
       cashier_name: user?.name ?? "Kasir",
       order_channel: orderChannel,
-      customer_name: customer?.name ?? null,
-      customer_phone: customer?.phone ?? null,
       voucher_code: appliedVoucher?.code ?? null,
-      subtotal: payload.totals.subtotal,
-      discount_amount: payload.totals.discount,
-      tax_amount: payload.totals.tax,
-      service_charge_amount: payload.totals.serviceCharge,
-      grand_total: payload.totals.grandTotal,
-      paid_total: payload.totals.paidTotal,
-      change_amount: payload.totals.changeAmount,
-      payment_status: paymentStatus,
+      totals: payload.totals,
       payments: payload.payments,
-      items: items.map((item) => ({
-        product_name: item.product_name,
-        qty: item.qty,
-        unit_price: getCartItemUnitPrice(item),
-        notes: item.notes,
-        variants: item.selected_variants,
-        modifiers: item.selected_modifiers,
-        line_total: getCartItemUnitPrice(item) * Number(item.qty || 0),
-      })),
+      payment_methods: paymentMethods,
+      items,
     });
-
-    setLatestReceipt(result.receipt);
-    setPaymentOpen(false);
-    setSuccessOpen(true);
-
-    clearCart();
-    setVoucherCode("");
-    setAppliedVoucher(null);
-    setVoucherDiscount(0);
-
-    toast.success(
-      paymentStatus === "success" ? "Checkout selesai" : "Checkout pending",
-      result.message
-    );
   };
 
   const handleReprintReceipt = (receipt: PosReceiptSnapshot) => {
@@ -567,11 +602,12 @@ export default function PosOrdersPage() {
           description="Katalog cepat, cart interaktif, voucher, split payment, dan receipt print."
           actions={
             <div className="flex flex-wrap gap-2">
-              <Badge variant="info">
-                Outlet: {currentOutletName}
+              <Badge variant={openShiftQuery.data?.id ? "success" : "danger"}>
+                Shift: {openShiftQuery.data?.id ? "Open" : "Belum Open"}
               </Badge>
-              <Badge variant="warning">
-                Mode: Hybrid Voucher API + Checkout Draft
+
+              <Badge variant="success">
+                Mode: Backend Orders + Payments
               </Badge>
             </div>
           }
@@ -731,6 +767,7 @@ export default function PosOrdersPage() {
           appliedVoucher={appliedVoucher}
           onVoucherCodeChange={setVoucherCode}
           onRemoveVoucher={handleRemoveVoucher}
+          confirming={checkoutMutation.isPending}
           onConfirm={handleConfirmCheckout}
         />
 

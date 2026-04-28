@@ -185,7 +185,9 @@ export const endpoints = {
   },
 
   receiptPrints: {
-    show: (orderId: number | string) => `/orders/${orderId}/receipt`,
+    print: (orderId: number | string) => `/orders/${orderId}/receipt/print`,
+    pdf: (orderId: number | string) => `/orders/${orderId}/receipt/pdf`,
+    reprint: (orderId: number | string) => `/orders/${orderId}/receipt/reprint`,
   },
 
   cashierShifts: {

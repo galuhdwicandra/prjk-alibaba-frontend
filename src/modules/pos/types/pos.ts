@@ -102,6 +102,7 @@ export interface PosCartState {
 }
 
 export interface PosPaymentMethodOption {
+  id: number;
   code: string;
   name: string;
   type: "cash" | "qris" | "transfer" | "ewallet" | "other";

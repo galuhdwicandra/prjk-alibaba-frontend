@@ -29,6 +29,7 @@ interface PosPaymentModalProps {
   appliedVoucher: PosVoucher | null;
   onVoucherCodeChange: (value: string) => void;
   onRemoveVoucher: () => void;
+  confirming?: boolean;
   onConfirm: (payload: {
     payments: PosPaymentSplitRow[];
     totals: PosCheckoutTotals;
@@ -70,6 +71,7 @@ export function PosPaymentModal({
   appliedVoucher,
   onVoucherCodeChange,
   onRemoveVoucher,
+  confirming = false,
   onConfirm,
 }: PosPaymentModalProps) {
   const [payments, setPayments] = useState<PosPaymentSplitRow[]>([createPaymentRow("cash")]);
@@ -116,9 +118,9 @@ export function PosPaymentModal({
       prev.map((row) =>
         row.id === rowId
           ? {
-              ...row,
-              [key]: value,
-            }
+            ...row,
+            [key]: value,
+          }
           : row
       )
     );
@@ -148,15 +150,19 @@ export function PosPaymentModal({
       prev.map((row) =>
         row.id === cashRow.id
           ? {
-              ...row,
-              amount: totals.grandTotal,
-            }
+            ...row,
+            amount: totals.grandTotal,
+          }
           : row
       )
     );
   };
 
   const handleConfirm = () => {
+    if (confirming) {
+      return;
+    }
+
     if (!items.length) {
       return;
     }
@@ -185,11 +191,15 @@ export function PosPaymentModal({
       onClose={onClose}
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={confirming}>
             Batal
           </Button>
-          <Button onClick={handleConfirm} disabled={!items.length || totals.paidTotal <= 0}>
-            Selesaikan Checkout
+          <Button
+            loading={confirming}
+            onClick={handleConfirm}
+            disabled={!items.length || totals.paidTotal <= 0 || confirming}
+          >
+            Simpan Transaksi
           </Button>
         </>
       }

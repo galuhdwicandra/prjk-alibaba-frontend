@@ -1,10 +1,12 @@
 import { apiClient } from "@/services/api/api-client";
 import { endpoints } from "@/services/api/endpoints";
 import type { ApiMeta, ApiResponse } from "@/types/api";
+import type { CashierShift } from "@/types/cashier-shift";
 import type { Customer } from "@/types/customer";
 import type { Product, ProductCategory } from "@/types/product";
 import type {
-  PosCheckoutDraftResult,
+  PosCartItem,
+  PosCheckoutTotals,
   PosOrderChannel,
   PosPaymentMethodOption,
   PosPaymentSplitRow,
@@ -40,23 +42,106 @@ export interface PosPaginatedResult<T> {
   message: string;
 }
 
-export interface SubmitCheckoutDraftPayload {
-  outlet_name: string;
-  cashier_name: string;
+export interface PosCreateOrderItemPayload {
+  product_id: number;
+  qty: number;
+  discount_amount?: number;
+  notes?: string | null;
+  variants?: Array<{
+    variant_group_name_snapshot: string;
+    variant_option_name_snapshot: string;
+    price_adjustment: number;
+  }>;
+  modifiers?: Array<{
+    modifier_group_name_snapshot: string;
+    modifier_option_name_snapshot: string;
+    qty: number;
+    price: number;
+  }>;
+}
+
+export interface PosCreateOrderPayload {
+  outlet_id: number;
+  cashier_shift_id: number | null;
+  customer_id: number | null;
   order_channel: PosOrderChannel;
-  customer_name?: string | null;
-  customer_phone?: string | null;
-  voucher_code?: string | null;
-  subtotal: number;
+  order_status: "draft" | "pending" | "confirmed";
+  payment_status: "unpaid" | "partial" | "paid" | "refunded" | "cancelled";
   discount_amount: number;
   tax_amount: number;
   service_charge_amount: number;
-  grand_total: number;
   paid_total: number;
   change_amount: number;
-  payment_status: "pending" | "success";
+  notes?: string | null;
+  ordered_at?: string;
+  items: PosCreateOrderItemPayload[];
+}
+
+export interface PosPaymentPayload {
+  order_id: number;
+  payment_method_id: number;
+  amount: number;
+  reference_number?: string | null;
+  paid_at?: string;
+  status: "pending" | "paid" | "failed" | "cancelled" | "refunded";
+  notes?: string | null;
+}
+
+export interface PosOrderResponse {
+  id: number;
+  outlet_id: number;
+  cashier_shift_id: number | null;
+  customer_id: number | null;
+  order_number: string;
+  queue_number: string | null;
+  order_channel: PosOrderChannel;
+  order_status: string;
+  payment_status: string;
+  subtotal: number | string;
+  discount_amount: number | string;
+  tax_amount: number | string;
+  service_charge_amount: number | string;
+  grand_total: number | string;
+  paid_total: number | string;
+  change_amount: number | string;
+  notes: string | null;
+  ordered_at: string;
+}
+
+export interface PosPaymentResponse {
+  id: number;
+  order_id: number;
+  payment_method_id: number;
+  amount: number | string;
+  reference_number: string | null;
+  paid_at: string;
+  status: string;
+  notes: string | null;
+}
+
+export interface PosBackendCheckoutPayload {
+  outlet_id: number;
+  cashier_shift_id: number | null;
+  customer_id: number | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  outlet_name: string;
+  cashier_name: string;
+  order_channel: PosOrderChannel;
+  voucher_code?: string | null;
+  totals: PosCheckoutTotals;
   payments: PosPaymentSplitRow[];
-  items: PosReceiptItemSnapshot[];
+  payment_methods: PosPaymentMethodOption[];
+  items: PosCartItem[];
+}
+
+export interface PosBackendCheckoutResult {
+  message: string;
+  order: PosOrderResponse;
+  payments: PosPaymentResponse[];
+  receipt: PosReceiptSnapshot;
+  print_url: string;
+  pdf_url: string;
 }
 
 const unwrapPaginated = <T>(response: ApiResponse<T[]>): PosPaginatedResult<T> => ({
@@ -65,25 +150,91 @@ const unwrapPaginated = <T>(response: ApiResponse<T[]>): PosPaginatedResult<T> =
   message: response.message,
 });
 
-const RECEIPT_DRAFTS_STORAGE_KEY = "chicken-alibaba-pos-receipt-drafts";
-
-const formatOrderNumber = () => {
-  const now = new Date();
-  const stamp = [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0"),
-    String(now.getHours()).padStart(2, "0"),
-    String(now.getMinutes()).padStart(2, "0"),
-    String(now.getSeconds()).padStart(2, "0"),
-  ].join("");
-
-  return `ORD-${stamp}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-};
-
 const parseNumber = (value: number | string | null | undefined) => Number(value ?? 0);
 
-const nowIsoLocal = () => new Date().toISOString();
+const nowIsoLocal = () => {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60_000;
+
+  return new Date(now.getTime() - offsetMs)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+};
+
+const isReferenceRequired = (type: string | undefined, code: string | undefined) => {
+  return ["qris", "transfer", "ewallet"].includes(String(type ?? code ?? "").toLowerCase());
+};
+
+const getCartItemUnitPrice = (item: PosCartItem) => {
+  const variantsTotal = item.selected_variants.reduce(
+    (sum, variant) => sum + parseNumber(variant.price_adjustment),
+    0
+  );
+
+  const modifiersTotal = item.selected_modifiers.reduce(
+    (sum, modifier) => sum + parseNumber(modifier.price) * parseNumber(modifier.qty),
+    0
+  );
+
+  return parseNumber(item.base_unit_price) + variantsTotal + modifiersTotal;
+};
+
+const mapReceiptItemsFromCart = (items: PosCartItem[]): PosReceiptItemSnapshot[] => {
+  return items.map((item) => ({
+    product_name: item.product_name,
+    qty: item.qty,
+    unit_price: getCartItemUnitPrice(item),
+    notes: item.notes,
+    variants: item.selected_variants,
+    modifiers: item.selected_modifiers,
+    line_total: getCartItemUnitPrice(item) * parseNumber(item.qty),
+  }));
+};
+
+const mapOrderItemsFromCart = (items: PosCartItem[]): PosCreateOrderItemPayload[] => {
+  return items.map((item) => ({
+    product_id: item.product_id,
+    qty: item.qty,
+    discount_amount: 0,
+    notes: item.notes || null,
+    variants: item.selected_variants.map((variant) => ({
+      variant_group_name_snapshot: variant.group_name,
+      variant_option_name_snapshot: variant.option_name,
+      price_adjustment: parseNumber(variant.price_adjustment),
+    })),
+    modifiers: item.selected_modifiers.map((modifier) => ({
+      modifier_group_name_snapshot: modifier.group_name,
+      modifier_option_name_snapshot: modifier.option_name,
+      qty: parseNumber(modifier.qty),
+      price: parseNumber(modifier.price),
+    })),
+  }));
+};
+
+const buildReceiptFromCheckout = (
+  payload: PosBackendCheckoutPayload,
+  order: PosOrderResponse
+): PosReceiptSnapshot => ({
+  order_number: order.order_number,
+  order_channel: payload.order_channel,
+  outlet_name: payload.outlet_name,
+  cashier_name: payload.cashier_name,
+  customer_name: payload.customer_name ?? null,
+  customer_phone: payload.customer_phone ?? null,
+  ordered_at: order.ordered_at ?? nowIsoLocal(),
+  voucher_code: payload.voucher_code ?? null,
+  subtotal: payload.totals.subtotal,
+  discount_amount: payload.totals.discount,
+  tax_amount: payload.totals.tax,
+  service_charge_amount: payload.totals.serviceCharge,
+  grand_total: payload.totals.grandTotal,
+  paid_total: payload.totals.paidTotal,
+  change_amount: payload.totals.changeAmount,
+  payment_status: payload.totals.remaining > 0 ? "pending" : "success",
+  payments: payload.payments,
+  items: mapReceiptItemsFromCart(payload.items),
+});
 
 export const posService = {
   async getProductCategories(params: PosPaginationQuery = {}) {
@@ -119,32 +270,48 @@ export const posService = {
     return unwrapPaginated(response.data);
   },
 
-  getPaymentMethods(): PosPaymentMethodOption[] {
-    return [
+  async getPaymentMethods(params: PosPaginationQuery = {}) {
+    const response = await apiClient.get<ApiResponse<PosPaymentMethodOption[]>>(
+      endpoints.paymentMethods.index,
       {
-        code: "cash",
-        name: "Tunai",
-        type: "cash",
-        is_active: true,
-        allow_overpay: true,
-      },
+        params: {
+          per_page: 100,
+          is_active: true,
+          ...params,
+        },
+      }
+    );
+
+    const result = unwrapPaginated(response.data);
+
+    return {
+      ...result,
+      items: result.items.map((method) => {
+        const isCash = method.type === "cash" || method.code === "cash";
+
+        return {
+          ...method,
+          requires_reference:
+            method.requires_reference ?? isReferenceRequired(method.type, method.code),
+          allow_overpay: method.allow_overpay ?? isCash,
+        };
+      }),
+    };
+  },
+
+  async getOpenCashierShift(outletId: number) {
+    const response = await apiClient.get<ApiResponse<CashierShift[]>>(
+      endpoints.cashierShifts.index,
       {
-        code: "qris",
-        name: "QRIS",
-        type: "qris",
-        is_active: true,
-        requires_reference: true,
-        allow_overpay: false,
-      },
-      {
-        code: "transfer",
-        name: "Transfer",
-        type: "transfer",
-        is_active: true,
-        requires_reference: true,
-        allow_overpay: false,
-      },
-    ];
+        params: {
+          outlet_id: outletId,
+          status: "open",
+          per_page: 1,
+        },
+      }
+    );
+
+    return response.data.data[0] ?? null;
   },
 
   evaluateVoucher(params: {
@@ -211,7 +378,9 @@ export const posService = {
     if (params.subtotal < minOrderTotal) {
       return {
         valid: false,
-        message: `Minimal transaksi untuk voucher ini adalah Rp${minOrderTotal.toLocaleString("id-ID")}.`,
+        message: `Minimal transaksi untuk voucher ini adalah Rp${minOrderTotal.toLocaleString(
+          "id-ID"
+        )}.`,
         discount_amount: 0,
         voucher,
       };
@@ -237,6 +406,7 @@ export const posService = {
       discountAmount = parseNumber(voucher.discount_value);
     } else {
       discountAmount = (params.subtotal * parseNumber(voucher.discount_value)) / 100;
+
       const maxDiscount = parseNumber(voucher.max_discount);
 
       if (maxDiscount > 0) {
@@ -254,61 +424,120 @@ export const posService = {
     };
   },
 
-  submitCheckoutDraft(payload: SubmitCheckoutDraftPayload): PosCheckoutDraftResult {
-    const order_number = formatOrderNumber();
+  async createOrder(payload: PosCreateOrderPayload) {
+    const response = await apiClient.post<ApiResponse<PosOrderResponse>>(
+      endpoints.orders.store,
+      payload
+    );
 
-    const receipt: PosReceiptSnapshot = {
-      order_number,
-      order_channel: payload.order_channel,
-      outlet_name: payload.outlet_name,
-      cashier_name: payload.cashier_name,
-      customer_name: payload.customer_name ?? null,
-      customer_phone: payload.customer_phone ?? null,
-      ordered_at: nowIsoLocal(),
-      voucher_code: payload.voucher_code ?? null,
-      subtotal: payload.subtotal,
-      discount_amount: payload.discount_amount,
-      tax_amount: payload.tax_amount,
-      service_charge_amount: payload.service_charge_amount,
-      grand_total: payload.grand_total,
-      paid_total: payload.paid_total,
-      change_amount: payload.change_amount,
-      payment_status: payload.payment_status,
-      payments: payload.payments,
-      items: payload.items,
-    };
+    return response.data;
+  },
 
-    const raw = localStorage.getItem(RECEIPT_DRAFTS_STORAGE_KEY);
-    const existing = raw ? ((JSON.parse(raw) as PosReceiptSnapshot[]) ?? []) : [];
-    const next = [receipt, ...existing].slice(0, 50);
+  async createPayment(payload: PosPaymentPayload) {
+    const response = await apiClient.post<ApiResponse<PosPaymentResponse>>(
+      endpoints.payments.store,
+      payload
+    );
 
-    localStorage.setItem(RECEIPT_DRAFTS_STORAGE_KEY, JSON.stringify(next));
+    return response.data;
+  },
+
+  getReceiptPrintUrl(orderId: number) {
+    return endpoints.receiptPrints.print(orderId);
+  },
+
+  getReceiptPdfUrl(orderId: number) {
+    return endpoints.receiptPrints.pdf(orderId);
+  },
+
+  async submitBackendCheckout(
+    payload: PosBackendCheckoutPayload
+  ): Promise<PosBackendCheckoutResult> {
+    if (!payload.outlet_id) {
+      throw new Error("Outlet aktif belum tersedia.");
+    }
+
+    if (!payload.items.length) {
+      throw new Error("Cart masih kosong.");
+    }
+
+    const validPayments = payload.payments.filter((payment) => parseNumber(payment.amount) > 0);
+
+    if (!validPayments.length) {
+      throw new Error("Minimal satu pembayaran wajib diisi.");
+    }
+
+    if (payload.totals.paidTotal < payload.totals.grandTotal) {
+      throw new Error("Nominal pembayaran belum mencukupi grand total.");
+    }
+
+    const paymentMethodByCode = new Map(
+      payload.payment_methods.map((method) => [method.code, method])
+    );
+
+    const hasCashPayment = validPayments.some((payment) => {
+      const method = paymentMethodByCode.get(payment.payment_method_code);
+
+      return method?.type === "cash" || method?.code === "cash";
+    });
+
+    if (hasCashPayment && !payload.cashier_shift_id) {
+      throw new Error("Pembayaran tunai wajib memakai shift kasir yang masih open.");
+    }
+
+    const orderResponse = await apiClient.post<ApiResponse<PosOrderResponse>>(
+      endpoints.orders.store,
+      {
+        outlet_id: payload.outlet_id,
+        cashier_shift_id: payload.cashier_shift_id,
+        customer_id: payload.customer_id,
+        order_channel: payload.order_channel,
+        order_status: "confirmed",
+        payment_status: "unpaid",
+        discount_amount: payload.totals.discount,
+        tax_amount: payload.totals.tax,
+        service_charge_amount: payload.totals.serviceCharge,
+        paid_total: 0,
+        change_amount: 0,
+        notes: payload.voucher_code ? `Voucher: ${payload.voucher_code}` : null,
+        ordered_at: nowIsoLocal(),
+        items: mapOrderItemsFromCart(payload.items),
+      }
+    );
+
+    const order = orderResponse.data.data;
+    const paymentResponses: PosPaymentResponse[] = [];
+
+    for (const payment of validPayments) {
+      const method = paymentMethodByCode.get(payment.payment_method_code);
+
+      if (!method) {
+        throw new Error(`Metode pembayaran ${payment.payment_method_code} tidak ditemukan.`);
+      }
+
+      const paymentResponse = await apiClient.post<ApiResponse<PosPaymentResponse>>(
+        endpoints.payments.store,
+        {
+          order_id: order.id,
+          payment_method_id: method.id,
+          amount: parseNumber(payment.amount),
+          reference_number: payment.reference_number.trim() || null,
+          paid_at: nowIsoLocal(),
+          status: "paid",
+          notes: payment.notes.trim() || null,
+        }
+      );
+
+      paymentResponses.push(paymentResponse.data.data);
+    }
 
     return {
-      message:
-        "Checkout draft berhasil dibuat. Siap diganti ke submit API saat backend orders/payments tersedia.",
-      order_number,
-      receipt,
+      message: "Checkout POS berhasil disimpan ke backend.",
+      order,
+      payments: paymentResponses,
+      receipt: buildReceiptFromCheckout(payload, order),
+      print_url: endpoints.receiptPrints.print(order.id),
+      pdf_url: endpoints.receiptPrints.pdf(order.id),
     };
-  },
-
-  getStoredReceipts(): PosReceiptSnapshot[] {
-    const raw = localStorage.getItem(RECEIPT_DRAFTS_STORAGE_KEY);
-
-    if (!raw) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(raw) as PosReceiptSnapshot[];
-    } catch {
-      localStorage.removeItem(RECEIPT_DRAFTS_STORAGE_KEY);
-      return [];
-    }
-  },
-
-  getStoredReceiptByOrderNumber(orderNumber: string): PosReceiptSnapshot | null {
-    const receipts = this.getStoredReceipts();
-    return receipts.find((item) => item.order_number === orderNumber) ?? null;
   },
 };
