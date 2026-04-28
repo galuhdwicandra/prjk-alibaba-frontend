@@ -15,6 +15,7 @@ const unwrapPaginated = <T>(response: ApiResponse<T[]>): KitchenPaginatedResult<
 
 const kitchenTicketEndpoints = {
   index: "/kitchen-tickets",
+  store: "/kitchen-tickets",
   show: (id: number | string) => `/kitchen-tickets/${id}`,
   print: (id: number | string) => `/kitchen-tickets/${id}/print`,
   startPreparing: (id: number | string) => `/kitchen-tickets/${id}/start-preparing`,
@@ -28,10 +29,23 @@ export const kitchenService = {
   async getTickets(params: KitchenTicketQuery = {}) {
     const response = await apiClient.get<ApiResponse<KitchenTicket[]>>(
       kitchenTicketEndpoints.index,
-      { params }
+      {
+        params,
+      }
     );
 
     return unwrapPaginated(response.data);
+  },
+
+  async createTicket(orderId: number) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.store,
+      {
+        order_id: orderId,
+      }
+    );
+
+    return response.data;
   },
 
   async getTicket(id: number) {

@@ -1,6 +1,6 @@
 # Dokumentasi Frontend (FULL Source)
 
-_Dihasilkan otomatis: 2026-04-28 11:30:06_  
+_Dihasilkan otomatis: 2026-04-28 12:14:20_  
 **Root:** `G:\.galuh\latihanlaravel\A-Portfolio-Project\2026\alibaba\frontend`
 
 ## Daftar Isi
@@ -18718,7 +18718,7 @@ export default function ReadyQueuePage() {
 
 <a id="file-srcmoduleskitchenserviceskitchenservicets"></a>
 ### src\modules\kitchen\services\kitchen.service.ts
-- SHA: `dd144fb806c5`  
+- SHA: `17d6a4d8f6cf`  
 - Ukuran: 3 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -18740,6 +18740,7 @@ const unwrapPaginated = <T>(response: ApiResponse<T[]>): KitchenPaginatedResult<
 
 const kitchenTicketEndpoints = {
   index: "/kitchen-tickets",
+  store: "/kitchen-tickets",
   show: (id: number | string) => `/kitchen-tickets/${id}`,
   print: (id: number | string) => `/kitchen-tickets/${id}/print`,
   startPreparing: (id: number | string) => `/kitchen-tickets/${id}/start-preparing`,
@@ -18753,10 +18754,23 @@ export const kitchenService = {
   async getTickets(params: KitchenTicketQuery = {}) {
     const response = await apiClient.get<ApiResponse<KitchenTicket[]>>(
       kitchenTicketEndpoints.index,
-      { params }
+      {
+        params,
+      }
     );
 
     return unwrapPaginated(response.data);
+  },
+
+  async createTicket(orderId: number) {
+    const response = await apiClient.post<ApiResponse<KitchenTicket>>(
+      kitchenTicketEndpoints.store,
+      {
+        order_id: orderId,
+      }
+    );
+
+    return response.data;
   },
 
   async getTicket(id: number) {
@@ -19118,7 +19132,7 @@ export function PosCartPanel({
 
 <a id="file-srcmodulesposcomponentsposcheckoutsuccessmodaltsx"></a>
 ### src\modules\pos\components\PosCheckoutSuccessModal.tsx
-- SHA: `276e8e20d361`  
+- SHA: `5727bb5da869`  
 - Ukuran: 6 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -19129,8 +19143,11 @@ import type { PosReceiptSnapshot } from "@/modules/pos/types/pos";
 interface PosCheckoutSuccessModalProps {
   open: boolean;
   receipt: PosReceiptSnapshot | null;
+  kitchenLoading?: boolean;
   onClose: () => void;
   onReprint: (receipt: PosReceiptSnapshot) => void;
+  onSendToKitchen: (receipt: PosReceiptSnapshot) => void;
+  onOpenKitchen: () => void;
 }
 
 const formatCurrency = (value: number) =>
@@ -19143,8 +19160,11 @@ const formatCurrency = (value: number) =>
 export function PosCheckoutSuccessModal({
   open,
   receipt,
+  kitchenLoading = false,
   onClose,
   onReprint,
+  onSendToKitchen,
+  onOpenKitchen,
 }: PosCheckoutSuccessModalProps) {
   return (
     <Modal
@@ -19158,6 +19178,18 @@ export function PosCheckoutSuccessModal({
           </Button>
           <Button onClick={() => receipt && onReprint(receipt)} disabled={!receipt}>
             Print / Reprint Receipt
+          </Button>
+          <Button
+            variant="outline"
+            loading={kitchenLoading}
+            onClick={() => receipt && onSendToKitchen(receipt)}
+            disabled={!receipt}
+          >
+            Sync Kitchen Ticket
+          </Button>
+
+          <Button onClick={onOpenKitchen}>
+            Lihat Kitchen Screen
           </Button>
         </>
       }
@@ -21580,12 +21612,13 @@ function SummaryRow({
 
 <a id="file-srcmodulespospagesposorderspagetsx"></a>
 ### src\modules\pos\pages\PosOrdersPage.tsx
-- SHA: `740826b5c017`  
-- Ukuran: 25 KB
+- SHA: `bdf3a19fc668`  
+- Ukuran: 26 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
 ```tsx
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { PageHeader } from "@/components/navigation/PageHeader";
@@ -21598,6 +21631,7 @@ import { usePermission } from "@/hooks/usePermission";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
 import { posService } from "@/modules/pos/services/pos.service";
+import { kitchenService } from "@/modules/kitchen/services/kitchen.service";
 import { parseApiError } from "@/services/api/error-parser";
 import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
 import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
@@ -21806,6 +21840,7 @@ const printReceipt = (receipt: PosReceiptSnapshot) => {
 
 export default function PosOrdersPage() {
   const toast = useToast();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const { activeOutlet, activeOutletId } = useActiveOutlet();
   const currentOutletName =
@@ -21902,6 +21937,16 @@ export default function PosOrdersPage() {
     },
     onError: (error) => {
       toast.error("Checkout gagal", parseApiError(error));
+    },
+  });
+
+  const sendToKitchenMutation = useMutation({
+    mutationFn: (orderId: number) => kitchenService.createTicket(orderId),
+    onSuccess: (response) => {
+      toast.success(response.message || "Kitchen ticket berhasil disinkronkan.");
+    },
+    onError: (error) => {
+      toast.error("Gagal sync kitchen ticket", parseApiError(error));
     },
   });
 
@@ -22167,6 +22212,14 @@ export default function PosOrdersPage() {
     });
   };
 
+  const handleSendToKitchen = (receipt: PosReceiptSnapshot) => {
+    sendToKitchenMutation.mutate(receipt.order_id);
+  };
+
+  const handleOpenKitchenScreen = () => {
+    navigate("/kitchen/tickets");
+  };
+
   const handleReprintReceipt = (receipt: PosReceiptSnapshot) => {
     const printed = printReceipt(receipt);
 
@@ -22361,8 +22414,11 @@ export default function PosOrdersPage() {
         <PosCheckoutSuccessModal
           open={successOpen}
           receipt={latestReceipt}
+          kitchenLoading={sendToKitchenMutation.isPending}
           onClose={() => setSuccessOpen(false)}
           onReprint={handleReprintReceipt}
+          onSendToKitchen={handleSendToKitchen}
+          onOpenKitchen={handleOpenKitchenScreen}
         />
       </div>
     </PermissionWrapper>
@@ -23064,7 +23120,7 @@ export default function PosShiftsPage() {
 
 <a id="file-srcmodulesposservicesposservicets"></a>
 ### src\modules\pos\services\pos.service.ts
-- SHA: `4206b61d2a49`  
+- SHA: `828f40bf2229`  
 - Ukuran: 17 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -23342,6 +23398,7 @@ const buildReceiptFromCheckout = (
   payload: PosBackendCheckoutPayload,
   order: PosOrderResponse
 ): PosReceiptSnapshot => ({
+  order_id: order.id,
   order_number: order.order_number,
   order_channel: payload.order_channel,
   outlet_name: payload.outlet_name,
@@ -23789,7 +23846,7 @@ export const shiftService = {
 
 <a id="file-srcmodulespostypesposts"></a>
 ### src\modules\pos\types\pos.ts
-- SHA: `ba6a34b2a4da`  
+- SHA: `427bb976808d`  
 - Ukuran: 5 KB
 <details><summary><strong>Lihat Kode Lengkap</strong></summary>
 
@@ -23961,6 +24018,7 @@ export interface PosReceiptItemSnapshot {
 }
 
 export interface PosReceiptSnapshot {
+  order_id: number;
   order_number: string;
   order_channel: PosOrderChannel;
   outlet_name: string;

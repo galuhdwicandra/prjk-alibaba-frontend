@@ -271,6 +271,7 @@ const buildReceiptFromCheckout = (
   payload: PosBackendCheckoutPayload,
   order: PosOrderResponse
 ): PosReceiptSnapshot => ({
+  order_id: order.id,
   order_number: order.order_number,
   order_channel: payload.order_channel,
   outlet_name: payload.outlet_name,

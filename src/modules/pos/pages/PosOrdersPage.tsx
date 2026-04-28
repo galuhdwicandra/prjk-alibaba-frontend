@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Badge, Button, Card, Input } from "@/components/ui";
 import { PageHeader } from "@/components/navigation/PageHeader";
@@ -11,6 +12,7 @@ import { usePermission } from "@/hooks/usePermission";
 import { useAuthStore } from "@/modules/auth/store/auth.store";
 import { usePosCartStore } from "@/modules/pos/hooks/usePosCartStore";
 import { posService } from "@/modules/pos/services/pos.service";
+import { kitchenService } from "@/modules/kitchen/services/kitchen.service";
 import { parseApiError } from "@/services/api/error-parser";
 import { PosCartPanel } from "@/modules/pos/components/PosCartPanel";
 import { PosProductConfiguratorModal } from "@/modules/pos/components/PosProductConfiguratorModal";
@@ -219,6 +221,7 @@ const printReceipt = (receipt: PosReceiptSnapshot) => {
 
 export default function PosOrdersPage() {
   const toast = useToast();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const { activeOutlet, activeOutletId } = useActiveOutlet();
   const currentOutletName =
@@ -315,6 +318,16 @@ export default function PosOrdersPage() {
     },
     onError: (error) => {
       toast.error("Checkout gagal", parseApiError(error));
+    },
+  });
+
+  const sendToKitchenMutation = useMutation({
+    mutationFn: (orderId: number) => kitchenService.createTicket(orderId),
+    onSuccess: (response) => {
+      toast.success(response.message || "Kitchen ticket berhasil disinkronkan.");
+    },
+    onError: (error) => {
+      toast.error("Gagal sync kitchen ticket", parseApiError(error));
     },
   });
 
@@ -580,6 +593,14 @@ export default function PosOrdersPage() {
     });
   };
 
+  const handleSendToKitchen = (receipt: PosReceiptSnapshot) => {
+    sendToKitchenMutation.mutate(receipt.order_id);
+  };
+
+  const handleOpenKitchenScreen = () => {
+    navigate("/kitchen/tickets");
+  };
+
   const handleReprintReceipt = (receipt: PosReceiptSnapshot) => {
     const printed = printReceipt(receipt);
 
@@ -774,8 +795,11 @@ export default function PosOrdersPage() {
         <PosCheckoutSuccessModal
           open={successOpen}
           receipt={latestReceipt}
+          kitchenLoading={sendToKitchenMutation.isPending}
           onClose={() => setSuccessOpen(false)}
           onReprint={handleReprintReceipt}
+          onSendToKitchen={handleSendToKitchen}
+          onOpenKitchen={handleOpenKitchenScreen}
         />
       </div>
     </PermissionWrapper>

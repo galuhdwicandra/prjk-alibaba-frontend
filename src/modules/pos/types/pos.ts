@@ -165,6 +165,7 @@ export interface PosReceiptItemSnapshot {
 }
 
 export interface PosReceiptSnapshot {
+  order_id: number;
   order_number: string;
   order_channel: PosOrderChannel;
   outlet_name: string;

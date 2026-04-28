@@ -4,8 +4,11 @@ import type { PosReceiptSnapshot } from "@/modules/pos/types/pos";
 interface PosCheckoutSuccessModalProps {
   open: boolean;
   receipt: PosReceiptSnapshot | null;
+  kitchenLoading?: boolean;
   onClose: () => void;
   onReprint: (receipt: PosReceiptSnapshot) => void;
+  onSendToKitchen: (receipt: PosReceiptSnapshot) => void;
+  onOpenKitchen: () => void;
 }
 
 const formatCurrency = (value: number) =>
@@ -18,8 +21,11 @@ const formatCurrency = (value: number) =>
 export function PosCheckoutSuccessModal({
   open,
   receipt,
+  kitchenLoading = false,
   onClose,
   onReprint,
+  onSendToKitchen,
+  onOpenKitchen,
 }: PosCheckoutSuccessModalProps) {
   return (
     <Modal
@@ -33,6 +39,18 @@ export function PosCheckoutSuccessModal({
           </Button>
           <Button onClick={() => receipt && onReprint(receipt)} disabled={!receipt}>
             Print / Reprint Receipt
+          </Button>
+          <Button
+            variant="outline"
+            loading={kitchenLoading}
+            onClick={() => receipt && onSendToKitchen(receipt)}
+            disabled={!receipt}
+          >
+            Sync Kitchen Ticket
+          </Button>
+
+          <Button onClick={onOpenKitchen}>
+            Lihat Kitchen Screen
           </Button>
         </>
       }
