@@ -20,6 +20,12 @@ const createEmptyItem = (): PurchaseOrderItemPayload => ({
   notes: "",
 });
 
+const selectClassName =
+  "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+  `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
 export function PurchaseOrderItemsEditor({
   value,
   onChange,
@@ -43,14 +49,34 @@ export function PurchaseOrderItemsEditor({
   return (
     <div className="space-y-4">
       {value.map((item, index) => (
-        <Card key={index} title={`Item PO #${index + 1}`}>
+        <Card key={index}>
+          <div className="mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Item PO #{index + 1}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Pilih bahan baku, qty, satuan, harga, diskon, dan catatan item.
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-[var(--brand-brick-soft)] px-3 py-2 text-right">
+              <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                Subtotal
+              </div>
+              <div className="text-sm font-bold text-[var(--brand-brick)]">
+                {formatCurrency(getLineTotal(item))}
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-6">
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Bahan Baku
               </label>
               <select
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className={selectClassName}
                 value={item.raw_material_id || ""}
                 onChange={(event) =>
                   updateItems((prev) => {
@@ -99,7 +125,7 @@ export function PurchaseOrderItemsEditor({
                 Satuan
               </label>
               <select
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className={selectClassName}
                 value={item.unit_id || ""}
                 onChange={(event) =>
                   updateItems((prev) => {
@@ -174,8 +200,8 @@ export function PurchaseOrderItemsEditor({
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Subtotal
               </label>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
-                Rp {getLineTotal(item).toLocaleString("id-ID")}
+              <div className="flex min-h-10 items-center rounded-xl border border-orange-100 bg-orange-50 px-3 py-2 text-sm font-semibold text-[var(--brand-brick)]">
+                {formatCurrency(getLineTotal(item))}
               </div>
             </div>
 
@@ -191,9 +217,11 @@ export function PurchaseOrderItemsEditor({
         </Card>
       ))}
 
-      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem()])}>
-        Tambah Item PO
-      </Button>
+      <div className="rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-4">
+        <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem()])}>
+          Tambah Item PO
+        </Button>
+      </div>
     </div>
   );
 }

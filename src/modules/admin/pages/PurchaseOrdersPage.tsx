@@ -44,6 +44,12 @@ const statusVariant: Record<PurchaseOrderStatus, "success" | "warning" | "info" 
     cancelled: "danger",
 };
 
+const inputSelectClass =
+    "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+    `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
 export default function PurchaseOrdersPage() {
     const toast = useToast();
     const queryClient = useQueryClient();
@@ -196,7 +202,7 @@ export default function PurchaseOrdersPage() {
 
     return (
         <PermissionWrapper permission="purchase_orders.view">
-            <div className="space-y-4">
+            <div className="space-y-5">
                 <PageHeader
                     title="Purchase Order"
                     description="Kelola draft, approval, dan riwayat pembelian bahan baku."
@@ -204,60 +210,80 @@ export default function PurchaseOrdersPage() {
                 />
 
                 <Card>
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_1fr_1fr_1fr]">
                         <Input
+                            label="Pencarian"
                             placeholder="Cari nomor PO atau supplier..."
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                         />
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={outletFilter}
-                            onChange={(event) =>
-                                setOutletFilter(event.target.value ? Number(event.target.value) : "")
-                            }
-                        >
-                            <option value="">Semua outlet</option>
-                            {outlets.map((outlet) => (
-                                <option key={outlet.id} value={outlet.id}>
-                                    {outlet.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Outlet
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={outletFilter}
+                                onChange={(event) =>
+                                    setOutletFilter(event.target.value ? Number(event.target.value) : "")
+                                }
+                            >
+                                <option value="">Semua outlet</option>
+                                {outlets.map((outlet) => (
+                                    <option key={outlet.id} value={outlet.id}>
+                                        {outlet.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={supplierFilter}
-                            onChange={(event) =>
-                                setSupplierFilter(event.target.value ? Number(event.target.value) : "")
-                            }
-                        >
-                            <option value="">Semua supplier</option>
-                            {suppliers.map((supplier) => (
-                                <option key={supplier.id} value={supplier.id}>
-                                    {supplier.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Supplier
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={supplierFilter}
+                                onChange={(event) =>
+                                    setSupplierFilter(event.target.value ? Number(event.target.value) : "")
+                                }
+                            >
+                                <option value="">Semua supplier</option>
+                                {suppliers.map((supplier) => (
+                                    <option key={supplier.id} value={supplier.id}>
+                                        {supplier.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={statusFilter}
-                            onChange={(event) => setStatusFilter(event.target.value as PurchaseOrderStatus | "")}
-                        >
-                            <option value="">Semua status</option>
-                            <option value="draft">draft</option>
-                            <option value="approved">approved</option>
-                            <option value="partial_received">partial_received</option>
-                            <option value="received">received</option>
-                            <option value="cancelled">cancelled</option>
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Status
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={statusFilter}
+                                onChange={(event) => setStatusFilter(event.target.value as PurchaseOrderStatus | "")}
+                            >
+                                <option value="">Semua status</option>
+                                <option value="draft">draft</option>
+                                <option value="approved">approved</option>
+                                <option value="partial_received">partial_received</option>
+                                <option value="received">received</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </div>
                     </div>
                 </Card>
 
                 {purchaseOrdersQuery.isLoading ? (
-                    <Card>Memuat purchase order...</Card>
+                    <Card>
+                        <div className="flex min-h-40 items-center justify-center text-sm text-slate-500">
+                            Memuat purchase order...
+                        </div>
+                    </Card>
                 ) : purchaseOrdersQuery.isError ? (
                     <PageErrorState onRetry={() => void purchaseOrdersQuery.refetch()} />
                 ) : !purchaseOrders.length ? (
@@ -271,31 +297,41 @@ export default function PurchaseOrdersPage() {
                                 description={`${order.outlet?.name ?? "-"} • ${order.supplier?.name ?? "-"}`}
                                 actions={<Badge variant={statusVariant[order.status]}>{order.status}</Badge>}
                             >
-                                <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                <div className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-sm md:grid-cols-2">
                                     <div>
-                                        <div className="text-xs text-slate-500">Tanggal Order</div>
-                                        <div>{order.order_date}</div>
+                                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                            Tanggal Order
+                                        </div>
+                                        <div className="mt-1 font-medium text-slate-900">{order.order_date}</div>
                                     </div>
 
                                     <div>
-                                        <div className="text-xs text-slate-500">Expected Date</div>
-                                        <div>{order.expected_date ?? "-"}</div>
+                                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                            Expected Date
+                                        </div>
+                                        <div className="mt-1 font-medium text-slate-900">{order.expected_date ?? "-"}</div>
                                     </div>
 
                                     <div>
-                                        <div className="text-xs text-slate-500">Subtotal</div>
-                                        <div>Rp {Number(order.subtotal ?? 0).toLocaleString("id-ID")}</div>
+                                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                            Subtotal
+                                        </div>
+                                        <div className="mt-1 font-medium text-slate-900">
+                                            {formatCurrency(order.subtotal)}
+                                        </div>
                                     </div>
 
                                     <div>
-                                        <div className="text-xs text-slate-500">Total</div>
-                                        <div className="font-semibold text-slate-900">
-                                            Rp {Number(order.total_amount ?? 0).toLocaleString("id-ID")}
+                                        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                            Total
+                                        </div>
+                                        <div className="mt-1 text-base font-bold text-[var(--brand-brick)]">
+                                            {formatCurrency(order.total_amount)}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex flex-wrap gap-2">
+                                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                                     <Button variant="outline" onClick={() => setDetailOrder(order)}>
                                         Detail
                                     </Button>
@@ -332,6 +368,7 @@ export default function PurchaseOrdersPage() {
                 <Modal
                     open={openModal}
                     title={editingOrder ? "Edit Purchase Order" : "Buat Purchase Order"}
+                    description="Lengkapi data outlet, supplier, tanggal, dan item bahan baku."
                     onClose={() => setOpenModal(false)}
                     footer={
                         <>
@@ -344,151 +381,176 @@ export default function PurchaseOrdersPage() {
                         </>
                     }
                 >
-                    <div className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-slate-700">
-                                    Outlet
-                                </label>
-                                <select
-                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                    value={form.outlet_id || ""}
-                                    onChange={(event) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            outlet_id: Number(event.target.value || 0),
-                                        }))
-                                    }
-                                >
-                                    <option value="">Pilih outlet</option>
-                                    {outlets.map((outlet) => (
-                                        <option key={outlet.id} value={outlet.id}>
-                                            {outlet.name}
-                                        </option>
-                                    ))}
-                                </select>
+                    <div className="max-h-[72vh] space-y-5 overflow-y-auto pr-1">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="mb-4">
+                                <h3 className="text-sm font-semibold text-slate-900">
+                                    Informasi Purchase Order
+                                </h3>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Data utama untuk identitas PO dan rencana penerimaan bahan baku.
+                                </p>
                             </div>
 
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-slate-700">
-                                    Supplier
-                                </label>
-                                <select
-                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                    value={form.supplier_id || ""}
-                                    onChange={(event) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            supplier_id: Number(event.target.value || 0),
-                                        }))
-                                    }
-                                >
-                                    <option value="">Pilih supplier</option>
-                                    {suppliers.map((supplier) => (
-                                        <option key={supplier.id} value={supplier.id}>
-                                            {supplier.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                        Outlet
+                                    </label>
+                                    <select
+                                        className={inputSelectClass}
+                                        value={form.outlet_id || ""}
+                                        onChange={(event) =>
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                outlet_id: Number(event.target.value || 0),
+                                            }))
+                                        }
+                                    >
+                                        <option value="">Pilih outlet</option>
+                                        {outlets.map((outlet) => (
+                                            <option key={outlet.id} value={outlet.id}>
+                                                {outlet.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <Input
-                                label="Order Date"
-                                type="date"
-                                value={form.order_date}
-                                onChange={(event) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        order_date: event.target.value,
-                                    }))
-                                }
-                            />
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                        Supplier
+                                    </label>
+                                    <select
+                                        className={inputSelectClass}
+                                        value={form.supplier_id || ""}
+                                        onChange={(event) =>
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                supplier_id: Number(event.target.value || 0),
+                                            }))
+                                        }
+                                    >
+                                        <option value="">Pilih supplier</option>
+                                        {suppliers.map((supplier) => (
+                                            <option key={supplier.id} value={supplier.id}>
+                                                {supplier.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                            <Input
-                                label="Expected Date"
-                                type="date"
-                                value={form.expected_date ?? ""}
-                                onChange={(event) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        expected_date: event.target.value || null,
-                                    }))
-                                }
-                            />
-
-                            <Input
-                                label="Diskon Header"
-                                type="number"
-                                value={String(form.discount_amount ?? 0)}
-                                onChange={(event) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        discount_amount: Number(event.target.value || 0),
-                                    }))
-                                }
-                            />
-
-                            <Input
-                                label="Pajak"
-                                type="number"
-                                value={String(form.tax_amount ?? 0)}
-                                onChange={(event) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        tax_amount: Number(event.target.value || 0),
-                                    }))
-                                }
-                            />
-
-                            <div className="md:col-span-2">
                                 <Input
-                                    label="Catatan"
-                                    value={form.notes ?? ""}
+                                    label="Order Date"
+                                    type="date"
+                                    value={form.order_date}
                                     onChange={(event) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            notes: event.target.value,
+                                            order_date: event.target.value,
                                         }))
                                     }
                                 />
+
+                                <Input
+                                    label="Expected Date"
+                                    type="date"
+                                    value={form.expected_date ?? ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            expected_date: event.target.value || null,
+                                        }))
+                                    }
+                                />
+
+                                <Input
+                                    label="Diskon Header"
+                                    type="number"
+                                    value={String(form.discount_amount ?? 0)}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            discount_amount: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                />
+
+                                <Input
+                                    label="Pajak"
+                                    type="number"
+                                    value={String(form.tax_amount ?? 0)}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            tax_amount: Number(event.target.value || 0),
+                                        }))
+                                    }
+                                />
+
+                                <div className="md:col-span-2">
+                                    <Input
+                                        label="Catatan"
+                                        value={form.notes ?? ""}
+                                        onChange={(event) =>
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                notes: event.target.value,
+                                            }))
+                                        }
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <PurchaseOrderItemsEditor
-                            value={form.items}
-                            onChange={(items: PurchaseOrderItemPayload[]) =>
-                                setForm((prev) => ({
-                                    ...prev,
-                                    items,
-                                }))
-                            }
-                            rawMaterials={rawMaterials}
-                            units={units}
-                        />
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                            <div className="mb-4">
+                                <h3 className="text-sm font-semibold text-slate-900">
+                                    Item Purchase Order
+                                </h3>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Tambahkan bahan baku, qty, satuan, harga, dan diskon per item.
+                                </p>
+                            </div>
+
+                            <PurchaseOrderItemsEditor
+                                value={form.items}
+                                onChange={(items: PurchaseOrderItemPayload[]) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        items,
+                                    }))
+                                }
+                                rawMaterials={rawMaterials}
+                                units={units}
+                            />
+                        </div>
 
                         <Card>
                             <div className="grid gap-3 text-sm md:grid-cols-3">
-                                <div>
-                                    <div className="text-xs text-slate-500">Subtotal Item</div>
-                                    <div className="font-semibold text-slate-900">
-                                        Rp {formSubtotal.toLocaleString("id-ID")}
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Subtotal Item
+                                    </div>
+                                    <div className="mt-1 font-semibold text-slate-900">
+                                        {formatCurrency(formSubtotal)}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Diskon + Pajak</div>
-                                    <div className="font-semibold text-slate-900">
-                                        Rp{" "}
-                                        {(
-                                            Number(form.tax_amount || 0) - Number(form.discount_amount || 0)
-                                        ).toLocaleString("id-ID")}
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Diskon + Pajak
+                                    </div>
+                                    <div className="mt-1 font-semibold text-slate-900">
+                                        {formatCurrency(Number(form.tax_amount || 0) - Number(form.discount_amount || 0))}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Estimasi Total</div>
-                                    <div className="text-lg font-bold text-slate-900">
-                                        Rp {formTotal.toLocaleString("id-ID")}
+                                <div className="rounded-xl bg-[var(--brand-brick-soft)] p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                                        Estimasi Total
+                                    </div>
+                                    <div className="mt-1 text-lg font-bold text-[var(--brand-brick)]">
+                                        {formatCurrency(formTotal)}
                                     </div>
                                 </div>
                             </div>
@@ -506,32 +568,56 @@ export default function PurchaseOrdersPage() {
                         </Button>
                     }
                 >
-                    <div className="space-y-4">
+                    <div className="max-h-[72vh] space-y-4 overflow-y-auto pr-1">
                         <Card>
                             <div className="grid gap-3 text-sm md:grid-cols-2">
-                                <div>
-                                    <div className="text-xs text-slate-500">Outlet</div>
-                                    <div>{detailOrder?.outlet?.name ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Outlet
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
+                                        {detailOrder?.outlet?.name ?? "-"}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Supplier</div>
-                                    <div>{detailOrder?.supplier?.name ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Supplier
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
+                                        {detailOrder?.supplier?.name ?? "-"}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Status</div>
-                                    <div>{detailOrder?.status ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Status
+                                    </div>
+                                    <div className="mt-1">
+                                        {detailOrder ? (
+                                            <Badge variant={statusVariant[detailOrder.status]}>
+                                                {detailOrder.status}
+                                            </Badge>
+                                        ) : (
+                                            "-"
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Approved At</div>
-                                    <div>{detailOrder?.approved_at ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Approved At
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
+                                        {detailOrder?.approved_at ?? "-"}
+                                    </div>
                                 </div>
 
-                                <div className="md:col-span-2">
-                                    <div className="text-xs text-slate-500">Notes</div>
-                                    <div>{detailOrder?.notes ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3 md:col-span-2">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Notes
+                                    </div>
+                                    <div className="mt-1 text-slate-700">{detailOrder?.notes ?? "-"}</div>
                                 </div>
                             </div>
                         </Card>
@@ -545,20 +631,30 @@ export default function PurchaseOrdersPage() {
                                         }`}
                                 >
                                     <div className="grid gap-3 text-sm md:grid-cols-3">
-                                        <div>
-                                            <div className="text-xs text-slate-500">Unit Price</div>
-                                            <div>Rp {Number(item.unit_price ?? 0).toLocaleString("id-ID")}</div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Unit Price
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {formatCurrency(item.unit_price)}
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <div className="text-xs text-slate-500">Diskon</div>
-                                            <div>Rp {Number(item.discount_amount ?? 0).toLocaleString("id-ID")}</div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Diskon
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {formatCurrency(item.discount_amount)}
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <div className="text-xs text-slate-500">Line Total</div>
-                                            <div className="font-semibold text-slate-900">
-                                                Rp {Number(item.line_total ?? 0).toLocaleString("id-ID")}
+                                        <div className="rounded-xl bg-[var(--brand-brick-soft)] p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                                                Line Total
+                                            </div>
+                                            <div className="mt-1 font-bold text-[var(--brand-brick)]">
+                                                {formatCurrency(item.line_total)}
                                             </div>
                                         </div>
                                     </div>

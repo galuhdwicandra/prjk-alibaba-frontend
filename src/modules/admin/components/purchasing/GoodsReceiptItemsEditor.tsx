@@ -40,16 +40,36 @@ export function GoodsReceiptItemsEditor({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {value.map((item, index) => (
-        <Card key={index} title={`Item Receipt #${index + 1}`}>
-          <div className="grid gap-4 md:grid-cols-6">
-            <div className="md:col-span-2">
+        <Card key={index}>
+          <div className="mb-5 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Item Receipt #{index + 1}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Pilih bahan baku, jumlah diterima, satuan, harga terima, dan catatan item.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-orange-100 bg-[var(--brand-brick-soft)] px-4 py-2 text-right">
+              <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                Subtotal
+              </div>
+              <div className="text-sm font-semibold text-slate-950">
+                Rp {getLineTotal(item).toLocaleString("id-ID")}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-4">
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Bahan Baku
               </label>
               <select
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                 value={item.raw_material_id || ""}
                 onChange={(event) =>
                   updateItems((prev) => {
@@ -81,28 +101,30 @@ export function GoodsReceiptItemsEditor({
               </select>
             </div>
 
-            <Input
-              label="Qty Diterima"
-              type="number"
-              value={String(item.qty_received ?? 0)}
-              onChange={(event) =>
-                updateItems((prev) => {
-                  const next = [...prev];
-                  next[index] = {
-                    ...next[index],
-                    qty_received: Number(event.target.value || 0),
-                  };
-                  return next;
-                })
-              }
-            />
+            <div className="lg:col-span-2">
+              <Input
+                label="Qty Diterima"
+                type="number"
+                value={String(item.qty_received ?? 0)}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      qty_received: Number(event.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
 
-            <div>
+            <div className="lg:col-span-2">
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Satuan
               </label>
               <select
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100"
                 value={item.unit_id || ""}
                 onChange={(event) =>
                   updateItems((prev) => {
@@ -124,39 +146,43 @@ export function GoodsReceiptItemsEditor({
               </select>
             </div>
 
-            <Input
-              label="Harga Terima"
-              type="number"
-              value={String(item.unit_cost ?? 0)}
-              onChange={(event) =>
-                updateItems((prev) => {
-                  const next = [...prev];
-                  next[index] = {
-                    ...next[index],
-                    unit_cost: Number(event.target.value || 0),
-                  };
-                  return next;
-                })
-              }
-            />
+            <div className="lg:col-span-2">
+              <Input
+                label="Harga Terima"
+                type="number"
+                value={String(item.unit_cost ?? 0)}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      unit_cost: Number(event.target.value || 0),
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
 
-            <Input
-              label="Expired At"
-              type="date"
-              value={item.expired_at ?? ""}
-              onChange={(event) =>
-                updateItems((prev) => {
-                  const next = [...prev];
-                  next[index] = {
-                    ...next[index],
-                    expired_at: event.target.value || null,
-                  };
-                  return next;
-                })
-              }
-            />
+            <div className="lg:col-span-2">
+              <Input
+                label="Expired At"
+                type="date"
+                value={item.expired_at ?? ""}
+                onChange={(event) =>
+                  updateItems((prev) => {
+                    const next = [...prev];
+                    next[index] = {
+                      ...next[index],
+                      expired_at: event.target.value || null,
+                    };
+                    return next;
+                  })
+                }
+              />
+            </div>
 
-            <div className="md:col-span-4">
+            <div className="lg:col-span-10">
               <Input
                 label="Catatan Item"
                 value={item.notes ?? ""}
@@ -173,18 +199,10 @@ export function GoodsReceiptItemsEditor({
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Subtotal
-              </label>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
-                Rp {getLineTotal(item).toLocaleString("id-ID")}
-              </div>
-            </div>
-
-            <div className="flex items-end">
+            <div className="flex items-end lg:col-span-2">
               <Button
                 variant="danger"
+                className="w-full"
                 onClick={() => updateItems((prev) => prev.filter((_, idx) => idx !== index))}
               >
                 Hapus
@@ -194,9 +212,15 @@ export function GoodsReceiptItemsEditor({
         </Card>
       ))}
 
-      <Button variant="outline" onClick={() => onChange([...(value ?? []), createEmptyItem()])}>
-        Tambah Item Receipt
-      </Button>
+      <div className="rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-4">
+        <Button
+          variant="outline"
+          className="w-full border-orange-200 bg-white text-[var(--brand-brick)] hover:bg-orange-50 sm:w-auto"
+          onClick={() => onChange([...(value ?? []), createEmptyItem()])}
+        >
+          Tambah Item Receipt
+        </Button>
+      </div>
     </div>
   );
 }

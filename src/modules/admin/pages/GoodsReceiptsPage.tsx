@@ -43,6 +43,12 @@ const statusVariant: Record<GoodsReceiptStatus, "success" | "warning" | "danger"
     cancelled: "danger",
 };
 
+const inputSelectClass =
+    "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100";
+
+const formatCurrency = (value: number | string | null | undefined) =>
+    `Rp ${Number(value ?? 0).toLocaleString("id-ID")}`;
+
 export default function GoodsReceiptsPage() {
     const toast = useToast();
     const queryClient = useQueryClient();
@@ -207,7 +213,7 @@ export default function GoodsReceiptsPage() {
 
     return (
         <PermissionWrapper permission="goods_receipts.view">
-            <div className="space-y-4">
+            <div className="space-y-5">
                 <PageHeader
                     title="Goods Receipt"
                     description="Kelola penerimaan bahan baku dari purchase order."
@@ -215,58 +221,78 @@ export default function GoodsReceiptsPage() {
                 />
 
                 <Card>
-                    <div className="grid gap-4 md:grid-cols-4">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_1fr_1fr_1fr]">
                         <Input
+                            label="Pencarian"
                             placeholder="Cari nomor receipt atau PO..."
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                         />
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={outletFilter}
-                            onChange={(event) =>
-                                setOutletFilter(event.target.value ? Number(event.target.value) : "")
-                            }
-                        >
-                            <option value="">Semua outlet</option>
-                            {outlets.map((outlet) => (
-                                <option key={outlet.id} value={outlet.id}>
-                                    {outlet.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Outlet
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={outletFilter}
+                                onChange={(event) =>
+                                    setOutletFilter(event.target.value ? Number(event.target.value) : "")
+                                }
+                            >
+                                <option value="">Semua outlet</option>
+                                {outlets.map((outlet) => (
+                                    <option key={outlet.id} value={outlet.id}>
+                                        {outlet.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={purchaseOrderFilter}
-                            onChange={(event) =>
-                                setPurchaseOrderFilter(event.target.value ? Number(event.target.value) : "")
-                            }
-                        >
-                            <option value="">Semua PO</option>
-                            {purchaseOrders.map((order) => (
-                                <option key={order.id} value={order.id}>
-                                    {order.po_number}
-                                </option>
-                            ))}
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Purchase Order
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={purchaseOrderFilter}
+                                onChange={(event) =>
+                                    setPurchaseOrderFilter(event.target.value ? Number(event.target.value) : "")
+                                }
+                            >
+                                <option value="">Semua PO</option>
+                                {purchaseOrders.map((order) => (
+                                    <option key={order.id} value={order.id}>
+                                        {order.po_number}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <select
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                            value={statusFilter}
-                            onChange={(event) => setStatusFilter(event.target.value as GoodsReceiptStatus | "")}
-                        >
-                            <option value="">Semua status</option>
-                            <option value="draft">draft</option>
-                            <option value="posted">posted</option>
-                            <option value="cancelled">cancelled</option>
-                        </select>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                Status
+                            </label>
+                            <select
+                                className={inputSelectClass}
+                                value={statusFilter}
+                                onChange={(event) => setStatusFilter(event.target.value as GoodsReceiptStatus | "")}
+                            >
+                                <option value="">Semua status</option>
+                                <option value="draft">draft</option>
+                                <option value="posted">posted</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </div>
                     </div>
                 </Card>
 
                 {goodsReceiptsQuery.isLoading ? (
-                    <Card>Memuat goods receipt...</Card>
+                    <Card>
+                        <div className="flex min-h-40 items-center justify-center text-sm text-slate-500">
+                            Memuat goods receipt...
+                        </div>
+                    </Card>
                 ) : goodsReceiptsQuery.isError ? (
                     <PageErrorState onRetry={() => void goodsReceiptsQuery.refetch()} />
                 ) : !receipts.length ? (
@@ -280,28 +306,39 @@ export default function GoodsReceiptsPage() {
                                 <Card
                                     key={receipt.id}
                                     title={receipt.receipt_number}
-                                    description={`${receipt.outlet?.name ?? "-"} • ${purchaseOrder?.po_number ?? "-"
-                                        }`}
+                                    description={`${receipt.outlet?.name ?? "-"} • ${purchaseOrder?.po_number ?? "-"}`}
                                     actions={<Badge variant={statusVariant[receipt.status]}>{receipt.status}</Badge>}
                                 >
-                                    <div className="grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+                                    <div className="grid gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-sm md:grid-cols-2">
                                         <div>
-                                            <div className="text-xs text-slate-500">Received Date</div>
-                                            <div>{receipt.received_date}</div>
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Received Date
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {receipt.received_date}
+                                            </div>
                                         </div>
 
                                         <div>
-                                            <div className="text-xs text-slate-500">Supplier</div>
-                                            <div>{purchaseOrder?.supplier?.name ?? "-"}</div>
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Supplier
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {purchaseOrder?.supplier?.name ?? "-"}
+                                            </div>
                                         </div>
 
                                         <div className="md:col-span-2">
-                                            <div className="text-xs text-slate-500">Notes</div>
-                                            <div>{receipt.notes ?? "-"}</div>
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Notes
+                                            </div>
+                                            <div className="mt-1 line-clamp-2 text-slate-700">
+                                                {receipt.notes ?? "-"}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 flex flex-wrap gap-2">
+                                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                                         <Button variant="outline" onClick={() => setDetailReceipt(receipt)}>
                                             Detail
                                         </Button>
@@ -339,6 +376,7 @@ export default function GoodsReceiptsPage() {
                 <Modal
                     open={openModal}
                     title={editingReceipt ? "Edit Goods Receipt" : "Buat Goods Receipt"}
+                    description="Lengkapi purchase order, outlet, tanggal penerimaan, dan item yang diterima."
                     onClose={() => setOpenModal(false)}
                     footer={
                         <>
@@ -351,91 +389,126 @@ export default function GoodsReceiptsPage() {
                         </>
                     }
                 >
-                    <div className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-slate-700">
-                                    Purchase Order
-                                </label>
-                                <select
-                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                    value={form.purchase_order_id || ""}
-                                    onChange={(event) => handlePurchaseOrderChange(Number(event.target.value || 0))}
-                                >
-                                    <option value="">Pilih PO</option>
-                                    {purchaseOrders.map((order) => (
-                                        <option key={order.id} value={order.id}>
-                                            {order.po_number} - {order.supplier?.name ?? "-"}
-                                        </option>
-                                    ))}
-                                </select>
+                    <div className="max-h-[72vh] space-y-5 overflow-y-auto pr-1">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="mb-4">
+                                <h3 className="text-sm font-semibold text-slate-900">
+                                    Informasi Goods Receipt
+                                </h3>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Data utama penerimaan barang dari purchase order.
+                                </p>
                             </div>
 
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-slate-700">
-                                    Outlet
-                                </label>
-                                <select
-                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                                    value={form.outlet_id || ""}
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                        Purchase Order
+                                    </label>
+                                    <select
+                                        className={inputSelectClass}
+                                        value={form.purchase_order_id || ""}
+                                        onChange={(event) => handlePurchaseOrderChange(Number(event.target.value || 0))}
+                                    >
+                                        <option value="">Pilih PO</option>
+                                        {purchaseOrders.map((order) => (
+                                            <option key={order.id} value={order.id}>
+                                                {order.po_number} - {order.supplier?.name ?? "-"}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-slate-700">
+                                        Outlet
+                                    </label>
+                                    <select
+                                        className={inputSelectClass}
+                                        value={form.outlet_id || ""}
+                                        onChange={(event) =>
+                                            setForm((prev) => ({
+                                                ...prev,
+                                                outlet_id: Number(event.target.value || 0),
+                                            }))
+                                        }
+                                    >
+                                        <option value="">Pilih outlet</option>
+                                        {outlets.map((outlet) => (
+                                            <option key={outlet.id} value={outlet.id}>
+                                                {outlet.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <Input
+                                    label="Received Date"
+                                    type="datetime-local"
+                                    value={form.received_date}
                                     onChange={(event) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            outlet_id: Number(event.target.value || 0),
+                                            received_date: event.target.value,
                                         }))
                                     }
-                                >
-                                    <option value="">Pilih outlet</option>
-                                    {outlets.map((outlet) => (
-                                        <option key={outlet.id} value={outlet.id}>
-                                            {outlet.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                />
+
+                                <Input
+                                    label="Catatan"
+                                    value={form.notes ?? ""}
+                                    onChange={(event) =>
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            notes: event.target.value,
+                                        }))
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                            <div className="mb-4">
+                                <h3 className="text-sm font-semibold text-slate-900">
+                                    Item Goods Receipt
+                                </h3>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Pastikan qty diterima, satuan, harga terima, dan tanggal expired sudah benar.
+                                </p>
                             </div>
 
-                            <Input
-                                label="Received Date"
-                                type="datetime-local"
-                                value={form.received_date}
-                                onChange={(event) =>
+                            <GoodsReceiptItemsEditor
+                                value={form.items}
+                                onChange={(items: GoodsReceiptItemPayload[]) =>
                                     setForm((prev) => ({
                                         ...prev,
-                                        received_date: event.target.value,
+                                        items,
                                     }))
                                 }
-                            />
-
-                            <Input
-                                label="Catatan"
-                                value={form.notes ?? ""}
-                                onChange={(event) =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        notes: event.target.value,
-                                    }))
-                                }
+                                rawMaterials={rawMaterials}
+                                units={units}
+                                purchaseOrder={selectedPurchaseOrder}
                             />
                         </div>
 
-                        <GoodsReceiptItemsEditor
-                            value={form.items}
-                            onChange={(items: GoodsReceiptItemPayload[]) =>
-                                setForm((prev) => ({
-                                    ...prev,
-                                    items,
-                                }))
-                            }
-                            rawMaterials={rawMaterials}
-                            units={units}
-                            purchaseOrder={selectedPurchaseOrder}
-                        />
-
                         <Card>
-                            <div className="text-sm">
-                                <div className="text-xs text-slate-500">Estimasi Total Receipt</div>
-                                <div className="text-lg font-bold text-slate-900">
-                                    Rp {formTotal.toLocaleString("id-ID")}
+                            <div className="grid gap-3 text-sm md:grid-cols-3">
+                                <div className="rounded-xl bg-slate-50 p-3 md:col-span-2">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Total Item Valid
+                                    </div>
+                                    <div className="mt-1 font-semibold text-slate-900">
+                                        {sanitizeGoodsReceiptItems(form.items).length} item
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl bg-[var(--brand-brick-soft)] p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                                        Estimasi Total Receipt
+                                    </div>
+                                    <div className="mt-1 text-lg font-bold text-[var(--brand-brick)]">
+                                        {formatCurrency(formTotal)}
+                                    </div>
                                 </div>
                             </div>
                         </Card>
@@ -452,36 +525,60 @@ export default function GoodsReceiptsPage() {
                         </Button>
                     }
                 >
-                    <div className="space-y-4">
+                    <div className="max-h-[72vh] space-y-4 overflow-y-auto pr-1">
                         <Card>
                             <div className="grid gap-3 text-sm md:grid-cols-2">
-                                <div>
-                                    <div className="text-xs text-slate-500">Outlet</div>
-                                    <div>{detailReceipt?.outlet?.name ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Outlet
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
+                                        {detailReceipt?.outlet?.name ?? "-"}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">PO</div>
-                                    <div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        PO
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
                                         {detailReceipt?.purchase_order?.po_number ??
                                             detailReceipt?.purchaseOrder?.po_number ??
                                             "-"}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Status</div>
-                                    <div>{detailReceipt?.status ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Status
+                                    </div>
+                                    <div className="mt-1">
+                                        {detailReceipt ? (
+                                            <Badge variant={statusVariant[detailReceipt.status]}>
+                                                {detailReceipt.status}
+                                            </Badge>
+                                        ) : (
+                                            "-"
+                                        )}
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs text-slate-500">Received Date</div>
-                                    <div>{detailReceipt?.received_date ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Received Date
+                                    </div>
+                                    <div className="mt-1 font-medium text-slate-900">
+                                        {detailReceipt?.received_date ?? "-"}
+                                    </div>
                                 </div>
 
-                                <div className="md:col-span-2">
-                                    <div className="text-xs text-slate-500">Notes</div>
-                                    <div>{detailReceipt?.notes ?? "-"}</div>
+                                <div className="rounded-xl bg-slate-50 p-3 md:col-span-2">
+                                    <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Notes
+                                    </div>
+                                    <div className="mt-1 text-slate-700">
+                                        {detailReceipt?.notes ?? "-"}
+                                    </div>
                                 </div>
                             </div>
                         </Card>
@@ -491,24 +588,33 @@ export default function GoodsReceiptsPage() {
                                 <Card
                                     key={item.id}
                                     title={item.raw_material?.name ?? item.rawMaterial?.name ?? "-"}
-                                    description={`${Number(item.qty_received ?? 0).toLocaleString("id-ID")} ${item.unit?.code ?? ""
-                                        }`}
+                                    description={`${Number(item.qty_received ?? 0).toLocaleString("id-ID")} ${item.unit?.code ?? ""}`}
                                 >
                                     <div className="grid gap-3 text-sm md:grid-cols-3">
-                                        <div>
-                                            <div className="text-xs text-slate-500">Unit Cost</div>
-                                            <div>Rp {Number(item.unit_cost ?? 0).toLocaleString("id-ID")}</div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Unit Cost
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {formatCurrency(item.unit_cost)}
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <div className="text-xs text-slate-500">Expired</div>
-                                            <div>{item.expired_at ?? "-"}</div>
+                                        <div className="rounded-xl bg-slate-50 p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                                Expired
+                                            </div>
+                                            <div className="mt-1 font-medium text-slate-900">
+                                                {item.expired_at ?? "-"}
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <div className="text-xs text-slate-500">Line Total</div>
-                                            <div className="font-semibold text-slate-900">
-                                                Rp {Number(item.line_total ?? 0).toLocaleString("id-ID")}
+                                        <div className="rounded-xl bg-[var(--brand-brick-soft)] p-3">
+                                            <div className="text-xs font-medium uppercase tracking-wide text-[var(--brand-brick)]">
+                                                Line Total
+                                            </div>
+                                            <div className="mt-1 font-bold text-[var(--brand-brick)]">
+                                                {formatCurrency(item.line_total)}
                                             </div>
                                         </div>
                                     </div>

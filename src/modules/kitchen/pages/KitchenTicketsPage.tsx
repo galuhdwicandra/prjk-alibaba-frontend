@@ -22,12 +22,23 @@ const statusOptions: Array<{ label: string; value: KitchenTicketStatus | "" }> =
   { label: "Cancelled", value: "cancelled" },
 ];
 
-const statusVariant: Record<KitchenTicketStatus, "default" | "success" | "warning" | "danger" | "info"> = {
+const statusVariant: Record<
+  KitchenTicketStatus,
+  "default" | "success" | "warning" | "danger" | "info"
+> = {
   pending: "warning",
   preparing: "info",
   ready: "success",
   served: "default",
   cancelled: "danger",
+};
+
+const statusLabel: Record<KitchenTicketStatus, string> = {
+  pending: "Pending",
+  preparing: "Preparing",
+  ready: "Ready",
+  served: "Served",
+  cancelled: "Cancelled",
 };
 
 export default function KitchenTicketsPage() {
@@ -120,77 +131,147 @@ export default function KitchenTicketsPage() {
     <PermissionWrapper permission="kitchen_tickets.view">
       <div
         className={[
-          "space-y-4",
-          fullscreen ? "fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-4" : "",
+          "space-y-5",
+          fullscreen
+            ? "fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-4 sm:p-6"
+            : "",
         ].join(" ")}
       >
         <PageHeader
           title="Kitchen Ticket Board"
           description="Pantau antrian pesanan dapur dan ubah status pengerjaan secara cepat."
+          dark={fullscreen}
           actions={
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => void ticketsQuery.refetch()}>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+              <Button
+                variant={fullscreen ? "secondary" : "outline"}
+                onClick={() => void ticketsQuery.refetch()}
+                loading={ticketsQuery.isFetching}
+              >
                 Refresh
               </Button>
-              <Button variant={fullscreen ? "secondary" : "primary"} onClick={() => setFullscreen((prev) => !prev)}>
+              <Button
+                variant={fullscreen ? "secondary" : "primary"}
+                onClick={() => setFullscreen((prev) => !prev)}
+              >
                 {fullscreen ? "Exit Fullscreen" : "Fullscreen"}
               </Button>
             </div>
           }
         />
 
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {(["pending", "preparing", "ready", "served", "cancelled"] as KitchenTicketStatus[]).map(
             (item) => (
-              <Card key={item} className={fullscreen ? "border-slate-700 bg-slate-900" : ""}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className={fullscreen ? "text-sm text-slate-400" : "text-sm text-slate-500"}>
-                      {item}
+              <button
+                key={item}
+                type="button"
+                onClick={() => setStatus((prev) => (prev === item ? "" : item))}
+                className={[
+                  "rounded-2xl border p-4 text-left shadow-sm transition",
+                  fullscreen
+                    ? "border-slate-700 bg-slate-900 hover:border-orange-400"
+                    : "border-[var(--color-border)] bg-white hover:border-orange-200 hover:bg-orange-50/40",
+                  status === item
+                    ? fullscreen
+                      ? "ring-2 ring-orange-400"
+                      : "ring-2 ring-orange-200"
+                    : "",
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div
+                      className={[
+                        "text-xs font-semibold uppercase tracking-wide",
+                        fullscreen ? "text-slate-400" : "text-slate-500",
+                      ].join(" ")}
+                    >
+                      {statusLabel[item]}
                     </div>
-                    <div className={fullscreen ? "text-3xl font-semibold text-white" : "text-3xl font-semibold text-slate-900"}>
+                    <div
+                      className={[
+                        "mt-2 text-3xl font-bold tracking-tight",
+                        fullscreen ? "text-white" : "text-slate-950",
+                      ].join(" ")}
+                    >
                       {counters[item]}
                     </div>
                   </div>
-                  <Badge variant={statusVariant[item]}>{item}</Badge>
+
+                  <Badge variant={statusVariant[item]}>{statusLabel[item]}</Badge>
                 </div>
-              </Card>
+              </button>
             )
           )}
         </div>
 
         <Card className={fullscreen ? "border-slate-700 bg-slate-900" : ""}>
-          <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+          <div className="grid gap-3 lg:grid-cols-[1fr_220px_auto] lg:items-end">
             <Input
+              label="Pencarian"
               placeholder="Cari ticket, order number, atau queue number..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
 
-            <select
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              value={status}
-              onChange={(event) => setStatus(event.target.value as KitchenTicketStatus | "")}
+            <div>
+              <label
+                className={[
+                  "mb-2 block text-sm font-medium",
+                  fullscreen ? "text-slate-200" : "text-slate-700",
+                ].join(" ")}
+              >
+                Status
+              </label>
+              <select
+                className={[
+                  "w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-[var(--brand-brick)] focus:ring-2 focus:ring-orange-100",
+                  fullscreen
+                    ? "border-slate-700 bg-slate-950 text-white"
+                    : "border-slate-300 bg-white text-slate-800",
+                ].join(" ")}
+                value={status}
+                onChange={(event) => setStatus(event.target.value as KitchenTicketStatus | "")}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.label} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div
+              className={[
+                "rounded-xl border px-4 py-3 text-sm",
+                fullscreen
+                  ? "border-slate-700 bg-slate-950 text-slate-300"
+                  : "border-orange-100 bg-[var(--brand-brick-soft)] text-slate-700",
+              ].join(" ")}
             >
-              {statusOptions.map((option) => (
-                <option key={option.label} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <div className="text-xs font-semibold uppercase tracking-wide text-[var(--brand-brick)]">
+                Auto refresh
+              </div>
+              <div className={fullscreen ? "mt-1 text-white" : "mt-1 text-slate-900"}>
+                Setiap 10 detik
+              </div>
+            </div>
           </div>
         </Card>
 
         {ticketsQuery.isLoading ? (
           <Card className={fullscreen ? "border-slate-700 bg-slate-900 text-white" : ""}>
-            Memuat kitchen tickets...
+            <div className="flex min-h-40 items-center justify-center text-sm">
+              Memuat kitchen tickets...
+            </div>
           </Card>
         ) : ticketsQuery.isError ? (
           <PageErrorState onRetry={() => void ticketsQuery.refetch()} />
         ) : !tickets.length ? (
           <PageEmptyState title="Belum ada kitchen ticket" />
         ) : (
-          <div className="grid gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {tickets.map((ticket) => (
               <KitchenTicketCard
                 key={ticket.id}
@@ -198,7 +279,9 @@ export default function KitchenTicketsPage() {
                 loading={actionMutation.isPending}
                 onView={openDetail}
                 onPrint={(item) => actionMutation.mutate({ ticket: item, action: "print" })}
-                onStartPreparing={(item) => actionMutation.mutate({ ticket: item, action: "start" })}
+                onStartPreparing={(item) =>
+                  actionMutation.mutate({ ticket: item, action: "start" })
+                }
                 onReady={(item) => actionMutation.mutate({ ticket: item, action: "ready" })}
                 onServe={(item) => actionMutation.mutate({ ticket: item, action: "serve" })}
                 onCancel={(item) => actionMutation.mutate({ ticket: item, action: "cancel" })}

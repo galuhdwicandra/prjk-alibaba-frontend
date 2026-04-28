@@ -20,7 +20,10 @@ const statusLabel: Record<KitchenTicketStatus, string> = {
   cancelled: "Cancelled",
 };
 
-const statusVariant: Record<KitchenTicketStatus, "default" | "success" | "warning" | "danger" | "info"> = {
+const statusVariant: Record<
+  KitchenTicketStatus,
+  "default" | "success" | "warning" | "danger" | "info"
+> = {
   pending: "warning",
   preparing: "info",
   ready: "success",
@@ -83,7 +86,7 @@ export function KitchenTicketCard({
   return (
     <Card
       className={[
-        "border-slate-700 bg-slate-900 text-white",
+        "overflow-hidden border-slate-700 bg-slate-900 text-white shadow-md transition hover:border-orange-400/70",
         isOverdue ? "ring-2 ring-red-500" : "",
       ].join(" ")}
       title={ticket.ticket_number}
@@ -92,67 +95,99 @@ export function KitchenTicketCard({
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl bg-slate-800 p-3">
-            <div className="text-slate-400">Queue</div>
-            <div className="text-xl font-semibold">{order?.queue_number ?? "-"}</div>
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Queue
+            </div>
+            <div className="mt-2 text-3xl font-bold tracking-tight text-white">
+              {order?.queue_number ?? "-"}
+            </div>
           </div>
-          <div className="rounded-xl bg-slate-800 p-3">
-            <div className="text-slate-400">Channel</div>
-            <div className="text-xl font-semibold">
+
+          <div className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Channel
+            </div>
+            <div className="mt-2 truncate text-lg font-semibold text-white">
               {channelLabel[order?.order_channel ?? ""] ?? order?.order_channel ?? "-"}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <div className="text-slate-400">Outlet</div>
-            <div className="font-medium">{order?.outlet?.name ?? "-"}</div>
+          <div className="rounded-2xl border border-slate-700 bg-slate-800/70 p-3">
+            <div className="text-xs font-medium text-slate-400">Outlet</div>
+            <div className="mt-1 truncate font-semibold text-slate-100">
+              {order?.outlet?.name ?? "-"}
+            </div>
           </div>
-          <div>
-            <div className="text-slate-400">Masuk</div>
-            <div className="font-medium">{formatTime(ticket.created_at)}</div>
+
+          <div className="rounded-2xl border border-slate-700 bg-slate-800/70 p-3">
+            <div className="text-xs font-medium text-slate-400">Masuk</div>
+            <div className="mt-1 font-semibold text-slate-100">
+              {formatTime(ticket.created_at)}
+            </div>
           </div>
         </div>
+
+        {isOverdue ? (
+          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-100">
+            Ticket sudah menunggu {ageMinutes} menit.
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           {items.length ? (
             items.slice(0, 4).map((item) => (
-              <div key={item.id} className="rounded-xl bg-slate-800 p-3">
+              <div
+                key={item.id}
+                className="rounded-2xl border border-slate-700 bg-slate-800/80 p-3"
+              >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-semibold">{item.item_name_snapshot}</div>
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold text-white">
+                      {item.item_name_snapshot}
+                    </div>
+
                     {item.notes ? (
-                      <div className="mt-1 text-xs text-amber-300">{item.notes}</div>
+                      <div className="mt-2 rounded-lg bg-amber-400/10 px-2 py-1 text-xs font-medium text-amber-200">
+                        {item.notes}
+                      </div>
                     ) : null}
+
                     {item.order_item?.notes && item.order_item.notes !== item.notes ? (
-                      <div className="mt-1 text-xs text-amber-300">{item.order_item.notes}</div>
+                      <div className="mt-2 rounded-lg bg-amber-400/10 px-2 py-1 text-xs font-medium text-amber-200">
+                        {item.order_item.notes}
+                      </div>
                     ) : null}
                   </div>
-                  <div className="rounded-lg bg-slate-700 px-3 py-1 text-sm font-semibold">
+
+                  <div className="shrink-0 rounded-full border border-slate-600 bg-slate-950 px-3 py-1 text-sm font-bold text-white">
                     x{Number(item.qty)}
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="rounded-xl bg-slate-800 p-3 text-sm text-slate-300">
+            <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-3 text-sm text-slate-300">
               Belum ada item.
             </div>
           )}
 
           {items.length > 4 ? (
-            <div className="text-sm text-slate-400">+{items.length - 4} item lainnya</div>
+            <div className="rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm text-slate-300">
+              +{items.length - 4} item lainnya
+            </div>
           ) : null}
         </div>
 
         {order?.notes ? (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-100">
+          <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-3 text-sm font-medium text-amber-100">
             {order.notes}
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 border-t border-slate-700 pt-4">
           <Button variant="secondary" disabled={loading} onClick={() => onView(ticket)}>
             Detail
           </Button>
